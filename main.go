@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	//	"strconv"
@@ -23,16 +22,15 @@ type Resp struct {
 }
 
 type User struct {
-	ID     int    `form:"id"  db:"id,primarykey, autoincrement"`
+	Id     int    `form:"id" ` //db:"id,primarykey, autoincrement"
 	Name   string `form:"name" binding:"required"  db:"name"`
-	Avatar string `form:"avatar" db:"avatar"`
-	Gender int    `form:"gender" db:"gender"`
-	Note   string `form:"note" db:"note" `
+	Avatar string `form:"avatar"  binding:"required"  db:"avatar"`
+	Gender int    `form:"gender" binding:"required"  db:"gender"`
 }
 
 type OAuth struct {
-	ID          int       `form:"id"  db:"id,primarykey, autoincrement"`
-	UserId      int       `form:"userId"  db:"iuser_id"`
+	Id          int       `form:"id"` //  `form:"id"  db:"id,primarykey, autoincrement"`
+	UserId      int       `form:"userId"  db:"user_id"`
 	Plat        string    `form:"plat" binding:"required" db:"plat"`
 	OpenId      string    `form:"openid" binding:"required" db:"openid"`
 	AccessToken string    `form:"access_token" binding:"required" db:"access_token"`
@@ -40,13 +38,27 @@ type OAuth struct {
 	Expires     time.Time `db:"expires"`
 }
 
-type RegisterModel struct {
+type LocalAuth struct {
+	Id          int       `form:"id"` //  `form:"id"  db:"id,primarykey, autoincrement"`
+	UserId      int       `form:"userId"  db:"user_id"`
+	Phone       string    `form:"phone" binding:"required"  db:"phone"`
+	Password    string    `form:"password" binding:"required" db:"password"`
+	Token 		string    `db:"token"`
+	Expires     time.Time `db:"expires"`
+}
+
+type OAuthUser struct {
 	User  User
 	OAuth OAuth
 }
 
+type LocalAuthUser struct {
+	User  User
+	LocalAuth LocalAuth
+}
+
 type Activity struct {
-	ID    int
+	Id   int
 	Title string
 }
 
@@ -86,122 +98,98 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 }
 
 //登陆
-func Login(req *http.Request, r render.Render, db *sql.DB, dbmap *gorp.DbMap) {
-	plat := req.FormValue("plat")
-	if plat == "SinaWeibo" || plat == "QQ" {
-		openId, accessToken, expiresIn := req.FormValue("openid"), req.FormValue("access_token"), req.FormValue("expires_in")
-		log.Println("login : openId->" + openId + "accessToken :" + accessToken + ",expiresIn:" + expiresIn)
-		row := db.QueryRow("SELECT access_token FROM t_oauth WHERE plat = ? AND openid = ?", plat, openId)
-		var token string
-		err := row.Scan(&token)
-		if err != nil {
-			r.JSON(200, "unregister")
-		} else {
-			r.JSON(200, "ok")
-		}
-	} else {
-		username, password := req.FormValue("username"), req.FormValue("password")
-		row := db.QueryRow("SELECT id FROM t_local_oauth WHERE username = ? AND password = ?", username, password)
-		var id int
-		err := row.Scan(&id)
-		fmt.Println(id)
-		panic(err.Error()) // TODO
-		if row == nil {
-			r.JSON(200, "ok")
-		} else {
-			r.JSON(200, "user not found")
-		}
+func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
+	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", oauth.OpenId)
+	checkErr(err, "SelectOne failed")
+	if err != nil && oauth.OpenId == "" {
+		r.JSON(200, "不存在")
+	}else {
+		dbmap.Update(&oauth)
+		r.JSON(200, "登陆成功 token :" + oauth.AccessToken)
 	}
 }
 
-func Register(register RegisterModel, r render.Render, dbmap *gorp.DbMap) {
+func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 	var oauth OAuth
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", register.OAuth.OpenId)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if &oauth == nil {
+	checkErr(err, "SelectOne failed")
+	if err != nil && oauth.OpenId != register.OAuth.OpenId {
+		// err = dbmap.Insert(&register.User)
+		// err = dbmap.Insert(&register.OAuth)
 		trans, err := dbmap.Begin()
 		if err != nil {
 			log.Fatal(err)
 		}
-		trans.Insert(register.User)
-		//		expiresInInt, err := strconv.Atoi(oauth.ExpiresIn)
-		//		oauth.ExpiresIn = time.Now().Add(time.Second * time.Duration(expiresInInt))
-		oauth.Expires = time.Now().Add(time.Second * time.Duration(oauth.ExpiresIn))
-		oauth.UserId = register.User.ID
-		trans.Insert(oauth)
-		// if the commit is successful, a nil error is returned
+		log.Println(register.User)
+		trans.Insert(&register.User)
+		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
+		register.OAuth.UserId = register.User.Id
+		log.Println( register.OAuth)
+		trans.Insert(&register.OAuth)
 		err = trans.Commit()
 		if err == nil {
-			r.JSON(200, "registered success ")
+			r.JSON(200, "register success ")
+		}else{
+			log.Println("trans", err)
 		}
 	} else {
+		log.Println("registered", err)
 		r.JSON(200, "registered ")
+	}
+}
+
+
+func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
+	var auth LocalAuth
+	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone,localAuth.Password)
+	checkErr(err, "SelectOne failed")
+	if err != nil && auth.Phone == "" {
+		r.JSON(200, "账户或密码错误")
+	}else {
+		auth.Token = generaToken()
+		auth.Expires = time.Now().Add(time.Hour * 24*30)
+		dbmap.Update(&auth)
+		r.JSON(200, "登陆成功 token :" + auth.Token)
+	}
+}
+
+func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
+	var auth LocalAuth
+	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=?", authUser.LocalAuth.Phone)
+	checkErr(err, "SelectOne failed")
+	if err != nil && auth.Phone == "" {
+		// err = dbmap.Insert(&authUser.LocalAuth)
+		trans, err := dbmap.Begin()
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = trans.Insert(&authUser.User)
+		if err != nil {
+			log.Fatal(err)
+		}
+		authUser.LocalAuth.UserId = authUser.User.Id
+		log.Println(authUser.LocalAuth)
+		err = trans.Insert(&authUser.LocalAuth)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = trans.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err == nil {
+			r.JSON(200, "注册成功 ")
+		}else{
+			log.Fatal(err)
+			log.Println("trans", err)
+			r.JSON(200, "注册失败 ")
+		}
+	} else {
+		log.Println("registered", err)
+		r.JSON(200, "已存在 ")
 	}
 
 }
-
-////注册
-//func Register(req *http.Request, oauth Oauth, user User, r render.Render) {
-//	plat := req.FormValue("plat")
-//	if plat == "SinaWeibo" || plat == "QQ" {
-//		openId, accessToken, expiresIn := req.FormValue("openid"), req.FormValue("access_token"), req.FormValue("expires_in")
-//		username, gender, avatar := req.FormValue("name"), req.FormValue("gender"), req.FormValue("avatar")
-//		row := db.QueryRow("SELECT access_token FROM t_oauth WHERE plat = ? AND openid = ?", plat, openId)
-//		var token string
-//		row.Scan(&token)
-//		if token == "" {
-//			trans, err := dbmap.Begin()
-//			if err != nil {
-//				return err
-//			}
-//			trans.Insert(user)
-//			oauth.userId = user.Id
-//			trans.Insert(oauth)
-//			// if the commit is successful, a nil error is returned
-//			return trans.Commit()
-
-//			tx, err := db.Begin()
-//			if err != nil {
-//				log.Fatal(err)
-//			}
-//			db.Create(&user)
-//			stmt2, err2 := db.Prepare("INSERT INTO t_oauth(user_id,plat,openid,access_token,expires) VALUES (?,?,?,?,?)")
-//			defer stmt2.Close()
-//			if err2 != nil {
-//				log.Fatal(err2)
-//			}
-
-//			defer tx.Rollback()
-//			res, err := stmt.Exec(username, gender, avatar)
-//			id, err := res.LastInsertId()
-//			expiresInInt, err := strconv.Atoi(expiresIn)
-//			_, err = stmt2.Exec(id, plat, openId, accessToken, time.Now().Add(time.Second*time.Duration(expiresInInt)))
-//			tx.Commit()
-//			if err != nil || err2 != nil {
-//				log.Println(err)
-//				log.Println(err2)
-//			} else {
-//				r.JSON(200, "register OK")
-//			}
-//		} else {
-//			r.JSON(200, "fail registered ")
-//		}
-//	} else {
-//		username, password := req.FormValue("username"), req.FormValue("password")
-//		row := db.QueryRow("SELECT id FROM t_local_oauth WHERE username = ? AND password = ?", username, password)
-//		var id int
-//		err := row.Scan(&id)
-//		fmt.Println(id)
-//		panic(err.Error()) // TODO
-//		if row == nil {
-//			r.JSON(200, "ok")
-//		} else {
-//			r.JSON(200, "user not found")
-//		}
-//	}
-//}
 
 func UpdateUser(user User, dbmap *gorp.DbMap) {
 	dbmap.Update(&user)
@@ -252,8 +240,10 @@ func main() {
 	})
 
 	m.Group("/user", func(r martini.Router) {
-		r.Post("/login", Login)
-		r.Post("/register", binding.Bind(RegisterModel{}), Register)
+		r.Post("/oauth/login",binding.Bind(OAuth{}), LoginOAuth)
+		r.Post("/oauth/register",binding.Bind(OAuthUser{}), RegisterOAuth)
+		r.Post("/login", binding.Bind(LocalAuth{}), Login)
+		r.Post("/register", binding.Bind(LocalAuthUser{}), Register)
 		r.Get("/:id", GetUser)
 		r.Put("/:id", binding.Bind(User{}), UpdateUser)
 		r.Delete("/:id", DeleteUser)
@@ -263,10 +253,14 @@ func main() {
 }
 
 func initDb() *gorp.DbMap {
-	db, err := sql.Open("mysql", "root:weiwanglive@tcp(106.75.19.205:3306)/minnetlive")
+	db, err := sql.Open("mysql", "root:weiwanglive@tcp(106.75.19.205:3306)/minnetlive?parseTime=true")
 	checkErr(err, "sql.Open failed")
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
+
+	dbmap.AddTableWithName(User{}, "t_user").SetKeys(true, "Id")
+	dbmap.AddTableWithName(OAuth{}, "t_oauth").SetKeys(true, "Id")
+	dbmap.AddTableWithName(LocalAuth{}, "t_local_auth").SetKeys(true, "Id")
 
 	//TODO cdreate table
 	//	// add a table, setting the table name to 'posts' and
@@ -282,6 +276,12 @@ func initDb() *gorp.DbMap {
 
 func checkErr(err error, msg string) {
 	if err != nil {
-		log.Fatalln(msg, err)
+		// log.Fatalln(msg, err)
+		log.Println(msg,err)
 	}
+}
+
+func generaToken() string {
+
+	return "genToken"
 }
