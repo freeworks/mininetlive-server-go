@@ -16,9 +16,9 @@ import (
 )
 
 type Resp struct {
-	Ret  string      `form:"ret"`
-	Msg  string      `form:"msg"`
-	Data interface{} `form:"data"`
+	Ret  int64      `form:"ret" json:"ret"`
+	Msg  string      `form:"msg" json:"msg"`
+	Data interface{} `form:"data" json:"data"`
 }
 
 type User struct {
@@ -101,11 +101,19 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", oauth.OpenId)
 	checkErr(err, "SelectOne failed")
-	if err != nil && oauth.OpenId == "" {
-		r.JSON(200, "不存在")
+	if err != nil {
+		r.JSON(200, Resp{1000,"登陆失败",nil})
 	}else {
 		dbmap.Update(&oauth)
-		r.JSON(200, "登陆成功 token :" + oauth.AccessToken)
+		obj, err := dbmap.Get(User{}, oauth.UserId)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if obj == nil{
+			r.JSON(200, Resp{1004,"用户资料信息不存在",nil})
+		}
+		user := obj.(*User)
+		r.JSON(200, Resp{0,"登陆成功",map[string]interface{}{"token":oauth.AccessToken,"user":user}})
 	}
 }
 
@@ -128,13 +136,14 @@ func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		trans.Insert(&register.OAuth)
 		err = trans.Commit()
 		if err == nil {
-			r.JSON(200, "register success ")
+			r.JSON(200, Resp{0,"注册成功",map[string]interface{}{"user":register.User}})
 		}else{
 			log.Println("trans", err)
+			r.JSON(200, Resp{1003,"注册失败",nil})
 		}
 	} else {
 		log.Println("registered", err)
-		r.JSON(200, "registered ")
+		r.JSON(200, Resp{1003,"该账号已经注册",nil})
 	}
 }
 
@@ -143,13 +152,21 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 	var auth LocalAuth
 	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone,localAuth.Password)
 	checkErr(err, "SelectOne failed")
-	if err != nil && auth.Phone == "" {
+	if err != nil {
 		r.JSON(200, "账户或密码错误")
 	}else {
 		auth.Token = generaToken()
 		auth.Expires = time.Now().Add(time.Hour * 24*30)
 		dbmap.Update(&auth)
-		r.JSON(200, "登陆成功 token :" + auth.Token)
+		obj, err := dbmap.Get(User{}, auth.UserId)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if obj == nil{
+			r.JSON(200, Resp{1004,"用户资料信息不存在",nil})
+		}
+		user := obj.(*User)
+		r.JSON(200, Resp{0,"登陆成功",map[string]interface{}{"token":auth.Token,"user":user}})
 	}
 }
 
@@ -178,15 +195,15 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 			log.Fatal(err)
 		}
 		if err == nil {
-			r.JSON(200, "注册成功 ")
+			r.JSON(200, Resp{0,"注册成功",map[string]interface{}{"token":auth.Token,"user":authUser.User}})
 		}else{
 			log.Fatal(err)
 			log.Println("trans", err)
-			r.JSON(200, "注册失败 ")
+			r.JSON(200, Resp{1005,"注册失败",nil})
 		}
 	} else {
 		log.Println("registered", err)
-		r.JSON(200, "已存在 ")
+		r.JSON(200, Resp{1006,"该账号已经注册",nil})
 	}
 
 }
