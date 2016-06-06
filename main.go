@@ -16,7 +16,7 @@ import (
 )
 
 type Resp struct {
-	Ret  int64      `form:"ret" json:"ret"`
+	Ret  int64       `form:"ret" json:"ret"`
 	Msg  string      `form:"msg" json:"msg"`
 	Data interface{} `form:"data" json:"data"`
 }
@@ -39,12 +39,12 @@ type OAuth struct {
 }
 
 type LocalAuth struct {
-	Id          int       `form:"id"` //  `form:"id"  db:"id,primarykey, autoincrement"`
-	UserId      int       `form:"userId"  db:"user_id"`
-	Phone       string    `form:"phone" binding:"required"  db:"phone"`
-	Password    string    `form:"password" binding:"required" db:"password"`
-	Token 		string    `db:"token"`
-	Expires     time.Time `db:"expires"`
+	Id       int       `form:"id"` //  `form:"id"  db:"id,primarykey, autoincrement"`
+	UserId   int       `form:"userId"  db:"user_id"`
+	Phone    string    `form:"phone" binding:"required"  db:"phone"`
+	Password string    `form:"password" binding:"required" db:"password"`
+	Token    string    `db:"token"`
+	Expires  time.Time `db:"expires"`
 }
 
 type OAuthUser struct {
@@ -53,12 +53,12 @@ type OAuthUser struct {
 }
 
 type LocalAuthUser struct {
-	User  User
+	User      User
 	LocalAuth LocalAuth
 }
 
 type Activity struct {
-	Id   int
+	Id    int
 	Title string
 }
 
@@ -102,18 +102,18 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", oauth.OpenId)
 	checkErr(err, "SelectOne failed")
 	if err != nil {
-		r.JSON(200, Resp{1000,"登陆失败",nil})
-	}else {
+		r.JSON(200, Resp{1000, "登陆失败", nil})
+	} else {
 		dbmap.Update(&oauth)
 		obj, err := dbmap.Get(User{}, oauth.UserId)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if obj == nil{
-			r.JSON(200, Resp{1004,"用户资料信息不存在",nil})
+		if obj == nil {
+			r.JSON(200, Resp{1004, "用户资料信息不存在", nil})
 		}
 		user := obj.(*User)
-		r.JSON(200, Resp{0,"登陆成功",map[string]interface{}{"token":oauth.AccessToken,"user":user}})
+		r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "user": user}})
 	}
 }
 
@@ -132,41 +132,40 @@ func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		trans.Insert(&register.User)
 		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
 		register.OAuth.UserId = register.User.Id
-		log.Println( register.OAuth)
+		log.Println(register.OAuth)
 		trans.Insert(&register.OAuth)
 		err = trans.Commit()
 		if err == nil {
-			r.JSON(200, Resp{0,"注册成功",map[string]interface{}{"user":register.User}})
-		}else{
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"user": register.User}})
+		} else {
 			log.Println("trans", err)
-			r.JSON(200, Resp{1003,"注册失败",nil})
+			r.JSON(200, Resp{1003, "注册失败", nil})
 		}
 	} else {
 		log.Println("registered", err)
-		r.JSON(200, Resp{1003,"该账号已经注册",nil})
+		r.JSON(200, Resp{1003, "该账号已经注册", nil})
 	}
 }
 
-
 func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 	var auth LocalAuth
-	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone,localAuth.Password)
+	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone, localAuth.Password)
 	checkErr(err, "SelectOne failed")
 	if err != nil {
 		r.JSON(200, "账户或密码错误")
-	}else {
+	} else {
 		auth.Token = generaToken()
-		auth.Expires = time.Now().Add(time.Hour * 24*30)
+		auth.Expires = time.Now().Add(time.Hour * 24 * 30)
 		dbmap.Update(&auth)
 		obj, err := dbmap.Get(User{}, auth.UserId)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if obj == nil{
-			r.JSON(200, Resp{1004,"用户资料信息不存在",nil})
+		if obj == nil {
+			r.JSON(200, Resp{1004, "用户资料信息不存在", nil})
 		}
 		user := obj.(*User)
-		r.JSON(200, Resp{0,"登陆成功",map[string]interface{}{"token":auth.Token,"user":user}})
+		r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": auth.Token, "user": user}})
 	}
 }
 
@@ -195,15 +194,15 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 			log.Fatal(err)
 		}
 		if err == nil {
-			r.JSON(200, Resp{0,"注册成功",map[string]interface{}{"token":auth.Token,"user":authUser.User}})
-		}else{
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": auth.Token, "user": authUser.User}})
+		} else {
 			log.Fatal(err)
 			log.Println("trans", err)
-			r.JSON(200, Resp{1005,"注册失败",nil})
+			r.JSON(200, Resp{1005, "注册失败", nil})
 		}
 	} else {
 		log.Println("registered", err)
-		r.JSON(200, Resp{1006,"该账号已经注册",nil})
+		r.JSON(200, Resp{1006, "该账号已经注册", nil})
 	}
 
 }
@@ -257,16 +256,24 @@ func main() {
 	})
 
 	m.Group("/user", func(r martini.Router) {
-		r.Post("/oauth/login",binding.Bind(OAuth{}), LoginOAuth)
-		r.Post("/oauth/register",binding.Bind(OAuthUser{}), RegisterOAuth)
+		r.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
+		r.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 		r.Post("/login", binding.Bind(LocalAuth{}), Login)
 		r.Post("/register", binding.Bind(LocalAuthUser{}), Register)
 		r.Get("/:id", GetUser)
 		r.Put("/:id", binding.Bind(User{}), UpdateUser)
 		r.Delete("/:id", DeleteUser)
 	})
+	m.Group("/amdin", func(r martini.Router) {
+		r.Get("/", AdminMain)
+	})
 
 	m.Run()
+}
+
+func AdminMain(r render.Render) {
+
+	r.HTML(200, "hello", "amdin")
 }
 
 func initDb() *gorp.DbMap {
@@ -294,7 +301,7 @@ func initDb() *gorp.DbMap {
 func checkErr(err error, msg string) {
 	if err != nil {
 		// log.Fatalln(msg, err)
-		log.Println(msg,err)
+		log.Println(msg, err)
 	}
 }
 
