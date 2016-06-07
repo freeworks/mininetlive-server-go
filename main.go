@@ -6,13 +6,13 @@ import (
 	"net/http"
 	//	"strconv"
 	"time"
-
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
 	//	"gopkg.in/gorp.v1"
 	"github.com/coopernurse/gorp"
+	"github.com/pborman/uuid"
 )
 
 type Resp struct {
@@ -58,43 +58,94 @@ type LocalAuthUser struct {
 }
 
 type Activity struct {
-	Id    int
-	Title string
+	Id   int   `form:"id"  db:"id"`
+	Title string   `form:"title"  binding:"required" db:"title"`
+	Date  time.Time  `db:"date"`
+	ADate  int64  `form:"date" binding:"required" db:"-"`
+	Desc  string  `form:"desc" binding:"required" db:"desc"`
+	FontCover string  `form:"fontCover" binding:"required" db:"front_cover"`
+ 	Type  int  `form:"type" binding:"required" db:"type"`
+ 	Price int  `form:"price"  db:"price"`
+ 	Password   string `form:"password"  db:"pwd"`
+ 	BelongUserId int  `form:"belongUserId"  db:"belong_user_id"`
+ 	VideoId  string  `form:"videoId"  db:"video_id"`
+ 	VideoType int  `form:"videoType" binding:"required" db:"video_type"`
+ 	VideoPullPath string `form:"videoPullPath"  db:"video_pull_path"`
+ 	VideoPushPath string `form:"videoPushPath"  db:"video_push_path"`
+ 	VideoStorePath string `form:"videoPushPath"  db:"video_store_path"`
+
 }
 
 func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	var activities []Activity
 	_, err := dbmap.Select(&activities, "select * from t_activity")
 	checkErr(err, "Select failed")
-	newmap := map[string]interface{}{"metatitle": "this is my custom title", "activities": activities}
-	r.HTML(200, "posts", newmap)
+	if err != nil {
+		r.JSON(200, Resp{2002, "查询活动失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "查询活动成功", activities})
+	}
 }
 
 func GetActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	var activities []Activity
-	_, err := dbmap.Select(&activities, "select * from t_activity")
-	checkErr(err, "Select failed")
-	newmap := map[string]interface{}{"metatitle": "this is my custom title", "activities": activities}
-	r.HTML(200, "posts", newmap)
-
 	var activity Activity
-	err = dbmap.SelectOne(&activity, "select * from t_activty where id =?", args["id"])
-	//simple error check
+	err := dbmap.SelectOne(&activity, "select * from t_activity where id =?", args["id"])
+	checkErr(err, "Select failed")
 	if err != nil {
-		newmap := map[string]interface{}{"metatitle": "404 Error", "message": "This is not found"}
-		r.HTML(404, "error", newmap)
+		r.JSON(200, Resp{2003, "活动不存在", nil})
 	} else {
-		newmap := map[string]interface{}{"metatitle": activity.Title + " more custom", "activity": activity}
-		r.HTML(200, "activity", newmap)
+		r.JSON(200, Resp{0, "查询活动成功", activity})
 	}
 }
 
 func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
-	log.Println(activity)
+	activity.VideoId = uuid.New()
+	activity.VideoPushPath = "xxxxxx"
+	activity.BelongUserId = 123
+	//奇葩
+	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
+	activity.Date = time.Unix(activity.ADate, 0)
 	err := dbmap.Insert(&activity)
 	checkErr(err, "Insert failed")
-	newmap := map[string]interface{}{"metatitle": "created activity", "activity": activity}
-	r.HTML(200, "post", newmap)
+	if err!= nil {
+		r.JSON(200, Resp{2001, "添加活动失败", nil})
+	}else{
+		r.JSON(200, Resp{0, "添加活动成功", activity})
+	}
+}
+
+func UpdateActivity(args martini.Params,activity Activity, r render.Render, dbmap *gorp.DbMap) {
+	obj, err := dbmap.Get(Activity{}, args["id"])
+	if err != nil{
+		log.Println(err)
+		r.JSON(200, Resp{2004, "更新活动失败", nil})
+	}else{
+		orgActivity := obj.(*Activity)
+		orgActivity.Title = activity.Title
+		orgActivity.Date = activity.Date
+		orgActivity.Desc = activity.Desc
+		orgActivity.Type = activity.Type
+		orgActivity.VideoType = activity.VideoType
+		orgActivity.FontCover = activity.FontCover
+		_,err := dbmap.Update(orgActivity)
+		checkErr(err, "Update failed")
+		if err != nil {
+			r.JSON(200, Resp{2004, "更新活动失败", nil})
+		}else{
+			r.JSON(200, Resp{0, "更新活动成功", activity})
+		}
+	}
+}
+
+
+func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", args["id"])
+   checkErr(err, "Delete failed")
+	if err != nil {
+		r.JSON(200, Resp{2005, "删除活动失败", nil})
+	}else{
+		r.JSON(200, Resp{0, "删除活动成功", nil})
+	}
 }
 
 //登陆
@@ -184,6 +235,7 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 			log.Fatal(err)
 		}
 		authUser.LocalAuth.UserId = authUser.User.Id
+		authUser.LocalAuth.Expires = time.Now().Add(time.Hour * 24*30)
 		log.Println(authUser.LocalAuth)
 		err = trans.Insert(&authUser.LocalAuth)
 		if err != nil {
@@ -248,11 +300,11 @@ func main() {
 	m.Use(render.Renderer())
 
 	m.Group("/activity", func(r martini.Router) {
-		r.Get("/", GetActivityList)
+		r.Post("",binding.Bind(Activity{}), NewActivity)
+		r.Get("", GetActivityList)
 		r.Get("/:id", GetActivity)
-		r.Post("/", NewActivity)
-		//		r.Put("/update/:id", UpdateActivity)
-		//		r.Delete("/delete/:id", DeleteActivity)
+		r.Put("/:id",binding.Bind(Activity{}), UpdateActivity)
+		r.Delete("/:id", DeleteActivity)
 	})
 
 	m.Group("/user", func(r martini.Router) {
@@ -285,6 +337,7 @@ func initDb() *gorp.DbMap {
 	dbmap.AddTableWithName(User{}, "t_user").SetKeys(true, "Id")
 	dbmap.AddTableWithName(OAuth{}, "t_oauth").SetKeys(true, "Id")
 	dbmap.AddTableWithName(LocalAuth{}, "t_local_auth").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Activity{}, "t_activity").SetKeys(true, "Id")
 
 	//TODO cdreate table
 	//	// add a table, setting the table name to 'posts' and
@@ -300,8 +353,8 @@ func initDb() *gorp.DbMap {
 
 func checkErr(err error, msg string) {
 	if err != nil {
+		log.Println(msg,err)
 		// log.Fatalln(msg, err)
-		log.Println(msg, err)
 	}
 }
 
