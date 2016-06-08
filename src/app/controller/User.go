@@ -1,14 +1,16 @@
 package controller
 
 import (
-		."app/common"
-		."app/models"
-		"github.com/martini-contrib/render"
-		"github.com/coopernurse/gorp"
-		"github.com/go-martini/martini"
-		// "github.com/pborman/uuid"
-		"time"
-	)
+	. "app/common"
+	. "app/models"
+
+	"github.com/coopernurse/gorp"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/render"
+	// "github.com/pborman/uuid"
+	"time"
+)
+
 //0    成功
 //1000 未注册
 //1002 已经注册但获取用户信息失败/用户信息不存在
@@ -17,7 +19,7 @@ import (
 //1005 账号/密码错误
 //1006 更新账户信息失败
 //1007 删除账户失败
-		
+
 //登陆
 func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", oauth.OpenId)
@@ -45,6 +47,8 @@ func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		// err = dbmap.Insert(&register.OAuth)
 		trans, err := dbmap.Begin()
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
+		register.User.Updated = time.Now()
+		register.User.Created = time.Now()
 		trans.Insert(&register.User)
 		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
 		register.OAuth.UserId = register.User.Id
@@ -90,6 +94,8 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		// err = dbmap.Insert(&authUser.LocalAuth)
 		trans, err := dbmap.Begin()
 		CheckErr(err, "Register begin trans failed")
+		authUser.User.Updated = time.Now()
+		authUser.User.Created = time.Now()
 		err = trans.Insert(&authUser.User)
 		CheckErr(err, "Register insert user failed")
 		authUser.LocalAuth.UserId = authUser.User.Id
@@ -122,6 +128,7 @@ func UpdateUser(args martini.Params, user User, r render.Render, dbmap *gorp.DbM
 		if user.Avatar != "" {
 			orgUser.Avatar = user.Avatar
 		}
+		orgUser.Updated = time.Now()
 		_, err := dbmap.Update(orgUser)
 		CheckErr(err, "UpdateUser update failed")
 		if err != nil {
@@ -150,8 +157,6 @@ func GetUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	if err != nil {
 		r.JSON(200, Resp{1002, "获取用户信息失败", nil})
 	} else {
-		r.JSON(200, Resp{0,"获取用户信息成功",user})
+		r.JSON(200, Resp{0, "获取用户信息成功", user})
 	}
 }
-
-
