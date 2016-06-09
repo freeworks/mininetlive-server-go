@@ -5,10 +5,10 @@ import (
 	. "app/controller"
 	db "app/db"
 	. "app/models"
+	sessionauth "app/sessionauth"
+	sessions "app/sessions"
 	. "app/upload"
 
-	"github.com/codegangsta/martini-contrib/sessionauth"
-	"github.com/codegangsta/martini-contrib/sessions"
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/martini-contrib/binding"
@@ -44,7 +44,6 @@ func main() {
 	m.Get("appointmentrecords", GetAppointmentRecords)
 	m.Get("playrecords", GetPlayRecords)
 	m.Get("payrecords", GetPayRecords)
-
 	m.Post("/upload", Upload)
 
 	go func() {
@@ -63,15 +62,15 @@ func main() {
 			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
 			IndentJSON: true,                        // Output human readable JSON
 		}))
-		store := sessions.NewCookieStore([]byte("secret123"))
-		m.Use(sessions.Sessions("mininet_session", store))
-		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
-		sessionauth.RedirectUrl = "/new-login"
-		sessionauth.RedirectParam = "new-next"
 
-		m.Get("/", admin.Index)
-		//m.Get("/getVCode", admin.GetVCode)
+		m.Use(sessions.Sessions("my_session", []byte("secret123")))
+		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
+		sessionauth.RedirectUrl = "/login"
+		sessionauth.RedirectParam = "next"
+
+		m.Get("/", sessionauth.LoginRequired, admin.Index)
 		m.Post("/login", admin.Login)
+		m.Get("/login", admin.RedirectLogin)
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
 		m.Get("/activity", sessionauth.LoginRequired, admin.GetActivityList)
 		m.Post("/activity", sessionauth.LoginRequired, binding.Bind(Activity{}), admin.NewActivity)
@@ -79,11 +78,8 @@ func main() {
 		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)
 		m.Get("/user", sessionauth.LoginRequired, admin.GetUserList)
 		m.Get("/income", sessionauth.LoginRequired, admin.GetIncome)
-
-		//		m.Get("/private", sessionauth.LoginRequired, func(r render.Render, user sessionauth.User) {
-		//			r.HTML(200, "private", user.(*AdminModel))
-		//		})
 		m.RunOnAddr(":8081")
 	}()
+
 	m.RunOnAddr(":8080")
 }

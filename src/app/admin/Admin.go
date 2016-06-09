@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codegangsta/martini-contrib/sessionauth"
-	"github.com/codegangsta/martini-contrib/sessions"
+	"app/sessionauth"
+	"app/sessions"
+
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/render"
 	"github.com/pborman/uuid"
@@ -94,7 +95,13 @@ func Login(req *http.Request, session sessions.Session, r render.Render, dbmap *
 			r.Redirect("/")
 			return
 		}
+	} else {
+		r.JSON(200, "缺参数")
 	}
+}
+
+func RedirectLogin(r render.Render) {
+	r.HTML(200, "login", nil)
 }
 
 func Logout(session sessions.Session, user sessionauth.User, r render.Render) {
