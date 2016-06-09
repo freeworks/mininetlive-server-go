@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="login-bg">
 <head>
-	<title>Detail Admin - Sign in</title>
+	<title>微网直播间 管理台 - 登录</title>
     
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	
@@ -31,21 +31,19 @@
 <body>
 
     <div class="row-fluid login-wrapper">
-        <a href="index.html">
-            <img class="logo" src="img/logo-white.png" />
-        </a>
+        <img class="logo" src="img/logo.png" />
 
         <div class="span4 box">
             <div class="content-wrap">
                 <h6>登 录</h6>
-                <input class="span12" type="text" placeholder="电话号码" />
-                <input class="span12" type="password" placeholder="验证码" />
-                <a href="#" class="forgot">获取验证码?</a>
-                <div class="remember">
+                <input id="phone" class="span12" type="text" placeholder="账号" />
+                <input id="password" class="span12" type="password" placeholder="密码" />
+<!--            <a href="#" class="forgot">找回密码?</a>-->
+<!--            <div class="remember">
                     <input id="remember-me" type="checkbox" />
                     <label for="remember-me">记住登陆态</label>
-                </div>
-                <a class="btn-glow primary login" href="login">登 录</a>
+                </div>-->
+                <a id="loginbtn" class="btn-glow primary login" href="login">登 录</a>
             </div>
         </div>
 
@@ -64,16 +62,18 @@
     <script type="text/javascript">
         $(function () {
             // bg switcher
-            var $btns = $(".bg-switch .bg");
-            $btns.click(function (e) {
-                e.preventDefault();
-                $btns.removeClass("active");
-                $(this).addClass("active");
-                var bg = $(this).data("img");
-
-                $("html").css("background-image", "url('img/bgs/" + bg + "')");
-            });
-
+            	$("#loginbtn").click(function(){
+				var phoneNumber = $("#phone").text()
+				var password = $("#password").text()
+				 $.post("/login",
+				  {
+				    phone:phoneNumber
+				    password:password
+				  },
+				  function(data,status){
+				    alert("Data: " + data + "\nStatus: " + status);
+				  });
+			})
         });
     </script>
 

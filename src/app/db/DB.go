@@ -1,13 +1,23 @@
 package db
 
 import (
+	. "app/admin"
+	. "app/common"
+	. "app/models"
 	"database/sql"
+	"os"
+
 	"github.com/coopernurse/gorp"
-	."app/models"
-	."app/common"
-	)
+)
+
+var dbmap *gorp.DbMap
 
 func InitDb() *gorp.DbMap {
+	_, err := os.Open("martini-sessionauth.bin")
+	if err == nil {
+		os.Remove("martini-sessionauth.bin")
+	}
+
 	db, err := sql.Open("mysql", "root:weiwanglive@tcp(106.75.19.205:3306)/minnetlive?parseTime=true")
 	CheckErr(err, "sql.Open failed")
 	// construct a gorp DbMap
@@ -17,15 +27,10 @@ func InitDb() *gorp.DbMap {
 	dbmap.AddTableWithName(OAuth{}, "t_oauth").SetKeys(true, "Id")
 	dbmap.AddTableWithName(LocalAuth{}, "t_local_auth").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Activity{}, "t_activity").SetKeys(true, "Id")
-
-	//TODO cdreate table
-	//	// add a table, setting the table name to 'posts' and
-	//	// specifying that the Id property is an auto incrementing PK
-	//	dbmap.AddTableWithName(Post{}, "posts").SetKeys(true, "Id")
-	//	// create the table. in a production system you'd generally
-	//	// use a migration tool, or create the tables via scripts
-	//	err = dbmap.CreateTablesIfNotExists()
-	//	checkErr(err, "Create tables failed")
+	dbmap.AddTableWithName(PlayRecord{}, "t_play_record").SetKeys(true, "Id")
+	dbmap.AddTableWithName(PayRecord{}, "t_pay_record").SetKeys(true, "Id")
+	dbmap.AddTableWithName(AppointmentRecord{}, "t_appointment_record").SetKeys(true, "Id")
+	dbmap.AddTableWithName(AdminModel{}, "t_admin").SetKeys(true, "Id")
 
 	return dbmap
 }
