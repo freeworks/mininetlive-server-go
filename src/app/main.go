@@ -5,7 +5,6 @@ import (
 	db "app/db"
 	. "app/models"
 	. "app/upload"
-	"net/http"
 
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
@@ -19,17 +18,6 @@ func main() {
 	defer dbmap.Db.Close()
 	m := martini.Classic()
 	m.Map(dbmap)
-	m.Group("/activity", func(r martini.Router) {
-		r.Post("", binding.Bind(Activity{}), NewActivity)
-		r.Get("", GetActivityList)
-		r.Get("/:id", GetActivity)
-		r.Put("/:id", binding.Bind(Activity{}), UpdateActivity)
-		r.Delete("/:id", DeleteActivity)
-		r.Post("/appointment/:id", AppointmentActivity)
-		r.Post("/pay/:id", PayActivity)
-		r.Post("/play/:id", PlayActivity)
-	})
-
 	m.Group("/user", func(r martini.Router) {
 		r.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
 		r.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
@@ -39,6 +27,21 @@ func main() {
 		r.Put("/:id", binding.Bind(User{}), UpdateUser)
 		r.Delete("/:id", DeleteUser)
 	})
+	m.Group("/activity", func(r martini.Router) {
+		r.Post("", binding.Bind(Activity{}), NewActivity)
+		r.Get("", GetActivityList)
+		r.Get("/:id", GetActivity)
+		r.Put("/:id", binding.Bind(Activity{}), UpdateActivity)
+		r.Delete("/:id", DeleteActivity)
+		r.Post("/appointment/:id", AppointmentActivity)
+		r.Delete("/appointment", CancelAppointmentActivity)
+		r.Post("/pay/:id", PayActivity)
+		r.Post("/play/:id", PlayActivity)
+	})
+	m.Get("appointmentrecords", GetAppointmentRecords)
+	m.Get("playrecords", GetPlayRecords)
+	m.Get("payrecords", GetPayRecords)
+
 	m.Post("/upload", Upload)
 
 	go func() {
@@ -54,19 +57,10 @@ func main() {
 			Delims:     render.Delims{"{[{", "}]}"}, // Sets delimiters to the specified strings.
 			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
 			IndentJSON: true,                        // Output human readable JSON
-			//		IndentXML:  true,                        // Output human readable XML
-			//		HTMLContentType: "application/xhtml+xml",     // Output XHTML content type instead of default "text/html"
 		}))
-		m.Use(func(res http.ResponseWriter, req *http.Request) {
-			//		if req.Header.Get("X-API-KEY") != "secret123" {
-			//			res.WriteHeader(http.StatusUnauthorized)
-			//		}
-		})
-		m.Group("/admin", func(r martini.Router) {
-			r.Get("", Index)
-			r.Get("/login", LoginAdmin)
-		})
-		m.RunOnAddr("127.0.0.1:8081")
+		m.Get("", Index)
+		m.Get("/login", LoginAdmin)
+		m.RunOnAddr(":8081")
 	}()
-	m.RunOnAddr("127.0.0.1:8080")
+	m.RunOnAddr(":8080")
 }
