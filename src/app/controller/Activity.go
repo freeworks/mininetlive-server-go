@@ -90,7 +90,7 @@ func PlayActivity(req *http.Request, args martini.Params, activity Activity, r r
 	}
 }
 
-func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+func GetAllActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	var activities []Activity
 	_, err := dbmap.Select(&activities, "select * from t_activity")
 	CheckErr(err, "GetActivityList select failed")

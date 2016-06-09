@@ -84,9 +84,9 @@ type Activity struct {
 	Id               int       `form:"id"  db:"id"`
 	Title            string    `form:"title"  binding:"required" db:"title"`
 	Date             time.Time `db:"date"`
-	ADate            int64     `form:"date" binding:"required" db:"-"`
+	ADate            int64     `form:"date"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" binding:"required" db:"desc"`
-	FontCover        string    `form:"fontCover" binding:"required" db:"front_cover"`
+	FontCover        string    `form:"fontCover"  db:"front_cover"`       /*binding:"required"*/
 	Type             int       `form:"type" binding:"required" db:"type"` //0直播，1点播
 	Price            int       `form:"price"  db:"price"`
 	Password         string    `form:"password"  db:"pwd"`

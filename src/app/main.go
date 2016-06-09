@@ -1,6 +1,7 @@
 package main
 
 import (
+	admin "app/admin"
 	. "app/controller"
 	db "app/db"
 	. "app/models"
@@ -29,7 +30,7 @@ func main() {
 	})
 	m.Group("/activity", func(r martini.Router) {
 		r.Post("", binding.Bind(Activity{}), NewActivity)
-		r.Get("", GetActivityList)
+		r.Get("", GetAllActivity)
 		r.Get("/:id", GetActivity)
 		r.Put("/:id", binding.Bind(Activity{}), UpdateActivity)
 		r.Delete("/:id", DeleteActivity)
@@ -46,6 +47,7 @@ func main() {
 
 	go func() {
 		m := martini.Classic()
+		m.Map(dbmap)
 		m.NotFound(func() {
 			// 处理 404
 		})
@@ -58,8 +60,15 @@ func main() {
 			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
 			IndentJSON: true,                        // Output human readable JSON
 		}))
-		m.Get("", Index)
-		m.Get("/login", LoginAdmin)
+		m.Get("", admin.Index)
+		m.Get("/login", admin.Login)
+		m.Get("/logout", admin.Logout)
+		m.Get("/activity", admin.GetActivityList)
+		m.Post("/activity", binding.Bind(Activity{}), admin.NewActivity)
+		m.Get("/addactivity", admin.AddActivity)
+		m.Get("/admin", admin.GetAdminList)
+		m.Get("/user", admin.GetUserList)
+		m.Get("/income", admin.GetIncome)
 		m.RunOnAddr(":8081")
 	}()
 	m.RunOnAddr(":8080")
