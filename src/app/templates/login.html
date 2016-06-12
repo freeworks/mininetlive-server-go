@@ -36,14 +36,14 @@
         <div class="span4 box">
             <div class="content-wrap">
                 <h6>登 录</h6>
-                <input id="phone" class="span12" type="text" placeholder="账号" />
+                <input id="username" class="span12" type="text" placeholder="账号" />
                 <input id="password" class="span12" type="password" placeholder="密码" />
 <!--            <a href="#" class="forgot">找回密码?</a>-->
 <!--            <div class="remember">
                     <input id="remember-me" type="checkbox" />
                     <label for="remember-me">记住登陆态</label>
                 </div>-->
-                <a id="loginbtn" class="btn-glow primary login" href="login">登 录</a>
+                <a id="loginbtn" class="btn-glow primary login" >登 录</a>
             </div>
         </div>
 
@@ -59,21 +59,36 @@
     <script src="js/theme.js"></script>
 
     <!-- pre load bg imgs -->
-    <script type="text/javascript">
+	 <script type="text/javascript">
+		function getUrlParam(name)
+		{
+			var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+			var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+			if (r!=null) 
+				return unescape(r[2]); 
+			return null; //返回参数值
+		} 
         $(function () {
             // bg switcher
-            	$("#loginbtn").click(function(){
-				var phoneNumber = $("#phone").text()
-				var password = $("#password").text()
-				 $.post("/login",
-				  {
-				    phone:phoneNumber
-				    password:password
-				  },
-				  function(data,status){
-				    alert("Data: " + data + "\nStatus: " + status);
-				  });
-			})
+            var $btns = $("#loginbtn");
+            $btns.click(function (e) {
+            	var username = $("#username").val()
+				var pwd = $("#password").val()
+				if(username == ""){
+					alert("用户名不能为空" )
+					return;
+				}
+				if(pwd == ""){
+					alert("密码不能为空" )
+					return;
+				}
+				$.post("login?next="+getUrlParam("next"), 
+					{ "username": username, "password": pwd },
+					function(data) {
+						alert(data)
+						window.location = data;
+					})
+            });		
         });
     </script>
 

@@ -3,14 +3,15 @@ package admin
 import (
 	. "app/common"
 	. "app/models"
+	"app/sessionauth"
+	"app/sessions"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	"app/sessionauth"
-	"app/sessions"
-
 	"github.com/coopernurse/gorp"
+	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/pborman/uuid"
 )
@@ -26,6 +27,10 @@ type AdminModel struct {
 	Updated       time.Time `db:"update_time"`
 	Created       time.Time `db:"create_time"`
 	authenticated bool      `form:"-" db:"-"`
+}
+
+func (admin AdminModel) String() string {
+	return fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
 }
 
 // GetAnonymousUser should generate an anonymous user model
@@ -66,7 +71,9 @@ func (u *AdminModel) UniqueId() interface{} {
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *AdminModel) GetById(id interface{}) error {
-	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE id = $1", id)
+	log.Println(id)
+	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE id = ?", id)
+	CheckErr(err, "GetById select one")
 	if err != nil {
 		return err
 	}
@@ -74,29 +81,43 @@ func (u *AdminModel) GetById(id interface{}) error {
 }
 
 func Index(r render.Render) {
+	log.Println("Index")
 	r.HTML(200, "index", nil)
 }
 
-func Login(req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
+func Login(args martini.Params, req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	if len(req.Form["username"]) > 0 && len(req.Form["password"]) > 0 {
 		username := req.Form["username"][0]
 		password := req.Form["password"][0]
+		log.Println("admin-login:" + username + " " + password)
 		var admin AdminModel
-		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = $1 AND password $2", username, password)
+		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", username, password)
+		CheckErr(err, "Login select one")
 		if err != nil {
-			r.Redirect("/login")
+			//			r.Redirect("/login")
+			r.JSON(500, "用户名密码错误")
 			return
 		} else {
 			err := sessionauth.AuthenticateSession(session, &admin)
+			CheckErr(err, "Login AuthenticateSession")
 			if err != nil {
 				r.JSON(500, err)
 			}
-			r.Redirect("/")
+			log.Println(req.URL)
+			redirectParams := req.URL.Query()[sessionauth.RedirectParam]
+			log.Println(redirectParams)
+			var redirectPath string
+			if len(redirectParams) > 0 {
+				redirectPath = redirectParams[0]
+			} else {
+				redirectPath = "/"
+			}
+			r.JSON(200, redirectPath)
 			return
 		}
 	} else {
-		r.JSON(200, "缺参数")
+		r.JSON(500, "缺参数")
 	}
 }
 
