@@ -159,14 +159,15 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
-	log.Println("test")
+	log.Println(activity.String())
 	activity.VideoId = uuid.New()
 	activity.VideoPushPath = "xxxxxx"
-	activity.BelongUserId = 123
+	activity.BelongUserId = 1
 	//奇葩
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
+	activity.Updated = time.Now()
 	err := dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err != nil {

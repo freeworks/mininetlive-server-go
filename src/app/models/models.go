@@ -86,7 +86,7 @@ type Activity struct {
 	Date             time.Time `db:"date"`
 	ADate            int64     `form:"date"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" binding:"required" db:"desc"`
-	FontCover        string    `form:"fontCover"  db:"front_cover"`       /*binding:"required"*/
+	FontCover        string    `form:"fontCover" binding:"required" db:"front_cover"`
 	Type             int       `form:"type" binding:"required" db:"type"` //0直播，1点播
 	Price            int       `form:"price"  db:"price"`
 	Password         string    `form:"password"  db:"pwd"`
@@ -101,4 +101,8 @@ type Activity struct {
 	AppointmentCount int       `db:"appointment_count"`
 	Updated          time.Time `db:"update_time"`
 	Created          time.Time `db:"create_time"`
+}
+
+func (a Activity) String() string {
+	return fmt.Sprintf("[%s, %s, %s]", a.Id, a.Title, a.FontCover)
 }

@@ -109,13 +109,8 @@
                         <form name="activityForm" id="activityForm" method="POST" action="/activity" />
 							<div class="field-box">
 							    <label>预览图:</label>
-			                    <!-- right column -->
 								<div id="uploadFontCover"></div>
-							   <!-- <div class="span8 new-img">
-									<div id="upload2"></div>
-
-			                            <img id="fontCover" name="fontCover" src="img/new-gallery-img.png" value="dddd/test.jpg"/>
-			                    </div>-->
+								<input id="fontCover" type="hidden" name="fontCover" value="">
 						   </div>
                             <div class="field-box">
                                 <label>标题:</label>
@@ -129,7 +124,7 @@
                                 <label>类型:</label>
                                 <div class="span8">
                                     <label class="radio">
-                                        <input type="radio" name="type" id="typeRadios1" value="0" checked="" />
+                                        <input type="radio" name="type" id="typeRadios1" value="0" checked="true" />
                                         付费
                                     </label>
                                     <label class="radio">
@@ -142,7 +137,7 @@
                                 <label>类型:</label>
                                 <div class="span8">
                                     <label class="radio">
-                                        <input type="radio" name="videoType" id="videoTypeOption1" value="0" checked="" />
+                                        <input type="radio" name="videoType" id="videoTypeOption1" value="0" checked="true" />
                                         直播
                                     </label>
                                     <label class="radio">
@@ -187,6 +182,7 @@
     <!-- call this page plugins -->
     <script type="text/javascript">
         $(function () {
+			var url;
             // add uniform plugin styles to html elements
             $("input:checkbox, input:radio").uniform();
 
@@ -204,24 +200,28 @@
             $(".wysihtml5").wysihtml5({
                 "font-styles": false
             });
-			
-			 
-           $("#submitBtn").click(function(){
-		        $("#activityForm").submit();
-		    });
-        });
-    </script>
-	<script>
+	   			
             $('#uploadFontCover').HHuploadify({
                 auto:true,
                 fileTypeExts:'*.jpg;*.png;*.gif',
                 single : true,
                 showPreview: true,
                 fileSizeLimit:10240,
-                uploader:'upload.php'
+                uploader:'upload',
+				 onUploadSuccess:function(file,text){
+		  			var data = $.parseJSON(text);
+					$("#fontCover").val(data.url);
+				 },
+				onUploadError:function(){
+					$("#fontCover").val("");
+				},
             });
-        </script>
-
+			 
+           $("#submitBtn").click(function(){
+		        $("#activityForm").submit();
+		    });
+        });
+    </script>
 
 </body>
 </html>

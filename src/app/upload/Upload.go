@@ -2,7 +2,6 @@ package upload
 
 import (
 	. "app/common"
-	. "app/models"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
@@ -41,10 +40,9 @@ func Upload(r *http.Request, render render.Render) {
 	CheckErr(err, "create file error")
 	url, err := UploadToUCloudCND(filepath, head.Filename, render)
 	if err == nil {
-		log.Println(`{ "status":` + strconv.Itoa(1) + `, "id":` + strconv.Itoa(5) + `,"url":"` + url + `"}`)
-		render.JSON(200, `{ "status":`+strconv.Itoa(1)+`, "id":`+strconv.Itoa(5)+`,"url":"`+url+`"}`)
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
 	} else {
-		render.JSON(200, Resp{3001, "上传失败", nil})
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
 	}
 }
 
