@@ -1,24 +1,25 @@
 package upload
 
-import(
-		"net/http"
-		"github.com/martini-contrib/render"
-		"log"
-		"os"
-		"io"
-		"github.com/pborman/uuid"
-		"io/ioutil"
-		."app/models"
-		."app/common"
-		"bytes"
-		"crypto/hmac"
-		"crypto/sha1"
-		"encoding/base64"
-		"encoding/json"
-		"errors"
-		"fmt"
-		"time"
-	)
+import (
+	. "app/common"
+	. "app/models"
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/martini-contrib/render"
+)
 
 func Upload(r *http.Request, render render.Render) {
 	log.Println("parsing form")
@@ -31,23 +32,23 @@ func Upload(r *http.Request, render render.Render) {
 	CheckErr(err, "upload Fromfile")
 	log.Println(head.Filename)
 	defer file.Close()
-	tempDir := "/Users/cainli/dev/mininetlvie/temp/"
+	tempDir := "/Users/cainli/mininetlive/temp/"
 	filepath := tempDir + head.Filename
 	fW, err := os.Create(tempDir + head.Filename)
 	CheckErr(err, "create file error")
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
 	CheckErr(err, "create file error")
-	fileUUID := uuid.New()
-	err = UploadToUCloudCND(filepath, fileUUID, render)
+	url, err := UploadToUCloudCND(filepath, head.Filename, render)
 	if err == nil {
-		render.JSON(200, Resp{0, "上传成功", "token :" + fileUUID})
+		log.Println(`{ "status":` + strconv.Itoa(1) + `, "id":` + strconv.Itoa(5) + `,"url":"` + url + `"}`)
+		render.JSON(200, `{ "status":`+strconv.Itoa(1)+`, "id":`+strconv.Itoa(5)+`,"url":"`+url+`"}`)
 	} else {
 		render.JSON(200, Resp{3001, "上传失败", nil})
 	}
 }
 
-func UploadToUCloudCND(path string, fileName string, render render.Render) error {
+func UploadToUCloudCND(path string, fileName string, render render.Render) (string, error) {
 	publicKey := "enqyjAgoDAQm0mx6A/xk8eyxEuEJWK+LQ6n258NtsT6lARMyF+YFgA=="
 	privateKey := "2e3da80f079d3362f504a5db3776a9cd41feeea2"
 	u := NewUcloudApiClient(
@@ -55,7 +56,7 @@ func UploadToUCloudCND(path string, fileName string, render render.Render) error
 		privateKey,
 	)
 	contentType := "image/jpeg"
-	bucketName := "mininetlive"
+	bucketName := "mininetlivepub"
 	data, err := ioutil.ReadFile(path)
 	CheckErr(err, "ReadFile")
 	resp, err := u.PutFile(fileName, bucketName, contentType, data)
@@ -63,10 +64,11 @@ func UploadToUCloudCND(path string, fileName string, render render.Render) error
 	if err == nil {
 		log.Println(resp.StatusCode)
 		log.Println(string(resp.Content))
+		return getURL(fileName, bucketName, "PUT"), nil
+	} else {
+		return "", err
 	}
-	return err
 }
-
 
 type UcloudApiClient struct {
 	publicKey  string

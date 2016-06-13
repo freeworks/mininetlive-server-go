@@ -78,6 +78,7 @@ func main() {
 		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)
 		m.Get("/user", sessionauth.LoginRequired, admin.GetUserList)
 		m.Get("/income", sessionauth.LoginRequired, admin.GetIncome)
+		m.Post("/upload", Upload)
 		m.RunOnAddr(":8081")
 	}()
 

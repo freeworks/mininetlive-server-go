@@ -16,6 +16,7 @@
     <link href="css/lib/select2.css" type="text/css" rel="stylesheet" />
     <link href="css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" />
     <link href="css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+	<link href="css/HHuploadify.css" type="text/css" rel="stylesheet">
 
     <!-- global styles -->
     <link rel="stylesheet" type="text/css" href="css/layout.css" />
@@ -109,9 +110,12 @@
 							<div class="field-box">
 							    <label>预览图:</label>
 			                    <!-- right column -->
-							    <div class="span8 new-img">
+								<div id="uploadFontCover"></div>
+							   <!-- <div class="span8 new-img">
+									<div id="upload2"></div>
+
 			                            <img id="fontCover" name="fontCover" src="img/new-gallery-img.png" value="dddd/test.jpg"/>
-			                    </div>
+			                    </div>-->
 						   </div>
                             <div class="field-box">
                                 <label>标题:</label>
@@ -178,11 +182,11 @@
     <script src="js/jquery.uniform.min.js"></script>
     <script src="js/select2.min.js"></script>
     <script src="js/theme.js"></script>
+    <script src="js/HHuploadify.js"></script>
 
     <!-- call this page plugins -->
     <script type="text/javascript">
         $(function () {
-
             // add uniform plugin styles to html elements
             $("input:checkbox, input:radio").uniform();
 
@@ -207,6 +211,17 @@
 		    });
         });
     </script>
+	<script>
+            $('#uploadFontCover').HHuploadify({
+                auto:true,
+                fileTypeExts:'*.jpg;*.png;*.gif',
+                single : true,
+                showPreview: true,
+                fileSizeLimit:10240,
+                uploader:'upload.php'
+            });
+        </script>
+
 
 </body>
 </html>
