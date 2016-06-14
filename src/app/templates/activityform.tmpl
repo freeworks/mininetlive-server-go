@@ -218,8 +218,23 @@
             });
 			 
            $("#submitBtn").click(function(){
-		        $("#activityForm").submit();
+		       $.ajax({
+				   cache: true,
+	               type: "POST",
+	               url:"/activity",
+	               data: $("#activityForm").serialize(),
+	               async: false,
+				  success:function(data) {
+						alert("活动创建成功！")
+						window.location = data;
+				   },
+	               error: function(request) {
+	                   alert(request);
+	               }
+					
+				})
 		    });
+			
         });
     </script>
 

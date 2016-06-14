@@ -155,7 +155,9 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	//	} else {
 	//		r.JSON(200, Resp{0, "查询活动成功", activities})
 	//	}
-	r.HTML(200, "activity", "")
+	log.Print(activities)
+	newmap := map[string]interface{}{"activities": activities}
+	r.HTML(200, "activitylist", newmap)
 }
 
 func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
@@ -170,9 +172,21 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 	activity.Updated = time.Now()
 	err := dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
-	if err != nil {
-		r.HTML(200, "adminlist", "")
+	if err == nil {
+		r.JSON(200, "/activity")
 	} else {
-		r.HTML(200, "adminlist", "")
+		r.JSON(500, "删除活动失败")
 	}
+}
+
+func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+	log.Println("DeleteActivity", args["id"])
+	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", args["id"])
+	CheckErr(err, "DeleteActivity delete failed")
+	if err == nil {
+		r.JSON(200, "删除活动成功")
+	} else {
+		r.JSON(500, "删除活动失败")
+	}
+
 }

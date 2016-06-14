@@ -53,15 +53,16 @@ func main() {
 		m.NotFound(func() {
 			// 处理 404
 		})
-		m.Use(render.Renderer(render.Options{
-			Directory: "templates", // Specify what path to load the templates from.
-			//Layout:     "layout",                   // Specify a layout template. Layouts can call {{ yield }} to render the current template.
-			Extensions: []string{".tmpl", ".html"}, // Specify extensions to load for templates.
-			//		Funcs:           []template.FuncMap{AppHelpers}, // Specify helper function maps for templates to access.
-			Delims:     render.Delims{"{[{", "}]}"}, // Sets delimiters to the specified strings.
-			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
-			IndentJSON: true,                        // Output human readable JSON
-		}))
+		m.Use(render.Renderer())
+		//		m.Use(render.Renderer(render.Options{
+		//			Directory: "templates", // Specify what path to load the templates from.
+		//			//			Layout:     "layout",                   // Specify a layout template. Layouts can call {{ yield }} to render the current template.
+		//			Extensions: []string{".html"}, // Specify extensions to load for templates.
+		//			//		Funcs:           []template.FuncMap{AppHelpers}, // Specify helper function maps for templates to access.
+		//			Delims:     render.Delims{"{[{", "}]}"}, // Sets delimiters to the specified strings.
+		//			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
+		//			IndentJSON: true,                        // Output human readable JSON
+		//		}))
 
 		m.Use(sessions.Sessions("my_session", []byte("secret123")))
 		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
@@ -74,6 +75,7 @@ func main() {
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
 		m.Get("/activity", sessionauth.LoginRequired, admin.GetActivityList)
 		m.Post("/activity", sessionauth.LoginRequired, binding.Bind(Activity{}), admin.NewActivity)
+		m.Delete("/activity/:id", sessionauth.LoginRequired, admin.DeleteActivity)
 		m.Get("/addactivity", sessionauth.LoginRequired, admin.AddActivity)
 		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)
 		m.Get("/user", sessionauth.LoginRequired, admin.GetUserList)

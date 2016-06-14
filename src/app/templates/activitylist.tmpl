@@ -27,9 +27,23 @@
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+	
+	<style type="text/css">
+	.table-wrapper {
+		  .table-wrapper .table .img {
+		    height: 100px;
+		    float: left;
+		    background: white;
+		    width: 100px;
+		    border: 1px solid #dfe4eb;
+		    text-align: center;
+		    cursor: pointer;
+		    margin-right: 23px; 
+		  }
+	}
+	</style>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
 <body>
-
    	    <!-- navbar -->
     <div class="navbar navbar-inverse">
         <div class="navbar-inner">
@@ -90,7 +104,6 @@
         </ul>
     </div>
     <!-- end sidebar -->
-
 	<!-- main container -->
     <div class="content">
         
@@ -135,107 +148,34 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- row -->
-                                <tr class="first">
-                                    <td>
-                                        <input type="checkbox" />
-                                        <div class="img">
-                                            <img src="img/table-img.png" />
-                                        </div>
-                                        <a href="#" class="name">Generate Lorem </a>
-                                    </td>
-                                    <td class="description">
-                                        if you are going to use a passage of Lorem Ipsum.
-                                    </td>
-                                    <td>
-                                        <span class="label label-success">Active</span>
-                                        <ul class="actions">
-                                            <li><a href="#">Edit</a></li>
-                                            <li class="last"><a href="#">Delete</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <!-- row -->
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" />
-                                        <div class="img">
-                                            <img src="img/table-img.png" />
-                                        </div>
-                                        <a href="#" class="name">Internet tend</a>
-                                    </td>
-                                    <td class="description">
-                                        There are many variations of passages.
-                                    </td>
-                                    <td>
-                                        <ul class="actions">
-                                            <li><a href="#">Edit</a></li>
-                                            <li class="last"><a href="#">Delete</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <!-- row -->
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" />
-                                        <div class="img">
-                                            <img src="img/table-img.png" />
-                                        </div>
-                                        <a href="#" class="name">Generate Lorem </a>
-                                    </td>
-                                    <td class="description">
-                                        if you are going to use a passage of Lorem Ipsum.
-                                    </td>
-                                    <td>
-                                        <ul class="actions">
-                                            <li><a href="#">Edit</a></li>
-                                            <li class="last"><a href="#">Delete</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <!-- row -->
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" />
-                                        <div class="img">
-                                            <img src="img/table-img.png" />
-                                        </div>
-                                        <a href="#" class="name">Internet tend</a>
-                                    </td>
-                                    <td class="description">
-                                        There are many variations of passages.
-                                    </td>
-                                    <td>
-                                        <span class="label label-info">Standby</span>
-                                        <ul class="actions">
-                                            <li><a href="#">Edit</a></li>
-                                            <li class="last"><a href="#">Delete</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" />
-                                        <div class="img">
-                                            <img src="img/table-img.png" />
-                                        </div>
-                                        <a href="#" class="name">Generate Lorem </a>
-                                    </td>
-                                    <td class="description">
-                                        if you are going to use a passage of Lorem Ipsum.
-                                    </td>
-                                    <td>
-                                        <span class="label label-success">Active</span>
-                                        <ul class="actions">
-                                            <li><a href="#">Edit</a></li>
-                                            <li class="last"><a href="#">Delete</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
+                             <!-- row -->
+							{{range .activities}}
+							<tr>
+                                  <td>
+                                      <input type="checkbox" />
+                                      <div class="img">
+                                          <img src="{{.FontCover}}" />
+                                      </div>
+                                      <a href="#" class="name">{{.Title}}</a>
+                                  </td>
+                                  <td class="description">
+                                      {{.Desc}}
+                                  </td>
+                                  <td>
+                                      <ul class="actions">
+                                          <li><a href="#">Edit</a></li>
+                                          <li class="last">
+											<a class ="delete" href="/activity/{{.Id}}" onclick="subgo()" >删除</a>
+										</li>
+                                      </ul>
+                                  </td>
+                              </tr>
+							{{end}}
                             </tbody>
                         </table>
                     </div>
                 </div>
+			
                 <!-- end products table -->
             </div>
         </div>
@@ -246,6 +186,24 @@
     <script src="js/jquery-latest.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/theme.js"></script>
+	<script type="text/javascript">
+	 $(function () {
+		 $(".delete").click(function (event){ 
+		     event.preventDefault(); 
+		     $.ajax({
+		        url: $(this).attr('href'),
+			    type: 'DELETE',
+		        success: function(response) {
+		           window.location.reload(); 
+		        },
+				error:function(jqXHR, exception){
+					alert(jqXHR.responseText)		
+				}
+		     })
+		     return false; //for good measure
+		});
+	})
+	</script>
 
 </body>
 </html>

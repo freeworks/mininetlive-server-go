@@ -31,7 +31,7 @@
 <body>
 
     <div class="row-fluid login-wrapper">
-        <img class="logo" src="img/logo.png" />
+        <img class="logo" src="img/logo_big.png" />
 
         <div class="span4 box">
             <div class="content-wrap">
@@ -85,7 +85,6 @@
 				$.post("login?next="+getUrlParam("next"), 
 					{ "username": username, "password": pwd },
 					function(data) {
-						alert(data)
 						window.location = data;
 					})
             });		
