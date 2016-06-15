@@ -16,6 +16,7 @@ type User struct {
 	Name    string    `form:"name" binding:"required"  db:"name"`
 	Avatar  string    `form:"avatar"  binding:"required"  db:"avatar"`
 	Gender  int       `form:"gender" binding:"required"  db:"gender"`
+	Balance int       `form:"balance"  db:"balance"`
 	Updated time.Time `db:"update_time"`
 	Created time.Time `db:"create_time"`
 }

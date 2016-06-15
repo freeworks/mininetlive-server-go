@@ -29,6 +29,16 @@ type AdminModel struct {
 	authenticated bool      `form:"-" db:"-"`
 }
 
+type ThiredUserModel struct {
+	User
+	Plat string
+}
+
+type PhoneUserModel struct {
+	User
+	Phone string
+}
+
 func (admin AdminModel) String() string {
 	return fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
 }
@@ -130,12 +140,37 @@ func Logout(session sessions.Session, user sessionauth.User, r render.Render) {
 	r.Redirect("/")
 }
 
-func GetAdminList(r render.Render) {
-	r.HTML(200, "adminlist", "")
+func GetAdminList(r render.Render, dbmap *gorp.DbMap) {
+	var admins []AdminModel
+	_, err := dbmap.Select(&admins, "select * from t_admin")
+	CheckErr(err, "GetAdminList select failed")
+	if err == nil {
+		newmap := map[string]interface{}{"admins": admins}
+		r.HTML(200, "adminlist", newmap)
+	} else {
+		r.HTML(500, "adminlist", nil)
+	}
 }
 
-func GetUserList(r render.Render) {
-	r.HTML(200, "userlist", "")
+//type UserMode struct {
+//	User
+//	accountType int
+//	Phone       string
+//	Plat
+//}
+func GetUserList(r render.Render, dbmap *gorp.DbMap) {
+	var thiredUserModel []ThiredUserModel
+	_, err := dbmap.Select(&thiredUserModel, "SELECT t_user.id,t_user.name,gender,avatar,balance,update_time,create_time,plat FROM t_user,t_oauth WHERE t_user.id = t_oauth.user_id")
+	CheckErr(err, "GetUserlist select failed")
+	var phoneUserModel []PhoneUserModel
+	_, err = dbmap.Select(&phoneUserModel, "SELECT t_user.id , t_user.name,gender,avatar,balance,update_time,create_time,phone FROM t_user,t_local_auth WHERE t_user.id = t_local_auth.user_id")
+	CheckErr(err, "GetUserlist select failed")
+	if err == nil {
+		newmap := map[string]interface{}{"thiredUserModel": thiredUserModel, "phoneUserModel": phoneUserModel}
+		r.HTML(200, "userlist", newmap)
+	} else {
+		r.HTML(500, "userlist", nil)
+	}
 }
 
 func GetIncome(r render.Render) {
@@ -146,15 +181,10 @@ func AddActivity(r render.Render) {
 	r.HTML(200, "activityform", "")
 }
 
-func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	var activities []Activity
 	_, err := dbmap.Select(&activities, "select * from t_activity")
 	CheckErr(err, "GetActivityList select failed")
-	//	if err != nil {
-	//		r.JSON(200, Resp{1104, "查询活动失败", nil})
-	//	} else {
-	//		r.JSON(200, Resp{0, "查询活动成功", activities})
-	//	}
 	log.Print(activities)
 	newmap := map[string]interface{}{"activities": activities}
 	r.HTML(200, "activitylist", newmap)

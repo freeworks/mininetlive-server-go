@@ -58,18 +58,24 @@
                     <i class="icon-home"></i>
                     <span>首页</span>
                 </a>
-            </li>  
-			<li class="active" >
+            </li>
+			<li class="active">
+                <div class="pointer">
+                    <div class="arrow"></div>
+                    <div class="arrow_border"></div>
+                </div>
                 <a class="dropdown-toggle" href="#">
                     <i class="icon-group"></i>
-                    <span>用户</span>
+                    <span>用户&账户</span>
                     <i class="icon-chevron-down"></i>
                 </a>
-                <ul class="submenu">
-                    <li class="active"><a href="/admin">管理员</a></li>
-                    <li><a href="/user">用户</a></li>
+                <ul class="active submenu">
+                    <li><a href="/admin" class="active">管理员</a></li>
+                    <li><a href="/user">用户</a>	</li>
                 </ul>
-            </li>          
+            </li>
+  
+        
             <li >
                 <a href="/income">
                     <i class="icon-signal"></i>
@@ -117,85 +123,32 @@
                             <thead>
                                 <tr>
                                     <th class="span4">
-                                        Name
+                                        账号
                                     </th>
                                     <th class="span3">
-                                        <span class="line"></span>Signed up
-                                    </th>
-                                    <th class="span2">
-                                        <span class="line"></span>Total spent
+                                        <span class="line"></span>注册时间
                                     </th>
                                     <th class="span3 align-right">
-                                        <span class="line"></span>Email
+                                        <span class="line"></span>电话
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- row -->
-                                <tr class="first">
-                                    <td>
-                                        <img src="img/contact-img.png" class="img-circle avatar hidden-phone" />
-                                        <a href="user-profile.html" class="name">Alejandra Galvan Castillo</a>
-                                        <span class="subtext">Graphic Design</span>
-                                    </td>
-                                    <td>
-                                        Jan 11, 2012
-                                    </td>
-                                    <td>
-                                        $ 500.00
-                                    </td>
-                                    <td class="align-right">
-                                        <a href="#">alejandra@gmail.com</a>
-                                    </td>
+							<!-- row -->
+							{{range .admins}}
+							 <tr>
+                                   <td>
+                                       <img src="{{.Avatar}}" class="img-circle avatar hidden-phone" />
+                                       <a href="user-profile.html" class="name">{{.Username}}</a>
+                                   </td>
+                                   <td>
+                                      {{.Created}}
+                                   </td>
+                                   <td class="align-right">
+                                       <a href="#">alejandra@gmail.com</a>
+                                   </td>
                                 </tr>
-                                <tr>
-                                    <td>
-                                        <img src="img/contact-img2.png" class="img-circle avatar hidden-phone" />
-                                        <a href="user-profile.html" class="name">Alejandra Galvan Castillo</a>
-                                        <span class="subtext">Graphic Design</span>
-                                    </td>
-                                    <td>
-                                        Apr 23, 2012
-                                    </td>
-                                    <td>
-                                        $ 3,210.00
-                                    </td>
-                                    <td class="align-right">
-                                        <a href="#">alejandra@gmail.com</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="img/contact-img.png" class="img-circle avatar hidden-phone" />
-                                        <a href="user-profile.html" class="name">Alejandra Galvan Castillo</a>
-                                        <span class="subtext">Graphic Design</span>
-                                    </td>
-                                    <td>
-                                        Feb 03, 2014
-                                    </td>
-                                    <td>
-                                        $ 890.00
-                                    </td>
-                                    <td class="align-right">
-                                        <a href="#">alejandra@gmail.com</a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <img src="img/contact-img2.png" class="img-circle avatar hidden-phone" />
-                                        <a href="user-profile.html" class="name">Alejandra Galvan Castillo</a>
-                                        <span class="subtext">Graphic Design</span>
-                                    </td>
-                                    <td>
-                                        Sep 19, 2012
-                                    </td>
-                                    <td>
-                                        $ 899.99
-                                    </td>
-                                    <td class="align-right">
-                                        <a href="#">alejandra@gmail.com</a>
-                                    </td>
-                                </tr>
+							{{end}}
                             </tbody>
                         </table>
                     </div>
