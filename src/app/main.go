@@ -22,12 +22,13 @@ func main() {
 	defer dbmap.Db.Close()
 	m := martini.Classic()
 	m.Use(logger.Logger())
+	m.Use(render.Renderer())
 	m.Map(dbmap)
+	m.Post("/auth/login", binding.Bind(LocalAuth{}), Login)
+	m.Post("/auth/register", binding.Bind(LocalAuthUser{}), Register)
+	m.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
+	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 	m.Group("/user", func(r martini.Router) {
-		r.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
-		r.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
-		r.Post("/login", binding.Bind(LocalAuth{}), Login)
-		r.Post("/register", binding.Bind(LocalAuthUser{}), Register)
 		r.Get("/:id", GetUser)
 		r.Put("/:id", binding.Bind(User{}), UpdateUser)
 		r.Delete("/:id", DeleteUser)
@@ -47,6 +48,9 @@ func main() {
 	m.Get("playrecords", GetPlayRecords)
 	m.Get("payrecords", GetPayRecords)
 	m.Post("/upload", Upload)
+	m.NotFound(func(r render.Render) {
+		r.JSON(404,"接口不存在/请求方法错误")
+	})
 
 	go func() {
 		initLog("admin.log",logger.ALL,true)
