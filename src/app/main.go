@@ -4,24 +4,21 @@ import (
 	admin "app/admin"
 	. "app/controller"
 	db "app/db"
-	. "app/models"
-<<<<<<< 12f09806ae823e1dca8cacf62384bb1f68d391ed
 	logger "app/logger"
-=======
+	. "app/models"
 	pay "app/pay"
->>>>>>> add ping++
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	. "app/upload"
+
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
-
 )
 
 func main() {
-	initLog("api.log",logger.ALL,true)
+	initLog("api.log", logger.ALL, true)
 	dbmap := db.InitDb()
 	defer dbmap.Db.Close()
 	m := martini.Classic()
@@ -56,12 +53,13 @@ func main() {
 		r.Post("/charge", pay.GetCharge)
 		r.Post("/webhook", pay.Webhook)
 	})
-	
+
 	m.NotFound(func(r render.Render) {
-		r.JSON(404,"接口不存在/请求方法错误")
+		r.JSON(404, "接口不存在/请求方法错误")
+	})
 
 	go func() {
-		initLog("admin.log",logger.ALL,true)
+		initLog("admin.log", logger.ALL, true)
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()
 		m.Map(dbmap)
@@ -89,8 +87,8 @@ func main() {
 	m.RunOnAddr(":8080")
 }
 
-func initLog(filename string,level logger.LEVEL,console bool){
-  	logger.SetConsole(console)
-	logger.SetRollingDaily(".",filename)
+func initLog(filename string, level logger.LEVEL, console bool) {
+	logger.SetConsole(console)
+	logger.SetRollingDaily(".", filename)
 	logger.SetLevel(level)
 }
