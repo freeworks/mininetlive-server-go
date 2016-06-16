@@ -5,7 +5,11 @@ import (
 	. "app/controller"
 	db "app/db"
 	. "app/models"
+<<<<<<< 12f09806ae823e1dca8cacf62384bb1f68d391ed
 	logger "app/logger"
+=======
+	pay "app/pay"
+>>>>>>> add ping++
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	. "app/upload"
@@ -48,9 +52,13 @@ func main() {
 	m.Get("playrecords", GetPlayRecords)
 	m.Get("payrecords", GetPayRecords)
 	m.Post("/upload", Upload)
+	m.Group("/pay", func(r martini.Router) {
+		r.Post("/charge", pay.GetCharge)
+		r.Post("/webhook", pay.Webhook)
+	})
+	
 	m.NotFound(func(r render.Render) {
 		r.JSON(404,"接口不存在/请求方法错误")
-	})
 
 	go func() {
 		initLog("admin.log",logger.ALL,true)
