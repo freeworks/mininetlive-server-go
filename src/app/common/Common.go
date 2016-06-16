@@ -1,10 +1,12 @@
 package common
 
-import ( "log" )
+import ( 
+	logger "app/logger"
+)
 
 func CheckErr(err error, msg string) {
 	if err != nil {
-		log.Println(msg, err)
+		logger.Error(msg,err)
 		// log.Fatalln(msg, err)
 	}
 }

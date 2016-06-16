@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-
+	logger "app/logger"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -91,7 +91,7 @@ func (u *AdminModel) GetById(id interface{}) error {
 }
 
 func Index(r render.Render) {
-	log.Println("Index")
+	logger.Debug("Index")
 	r.HTML(200, "index", nil)
 }
 

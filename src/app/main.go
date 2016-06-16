@@ -5,21 +5,23 @@ import (
 	. "app/controller"
 	db "app/db"
 	. "app/models"
+	logger "app/logger"
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	. "app/upload"
-
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
+
 )
 
 func main() {
-	//setup db
+	initLog("api.log",logger.ALL,true)
 	dbmap := db.InitDb()
 	defer dbmap.Db.Close()
 	m := martini.Classic()
+	m.Use(logger.Logger())
 	m.Map(dbmap)
 	m.Group("/user", func(r martini.Router) {
 		r.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
@@ -47,28 +49,16 @@ func main() {
 	m.Post("/upload", Upload)
 
 	go func() {
+		initLog("admin.log",logger.ALL,true)
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()
 		m.Map(dbmap)
-		m.NotFound(func() {
-			// 处理 404
-		})
+		m.Use(logger.Logger())
 		m.Use(render.Renderer())
-		//		m.Use(render.Renderer(render.Options{
-		//			Directory: "templates", // Specify what path to load the templates from.
-		//			//			Layout:     "layout",                   // Specify a layout template. Layouts can call {{ yield }} to render the current template.
-		//			Extensions: []string{".html"}, // Specify extensions to load for templates.
-		//			//		Funcs:           []template.FuncMap{AppHelpers}, // Specify helper function maps for templates to access.
-		//			Delims:     render.Delims{"{[{", "}]}"}, // Sets delimiters to the specified strings.
-		//			Charset:    "UTF-8",                     // Sets encoding for json and html content-types. Default is "UTF-8".
-		//			IndentJSON: true,                        // Output human readable JSON
-		//		}))
-
 		m.Use(sessions.Sessions("my_session", []byte("secret123")))
 		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
 		sessionauth.RedirectUrl = "/login"
 		sessionauth.RedirectParam = "next"
-
 		m.Get("/", sessionauth.LoginRequired, admin.Index)
 		m.Post("/login", admin.Login)
 		m.Get("/login", admin.RedirectLogin)
@@ -85,4 +75,10 @@ func main() {
 	}()
 
 	m.RunOnAddr(":8080")
+}
+
+func initLog(filename string,level logger.LEVEL,console bool){
+  	logger.SetConsole(console)
+	logger.SetRollingDaily(".",filename)
+	logger.SetLevel(level)
 }
