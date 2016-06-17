@@ -7,7 +7,6 @@ import (
 	"app/sessionauth"
 	"app/sessions"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -20,7 +19,9 @@ import (
 var mDbMap *gorp.DbMap
 
 func (admin AdminModel) String() string {
-	return fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
+	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
+	logger.Info(adminString)
+	return adminString
 }
 
 // GetAnonymousUser should generate an anonymous user model
@@ -61,7 +62,7 @@ func (u *AdminModel) UniqueId() interface{} {
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *AdminModel) GetById(id interface{}) error {
-	log.Println(id)
+	logger.Info(id)
 	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE id = ?", id)
 	CheckErr(err, "GetById select one")
 	if err != nil {
@@ -80,7 +81,7 @@ func Login(args martini.Params, req *http.Request, session sessions.Session, r r
 	if len(req.Form["username"]) > 0 && len(req.Form["password"]) > 0 {
 		username := req.Form["username"][0]
 		password := req.Form["password"][0]
-		log.Println("admin-login:" + username + " " + password)
+		logger.Info("admin-login:" + username + " " + password)
 		var admin AdminModel
 		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", username, password)
 		CheckErr(err, "Login select one")
@@ -94,9 +95,9 @@ func Login(args martini.Params, req *http.Request, session sessions.Session, r r
 			if err != nil {
 				r.JSON(500, err)
 			}
-			log.Println(req.URL)
+			logger.Info(req.URL)
 			redirectParams := req.URL.Query()[sessionauth.RedirectParam]
-			log.Println(redirectParams)
+			logger.Info(redirectParams)
 			var redirectPath string
 			if len(redirectParams) > 0 {
 				redirectPath = redirectParams[0]
@@ -165,13 +166,13 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	var activities []Activity
 	_, err := dbmap.Select(&activities, "select * from t_activity")
 	CheckErr(err, "GetActivityList select failed")
-	log.Print(activities)
+	logger.Info(activities)
 	newmap := map[string]interface{}{"activities": activities}
 	r.HTML(200, "activitylist", newmap)
 }
 
 func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
-	log.Println(activity.String())
+	logger.Info(activity.String())
 	activity.VideoId = uuid.New()
 	activity.VideoPushPath = "xxxxxx"
 	activity.BelongUserId = 1
@@ -190,7 +191,7 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
-	log.Println(activity.String())
+	logger.Info(activity.String())
 	activity.VideoId = uuid.New()
 	activity.VideoPushPath = "xxxxxx"
 	//奇葩
@@ -207,7 +208,7 @@ func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	log.Println("DeleteActivity", args["id"])
+	logger.Info("DeleteActivity", args["id"])
 	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", args["id"])
 	CheckErr(err, "DeleteActivity delete failed")
 	if err == nil {

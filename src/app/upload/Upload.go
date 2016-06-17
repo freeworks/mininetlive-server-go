@@ -2,6 +2,7 @@ package upload
 
 import (
 	. "app/common"
+	logger "app/logger"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,7 +26,7 @@ const (
 )
 
 func Upload(r *http.Request, render render.Render) {
-	log.Println("parsing form")
+	logger.Info("parsing form")
 	err := r.ParseMultipartForm(100000)
 	// CheckErr("upload ParseMultipartForm",err)
 	if err != nil {
@@ -34,7 +34,7 @@ func Upload(r *http.Request, render render.Render) {
 	}
 	file, head, err := r.FormFile("file")
 	CheckErr(err, "upload Fromfile")
-	log.Println(head.Filename)
+	logger.Info(head.Filename)
 	defer file.Close()
 	tempDir := "/Users/cainli/mininetlive/temp/"
 	filepath := tempDir + head.Filename
@@ -63,8 +63,8 @@ func UploadToUCloudCND(path string, fileName string, render render.Render) (stri
 	resp, err := u.PutFile(fileName, bucketName, contentType, data)
 	CheckErr(err, "upload ucloud")
 	if err == nil {
-		log.Println(resp.StatusCode)
-		log.Println(string(resp.Content))
+		logger.Info(resp.StatusCode)
+		logger.Info(string(resp.Content))
 		return getURL(fileName, bucketName, "PUT"), nil
 	} else {
 		return "", err
