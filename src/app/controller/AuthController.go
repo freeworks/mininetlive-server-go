@@ -3,22 +3,11 @@ package controller
 import (
 	. "app/common"
 	. "app/models"
+	"time"
 
 	"github.com/coopernurse/gorp"
-	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
-	// "github.com/pborman/uuid"
-	"time"
 )
-
-//0    成功
-//1000 未注册
-//1002 已经注册但获取用户信息失败/用户信息不存在
-//1003 注册失败
-//1004 账号已经注册
-//1005 账号/密码错误
-//1006 更新账户信息失败
-//1007 删除账户失败
 
 //登陆
 func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
@@ -58,7 +47,7 @@ func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		if err == nil {
 			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"user": register.User}})
 		} else {
-			r.JSON(200, Resp{1003, "注册失败", nil})
+			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
 	} else {
 		r.JSON(200, Resp{1004, "该账号已经注册", nil})
@@ -107,7 +96,7 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		if err == nil {
 			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": auth.Token, "user": authUser.User}})
 		} else {
-			r.JSON(200, Resp{1003, "注册失败", nil})
+			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
 	} else {
 		r.JSON(200, Resp{1004, "该账号已经注册", nil})
@@ -115,48 +104,6 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 
 }
 
-func UpdateUser(args martini.Params, user User, r render.Render, dbmap *gorp.DbMap) {
-	obj, err := dbmap.Get(User{}, args["id"])
-	CheckErr(err, "UpdateUser get failed")
-	if err != nil {
-		r.JSON(200, Resp{1002, "更新信息失败", nil})
-	} else {
-		orgUser := obj.(*User)
-		if user.Name != "" {
-			orgUser.Name = user.Name
-		}
-		if user.Avatar != "" {
-			orgUser.Avatar = user.Avatar
-		}
-		orgUser.Updated = time.Now()
-		_, err := dbmap.Update(orgUser)
-		CheckErr(err, "UpdateUser update failed")
-		if err != nil {
-			r.JSON(200, Resp{1006, "更新信息失败", nil})
-		} else {
-			r.JSON(200, Resp{0, "更新信息成功", user})
-		}
-	}
-}
-
-func DeleteUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	_, err := dbmap.Exec("DELETE from t_user WHERE id=?", args["id"])
-	CheckErr(err, "DeleteUser delete failed")
-	if err != nil {
-		r.JSON(200, Resp{1007, "删除用户失败", nil})
-	} else {
-		r.JSON(200, Resp{0, "删除用户成功", nil})
-	}
-}
-
-func GetUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	var user User
-	err := dbmap.SelectOne(&user, "select * from t_user where id=?", args["id"])
-	CheckErr(err, "GetUser selectOne failed")
-	//simple error check
-	if err != nil {
-		r.JSON(200, Resp{1002, "获取用户信息失败", nil})
-	} else {
-		r.JSON(200, Resp{0, "获取用户信息成功", user})
-	}
+func Logout() {
+	//TODO
 }

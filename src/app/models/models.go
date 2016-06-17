@@ -12,13 +12,15 @@ type Resp struct {
 }
 
 type User struct {
-	Id      int       `form:"id" ` //db:"id,primarykey, autoincrement"
-	Name    string    `form:"name" binding:"required"  db:"name"`
-	Avatar  string    `form:"avatar"  binding:"required"  db:"avatar"`
-	Gender  int       `form:"gender" binding:"required"  db:"gender"`
-	Balance int       `form:"balance"  db:"balance"`
-	Updated time.Time `db:"update_time"`
-	Created time.Time `db:"create_time"`
+	Id         int       `form:"id" ` //db:"id,primarykey, autoincrement"
+	Name       string    `form:"name" binding:"required"  db:"name"`
+	Avatar     string    `form:"avatar"   db:"avatar"`
+	Gender     int       `form:"gender" binding:"required"  db:"gender"`
+	Balance    int       `form:"balance"  db:"balance"`
+	InviteCode int       `form:"inviteCode"  db:"invite_code"`
+	Qrcode     int       `form:"qrcode"  db:"qrcode"`
+	Updated    time.Time `db:"update_time"`
+	Created    time.Time `db:"create_time"`
 }
 
 func (u User) String() string {
@@ -93,7 +95,7 @@ type Activity struct {
 	Password         string    `form:"password"  db:"pwd"`
 	BelongUserId     int       `form:"belongUserId"  db:"belong_user_id"`
 	VideoId          string    `form:"videoId"  db:"video_id"`
-	VideoType        int       `form:"videoType" binding:"required" db:"video_type"`
+	VideoType        int       `form:"videoType" binding:"required" db:"video_type"` //0 免费， 1收费
 	VideoPullPath    string    `form:"videoPullPath"  db:"video_pull_path"`
 	VideoPushPath    string    `form:"videoPushPath"  db:"video_push_path"`
 	VideoStorePath   string    `form:"videoPushPath"  db:"video_store_path"`

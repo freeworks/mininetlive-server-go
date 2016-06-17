@@ -20,6 +20,11 @@ import (
 	"github.com/martini-contrib/render"
 )
 
+const (
+	publicKey  string = "enqyjAgoDAQm0mx6A/xk8eyxEuEJWK+LQ6n258NtsT6lARMyF+YFgA=="
+	privateKey string = "2e3da80f079d3362f504a5db3776a9cd41feeea2"
+)
+
 func Upload(r *http.Request, render render.Render) {
 	log.Println("parsing form")
 	err := r.ParseMultipartForm(100000)
@@ -47,8 +52,6 @@ func Upload(r *http.Request, render render.Render) {
 }
 
 func UploadToUCloudCND(path string, fileName string, render render.Render) (string, error) {
-	publicKey := "enqyjAgoDAQm0mx6A/xk8eyxEuEJWK+LQ6n258NtsT6lARMyF+YFgA=="
-	privateKey := "2e3da80f079d3362f504a5db3776a9cd41feeea2"
 	u := NewUcloudApiClient(
 		publicKey,
 		privateKey,

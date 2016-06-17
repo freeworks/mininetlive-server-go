@@ -79,6 +79,10 @@ func GetCharge(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func Withdraw() {
+
+}
+
 func NewRedEnvelope() {
 	extra := make(map[string]interface{})
 	extra["nick_name"] = "Nick Name"

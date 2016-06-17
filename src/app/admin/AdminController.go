@@ -2,6 +2,7 @@ package admin
 
 import (
 	. "app/common"
+	logger "app/logger"
 	. "app/models"
 	"app/sessionauth"
 	"app/sessions"
@@ -9,7 +10,7 @@ import (
 	"log"
 	"net/http"
 	"time"
-	logger "app/logger"
+
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -17,27 +18,6 @@ import (
 )
 
 var mDbMap *gorp.DbMap
-
-// AdminModel can be any struct that represents a user in my system
-type AdminModel struct {
-	Id            int64     `form:"id" db:"id"`
-	Username      string    `form:"name" db:"username"`
-	Password      string    `form:"password" db:"password"`
-	Avatar        string    `form:"avatar"  db:"avatar"`
-	Updated       time.Time `db:"update_time"`
-	Created       time.Time `db:"create_time"`
-	authenticated bool      `form:"-" db:"-"`
-}
-
-type ThiredUserModel struct {
-	User
-	Plat string
-}
-
-type PhoneUserModel struct {
-	User
-	Phone string
-}
 
 func (admin AdminModel) String() string {
 	return fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
@@ -209,6 +189,23 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
+func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
+	log.Println(activity.String())
+	activity.VideoId = uuid.New()
+	activity.VideoPushPath = "xxxxxx"
+	//奇葩
+	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
+	activity.Date = time.Unix(activity.ADate, 0)
+	activity.Updated = time.Now()
+	_, err := dbmap.Update(&activity)
+	CheckErr(err, "NewActivity insert failed")
+	if err == nil {
+		r.JSON(200, "/activity")
+	} else {
+		r.JSON(500, "删除活动失败")
+	}
+}
+
 func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	log.Println("DeleteActivity", args["id"])
 	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", args["id"])
@@ -220,3 +217,64 @@ func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	}
 
 }
+
+//func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
+//	activity.VideoId = uuid.New()
+//	activity.VideoPushPath = "xxxxxx"
+//	activity.BelongUserId = 123
+//	//奇葩
+//	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
+//	activity.Date = time.Unix(activity.ADate, 0)
+//	activity.Created = time.Now()
+//	err := dbmap.Insert(&activity)
+//	CheckErr(err, "NewActivity insert failed")
+//	if err != nil {
+//		r.JSON(200, Resp{1100, "添加活动失败", nil})
+//	} else {
+//		r.JSON(200, Resp{0, "添加活动成功", activity})
+//	}
+//}
+
+//func UpdateActivity(args martini.Params, activity Activity, r render.Render, dbmap *gorp.DbMap) {
+//	obj, err := dbmap.Get(Activity{}, args["id"])
+//	CheckErr(err, "UpdateActivity get Activity err ")
+//	if err != nil {
+//		r.JSON(200, Resp{1101, "更新活动失败", nil})
+//	} else {
+//		orgActivity := obj.(*Activity)
+//		orgActivity.Title = activity.Title
+//		orgActivity.Date = activity.Date
+//		orgActivity.Desc = activity.Desc
+//		orgActivity.Type = activity.Type
+//		orgActivity.VideoType = activity.VideoType
+//		orgActivity.FontCover = activity.FontCover
+//		orgActivity.Updated = time.Now()
+//		_, err := dbmap.Update(orgActivity)
+//		CheckErr(err, "UpdateActivity  update failed")
+//		if err != nil {
+//			r.JSON(200, Resp{1101, "更新活动失败", nil})
+//		} else {
+//			r.JSON(200, Resp{0, "更新活动成功", activity})
+//		}
+//	}
+//}
+
+//func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+//	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", args["id"])
+//	CheckErr(err, "DeleteActivity delete failed")
+//	if err != nil {
+//		r.JSON(200, Resp{1102, "删除活动失败", nil})
+//	} else {
+//		r.JSON(200, Resp{0, "删除活动成功", nil})
+//	}
+//}
+
+//func DeleteUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+//	_, err := dbmap.Exec("DELETE from t_user WHERE id=?", args["id"])
+//	CheckErr(err, "DeleteUser delete failed")
+//	if err != nil {
+//		r.JSON(200, Resp{1007, "删除用户失败", nil})
+//	} else {
+//		r.JSON(200, Resp{0, "删除用户成功", nil})
+//	}
+//}
