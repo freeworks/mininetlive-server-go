@@ -60,3 +60,5 @@
 2016/06/18 17:01:11 logger.go:98: info [{"@timestamp":"2016-06-18T17:01:11+08:00","@version":1,"method":"POST","path":"/activity/play","status":200,"size":45,"duration":361.742995,"params":{"aid":["3cxfdsf"],"uid":["dsfdslfjsdlfj"]}}]
 2016/06/18 17:01:50 Common.go:11: error [PayActivity insert failed Error 1054: Unknown column 'type' in 'field list']
 2016/06/18 17:01:50 logger.go:98: info [{"@timestamp":"2016-06-18T17:01:50+08:00","@version":1,"method":"POST","path":"/activity/play","status":200,"size":32,"duration":361.08328900000004,"params":{"aid":["3cxfdsf"],"uid":["dsfdslfjsdlfj"]}}]
+2016/06/19 00:52:13 logger.go:98: info [{"@timestamp":"2016-06-19T00:52:13+08:00","@version":1,"method":"GET","path":"/activity/list","status":200,"size":1466,"duration":409.360906}]
+2016/06/19 00:52:30 logger.go:98: info [{"@timestamp":"2016-06-19T00:52:30+08:00","@version":1,"method":"GET","path":"/activity/detail/sdlfjsdl","status":200,"size":394,"duration":137.46113400000002}]
