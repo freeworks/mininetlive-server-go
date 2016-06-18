@@ -9,6 +9,7 @@ import (
 
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/render"
+	cache "github.com/patrickmn/go-cache"
 )
 
 //登陆
@@ -106,6 +107,45 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		r.JSON(200, Resp{1004, "该账号已经注册", nil})
 	}
 
+}
+
+func GetVCode(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
+	phone := req.PostFormValue("phone")
+	//TODO 校验
+	//是否已经注册
+	count, err := dbmap.SelectInt("SELECT COUNT(*) FROM t_local_auth WHERE phone=?", phone)
+	CheckErr(err, "check phone is registed")
+	if err != nil {
+		r.JSON(200, Resp{1009, "获取验证码失败，服务器异常", nil})
+	}
+	if count == 0 {
+		vCode, err := SendSMS(phone)
+		if err != nil {
+			r.JSON(200, Resp{1009, "获取验证码失败", nil})
+		} else {
+			c.Set(phone, vCode, 60*time.Second)
+			r.JSON(200, Resp{0, "获取验证码成功", nil})
+		}
+	} else {
+		r.JSON(200, Resp{1004, "该手机号已注册", nil})
+	}
+}
+
+func VerifyPhone(req *http.Request, c *cache.Cache, r render.Render) {
+	req.ParseForm()
+	phone := req.PostFormValue("phone")
+	vCode := req.PostFormValue("vcode")
+	//TODO 校验
+	if cacheVCode, found := c.Get(phone); found {
+		if cacheVCode.(string) == vCode {
+			r.JSON(200, Resp{0, "验证成功", nil})
+		} else {
+			r.JSON(200, Resp{1010, "输入验证码有误,请重新输入", nil})
+		}
+	} else {
+		r.JSON(200, Resp{1011, "输入验证码无效,请重新获取验证码", nil})
+	}
 }
 
 func Logout(req *http.Request, r render.Render, dbmap *gorp.DbMap) {

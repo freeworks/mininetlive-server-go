@@ -10,24 +10,30 @@ import (
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	. "app/upload"
+	"time"
 
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/martini-contrib/binding"
 	"github.com/martini-contrib/render"
+	cache "github.com/patrickmn/go-cache"
 )
 
 func main() {
 	initLog("api.log", logger.ALL, true)
 	dbmap := db.InitDb()
 	defer dbmap.Db.Close()
+	c := cache.New(cache.NoExpiration, 30*time.Second)
 	m := martini.Classic()
+	m.Map(dbmap)
+	m.Map(c)
 	m.Use(logger.Logger())
 	m.Use(render.Renderer())
-	m.Map(dbmap)
 	m.Post("/auth/login", binding.Bind(LocalAuth{}), Login)
 	m.Post("/auth/register", binding.Bind(LocalAuthUser{}), Register)
 	m.Post("/auth/logout", Logout)
+	m.Post("/auth/vcode", GetVCode)
+	m.Post("/auth/verify/phone", VerifyPhone)
 	m.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 	m.Group("/common", func(r martini.Router) {
@@ -40,6 +46,7 @@ func main() {
 		r.Get("/payRecordList", GetPayRecordList)
 		r.Get("/appointmentRecordList", GetAppointmentRecordList)
 		r.Put("/name", UpdateAccountNickName)
+		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Put("/phone", UpdateAccountPhone)
 	})
 	m.Group("/user", func(r martini.Router) {
