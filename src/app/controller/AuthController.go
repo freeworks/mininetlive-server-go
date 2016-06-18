@@ -2,7 +2,9 @@ package controller
 
 import (
 	. "app/common"
+	logger "app/logger"
 	. "app/models"
+	"net/http"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -11,19 +13,21 @@ import (
 
 //登陆
 func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
+	logger.Info("LoginOAuth....")
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", oauth.OpenId)
-	CheckErr(err, "LoginOAuth selectOne failed")
+	CheckErr(err, "LoginOAuth select oauth")
 	if err != nil {
 		r.JSON(200, Resp{1000, "未注册", nil})
 	} else {
 		dbmap.Update(&oauth)
-		obj, err := dbmap.Get(User{}, oauth.UserId)
-		CheckErr(err, "LoginOAuth get user failed")
-		if obj == nil {
+		var user User
+		err := dbmap.SelectOne(&user, "select * from t_user where uid=?", oauth.Uid)
+		CheckErr(err, "LoginOAuth select user ")
+		if err != nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
+		} else {
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "user": user}})
 		}
-		user := obj.(*User)
-		r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "user": user}})
 	}
 }
 
@@ -36,11 +40,11 @@ func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		// err = dbmap.Insert(&register.OAuth)
 		trans, err := dbmap.Begin()
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
-		register.User.Updated = time.Now()
 		register.User.Created = time.Now()
+		register.User.Uid = GeneraToken16()
 		trans.Insert(&register.User)
 		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
-		register.OAuth.UserId = register.User.Id
+		register.OAuth.Uid = register.User.Uid
 		trans.Insert(&register.OAuth)
 		err = trans.Commit()
 		CheckErr(err, "RegisterOAuth trans commit ")
@@ -61,11 +65,11 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 	if err != nil {
 		r.JSON(200, Resp{1005, "账户或密码错误", nil})
 	} else {
-		auth.Token = GeneraToken()
+		auth.Token = GeneraToken16()
 		auth.Expires = time.Now().Add(time.Hour * 24 * 30)
 		_, err := dbmap.Update(&auth)
 		CheckErr(err, "Login update auth")
-		obj, err := dbmap.Get(User{}, auth.UserId)
+		obj, err := dbmap.Get(User{}, auth.Uid)
 		CheckErr(err, "Login get user")
 		if obj == nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
@@ -87,7 +91,7 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 		authUser.User.Created = time.Now()
 		err = trans.Insert(&authUser.User)
 		CheckErr(err, "Register insert user failed")
-		authUser.LocalAuth.UserId = authUser.User.Id
+		authUser.LocalAuth.Uid = authUser.User.Uid
 		authUser.LocalAuth.Expires = time.Now().Add(time.Hour * 24 * 30)
 		err = trans.Insert(&authUser.LocalAuth)
 		CheckErr(err, "Register insert LocalAuth failed")
@@ -104,6 +108,7 @@ func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
 
 }
 
-func Logout() {
+func Logout(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	//TODO
+	r.JSON(200, Resp{0, "退出成功", nil})
 }

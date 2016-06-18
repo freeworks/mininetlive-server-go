@@ -11,7 +11,7 @@ import (
 
 func GetUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	var user User
-	err := dbmap.SelectOne(&user, "select * from t_user where id=?", args["id"])
+	err := dbmap.SelectOne(&user, "select * from t_user where uid=?", args["uid"])
 	CheckErr(err, "GetUser selectOne failed")
 	//simple error check
 	if err != nil {

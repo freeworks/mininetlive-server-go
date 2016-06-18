@@ -2,6 +2,7 @@ package admin
 
 import (
 	. "app/common"
+	config "app/config"
 	logger "app/logger"
 	. "app/models"
 	"app/sessionauth"
@@ -173,9 +174,9 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 
 func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 	logger.Info(activity.String())
-	activity.VideoId = uuid.New()
-	activity.VideoPushPath = "xxxxxx"
-	activity.BelongUserId = 1
+	activity.VideoId = GeneraToken8()
+	activity.VideoPushPath = fmt.Sprintf(config.RtmpPath, activity.VideoId)
+	activity.Uid = "uidtest"
 	//奇葩
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
 	activity.Date = time.Unix(activity.ADate, 0)

@@ -35,22 +35,22 @@ func main() {
 	})
 	m.Post("/upload", Upload)
 	m.Group("/account", func(r martini.Router) {
-		r.Get("/info", GetAccountInfo)
+		r.Post("/info", GetAccountInfo)
 		r.Get("/playRecordList", GetPlayRecordList)
 		r.Get("/payRecordList", GetPayRecordList)
 		r.Get("/appointmentRecordList", GetAppointmentRecordList)
-		r.Put("/name", UpdateAccountName)
+		r.Put("/name", UpdateAccountNickName)
 		r.Put("/phone", UpdateAccountPhone)
 	})
 	m.Group("/user", func(r martini.Router) {
-		r.Get("/getUserInfo/:id", GetUser)
+		r.Get("/info/:uid", GetUser)
 	})
 	m.Group("/activity", func(r martini.Router) {
 		r.Get("/list", GetActivityList)
 		r.Get("/list/more", GetMoreActivityList)
 		r.Get("/detail/:id", GetActivityDetail)
-		r.Post("/appointment/:id", AppointmentActivity)
-		r.Post("/play/:id", PlayActivity)
+		r.Post("/appointment", AppointmentActivity)
+		r.Post("/play", PlayActivity)
 	})
 	m.Group("/pay", func(r martini.Router) {
 		r.Get("/charge", pay.GetCharge)

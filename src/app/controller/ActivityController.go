@@ -4,7 +4,6 @@ import (
 	. "app/common"
 	. "app/models"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -12,10 +11,11 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-func AppointmentActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
 	var record AppointmentRecord
-	record.ActivityId, _ = strconv.Atoi(args["id"])
-	record.UserId = 1 //TODO session 取id
+	record.Aid = req.PostFormValue("aid")
+	record.Uid = req.PostFormValue("uid")
 	record.Created = time.Now()
 	err := dbmap.Insert(&record)
 	CheckErr(err, "AppointmentActivity insert failed")
@@ -26,20 +26,15 @@ func AppointmentActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap
 	}
 }
 
-func PlayActivity(req *http.Request, args martini.Params, activity Activity, r render.Render, dbmap *gorp.DbMap) {
+func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	var record PlayRecord
-	record.ActivityId, _ = strconv.Atoi(args["id"])
-	record.UserId = 1 //TODO session 取id
-	record.Type, _ = strconv.Atoi(req.Form["type"][0])
+	record.Aid = req.PostFormValue("aid")
+	record.Uid = req.PostFormValue("uid")
 	record.Created = time.Now()
 	err := dbmap.Insert(&record)
 	CheckErr(err, "PayActivity insert failed")
-	if err != nil {
-		r.JSON(200, Resp{1105, "支付失败", nil})
-	} else {
-		r.JSON(200, Resp{0, "支付成功", nil})
-	}
+	r.JSON(200, Resp{0, "ok", nil})
 }
 
 //TODO 前10个
@@ -68,7 +63,7 @@ func GetMoreActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 
 func GetActivityDetail(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	var activity Activity
-	err := dbmap.SelectOne(&activity, "select * from t_activity where id =?", args["id"])
+	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", args["id"])
 	CheckErr(err, "GetActivity select failed")
 	if err != nil {
 		r.JSON(200, Resp{1103, "活动不存在", nil})

@@ -2,6 +2,7 @@ package upload
 
 import (
 	. "app/common"
+	config "app/config"
 	logger "app/logger"
 	"bytes"
 	"crypto/hmac"
@@ -18,11 +19,6 @@ import (
 	"time"
 
 	"github.com/martini-contrib/render"
-)
-
-const (
-	publicKey  string = "enqyjAgoDAQm0mx6A/xk8eyxEuEJWK+LQ6n258NtsT6lARMyF+YFgA=="
-	privateKey string = "2e3da80f079d3362f504a5db3776a9cd41feeea2"
 )
 
 func Upload(r *http.Request, render render.Render) {
@@ -53,8 +49,8 @@ func Upload(r *http.Request, render render.Render) {
 
 func UploadToUCloudCND(path string, fileName string, render render.Render) (string, error) {
 	u := NewUcloudApiClient(
-		publicKey,
-		privateKey,
+		config.PublicKey,
+		config.PrivateKey,
 	)
 	contentType := "image/jpeg"
 	bucketName := "mininetlivepub"
