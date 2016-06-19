@@ -7,14 +7,26 @@ import (
 	. "app/models"
 	upload "app/upload"
 	"io"
+	//	"io/ioutil"
 	"net/http"
 	"os"
+	//	"strings"
+	easemob "app/easemob"
 	"time"
 
 	"github.com/coopernurse/gorp"
 	"github.com/martini-contrib/render"
 	cache "github.com/patrickmn/go-cache"
 )
+
+func Test(req *http.Request, r render.Render, c *cache.Cache) {
+	//	CreateGroup("test", "test")
+	_, err := easemob.RegisterUser("testuser", c)
+	if err == nil {
+		easemob.CreateGroup("testuser", "test", "test", c)
+	}
+	r.JSON(200, Resp{0, "ok", nil})
+}
 
 func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
@@ -88,6 +100,7 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	}
 }
 
+//Fixme 注册上传头像的时候还没有Uid
 func UploadAccountAvatar(req *http.Request, r render.Render) {
 	err := req.ParseMultipartForm(100000)
 	CheckErr(err, "upload ParseMultipartForm")

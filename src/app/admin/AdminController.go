@@ -10,11 +10,14 @@ import (
 	upload "app/upload"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/AsGz/httpAuthClient"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -186,12 +189,19 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
 	activity.Updated = time.Now()
-	err := dbmap.Insert(&activity)
-	CheckErr(err, "NewActivity insert failed")
+
+	_, err := CreateGroup(activity.Title, activity.Uid)
+	CheckErr(err, "create group")
 	if err == nil {
-		r.JSON(200, "/activity")
+		err := dbmap.Insert(&activity)
+		CheckErr(err, "NewActivity insert failed")
+		if err == nil {
+			r.JSON(200, "/activity")
+		} else {
+			r.JSON(500, "创建活动")
+		}
 	} else {
-		r.JSON(500, "删除活动失败")
+		r.JSON(500, "创建活动失败")
 	}
 }
 
@@ -246,6 +256,81 @@ func Upload(r *http.Request, render render.Render) {
 		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
 	} else {
 		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
+	}
+}
+
+//{
+//  "action" : "post",
+//  "application" : "4d7e4ba0-dc4a-11e3-90d5-e1ffbaacdaf5",
+//  "params" : { },
+//  "uri" : "https://a1.easemob.com/easemob-demo/chatdemoui",
+//  "entities" : [ ],
+//  "data" : {
+//    "groupid" : "1411527886490154"
+//  },
+//  "timestamp" : 1411527886457,
+//  "duration" : 125,
+//  "organization" : "easemob-demo",
+//  "applicationName" : "chatdemoui"
+//}
+
+func Test() {
+	CreateGroup("test", "test")
+}
+
+//TODO 用户人数
+func CreateGroup(title, uid string) (interface{}, error) {
+	url := "https://a1.easemob.com/mininetlive/mininetlive/chatgroups"
+	logger.Info("URL:>", url)
+	var jsonStr = []byte(`{"groupname":"` + title + `",
+	"desc":"` + title + `",
+	"public":true,
+	"approval":false,
+	"owner":"` + uid + `",
+	"maxusers":10000,
+	"members":[]}`)
+	logger.Info("create group json:>", jsonStr)
+
+	postEasemobRequest(url, string(jsonStr))
+
+	return nil, nil
+
+	//	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	//	req.Header.Set("Authorization", "Bearer "+token)
+	//	req.Header.Set("Content-Type", "application/json")
+	//	req.Header.Set("Accept", "application/json")
+
+	//	client := &http.Client{}
+	//	resp, err := client.Do(req)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	defer resp.Body.Close()
+	//	if resp.Status == 200 {
+	//		return json.NewDecoder(r.Body).Decode(target), nil
+	//	} else {
+	//		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
+	//		logger.Info(result)
+	//		return nil, error.New(result)
+	//	}
+}
+
+func postEasemobRequest(url, params string) {
+	clientId := "YXA6Zp1gwDYSEeasYzMDSE8dCA"
+	clientSecret := "YXA6WWzjQOVY3DASCGa22MCALGyKzoA"
+	req, err := http.NewRequest("POST", url, strings.NewReader(params))
+	req.Header.Set("Content-Type", "application/json")
+	err = httpAuthClient.ApplyHttpDigestAuth(clientId, clientSecret, url, req)
+	if err != nil {
+		logger.Error(err)
+	} else {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			logger.Error(err)
+		}
+		var b []byte
+		b, err = ioutil.ReadAll(resp.Body)
+		fmt.Println(resp.StatusCode, string(b), err)
 	}
 }
 
