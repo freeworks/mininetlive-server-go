@@ -7,8 +7,12 @@ import (
 	. "app/models"
 	"app/sessionauth"
 	"app/sessions"
+	upload "app/upload"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -218,6 +222,31 @@ func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 		r.JSON(500, "删除活动失败")
 	}
 
+}
+
+func Upload(r *http.Request, render render.Render) {
+	logger.Info("parsing form")
+	err := r.ParseMultipartForm(100000)
+	// CheckErr("upload ParseMultipartForm",err)
+	if err != nil {
+		render.JSON(500, "server err")
+	}
+	file, head, err := r.FormFile("file")
+	CheckErr(err, "upload Fromfile")
+	logger.Info(head.Filename)
+	defer file.Close()
+	filepath := config.ImgDir + head.Filename
+	fW, err := os.Create(filepath)
+	CheckErr(err, "create file error")
+	defer fW.Close()
+	_, err = io.Copy(fW, file)
+	CheckErr(err, "create file error")
+	url, err := upload.UploadToUCloudCND(filepath, "frontCover/"+head.Filename, render)
+	if err == nil {
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
+	} else {
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
+	}
 }
 
 //func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {

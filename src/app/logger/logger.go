@@ -1,15 +1,16 @@
 package logger
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
 	"sync"
 	"time"
-	"encoding/json"
-	"net/http"
+
 	"github.com/go-martini/martini"
 )
 
@@ -77,7 +78,6 @@ func Logger() martini.Handler {
 		start := time.Now()
 		rw := res.(martini.ResponseWriter)
 		c.Next()
-
 		event := logstashEvent{
 			time.Now().Format(time.RFC3339),
 			1,
@@ -88,7 +88,6 @@ func Logger() martini.Handler {
 			time.Since(start).Seconds() * 1000.0,
 			map[string][]string(req.Form),
 		}
-
 		output, err := json.Marshal(event)
 		if err != nil {
 			// Should this be fatal?
@@ -151,9 +150,10 @@ func SetRollingDaily(fileDir, fileName string) {
 
 func mkdirlog(dir string) (e error) {
 	_, er := os.Stat(dir)
+	log.Println(er)
 	b := er == nil || os.IsExist(er)
 	if !b {
-		if err := os.MkdirAll(dir, 0666); err != nil {
+		if err := os.MkdirAll(dir, 0777); err != nil {
 			if os.IsPermission(err) {
 				fmt.Println("create dir error:", err.Error())
 				e = err

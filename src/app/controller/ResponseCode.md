@@ -12,6 +12,8 @@ package controller
 //1009 获取验证码失败
 //1010 验证码输入错误
 //1011 验证码过期
+//1012 头像上传失败
+//1013 uid不能为空
 
 
 //0 成功
@@ -27,6 +29,9 @@ package controller
 //1300 获取播放记录失败
 //1301 获取预约记录失败
 //1302 获取支付记录失败
+
+
+
 
 //func CancelAppointmentActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
 //	var record AppointmentRecord

@@ -2,6 +2,7 @@ package main
 
 import (
 	admin "app/admin"
+	config "app/config"
 	. "app/controller"
 	db "app/db"
 	logger "app/logger"
@@ -9,7 +10,6 @@ import (
 	pay "app/pay"
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
-	. "app/upload"
 	"time"
 
 	"github.com/go-martini/martini"
@@ -20,7 +20,10 @@ import (
 )
 
 func main() {
-	initLog("api.log", logger.ALL, true)
+	logger.SetConsole(true)
+	logger.SetRollingDaily(config.LogDir, "mininetlive.log")
+	logger.SetLevel(logger.ALL)
+
 	dbmap := db.InitDb()
 	defer dbmap.Db.Close()
 	c := cache.New(cache.NoExpiration, 30*time.Second)
@@ -38,8 +41,8 @@ func main() {
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 	m.Group("/common", func(r martini.Router) {
 		r.Post("/inviteCode", PostInviteCode)
+		r.Post("/upload", admin.Upload)
 	})
-	m.Post("/upload", Upload)
 	m.Group("/account", func(r martini.Router) {
 		r.Post("/info", GetAccountInfo)
 		r.Get("/playRecordList", GetPlayRecordList)
@@ -48,6 +51,7 @@ func main() {
 		r.Put("/name", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Put("/phone", UpdateAccountPhone)
+		r.Put("/avatar", UploadAccountAvatar)
 	})
 	m.Group("/user", func(r martini.Router) {
 		r.Get("/info/:uid", GetUser)
@@ -67,9 +71,7 @@ func main() {
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
-
 	go func() {
-		initLog("admin.log", logger.ALL, true)
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()
 		m.Map(dbmap)
@@ -91,15 +93,9 @@ func main() {
 		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)
 		m.Get("/user", sessionauth.LoginRequired, admin.GetUserList)
 		m.Get("/income", sessionauth.LoginRequired, admin.GetIncome)
-		m.Post("/upload", Upload)
+		m.Post("/upload", admin.Upload)
 		m.RunOnAddr(":8081")
 	}()
 
 	m.RunOnAddr(":8080")
-}
-
-func initLog(filename string, level logger.LEVEL, console bool) {
-	logger.SetConsole(console)
-	logger.SetRollingDaily(".", filename)
-	logger.SetLevel(level)
 }

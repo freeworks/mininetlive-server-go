@@ -7,4 +7,6 @@ const (
 	HlsPath     string = "http://vlive3.hls.cdn.ucloud.com.cn/ucloud/%s/playlist.m3u8"
 	PushPath    string = "rtmp://publish3.cdn.ucloud.com.cn/ucloud/%s"
 	VedioBucket string = "mininetlive123.ufile.ucloud.com.cn"
+	ImgDir      string = "/tmp/mininetlive/img/"
+	LogDir      string = "/tmp/mininetlive/log/"
 )

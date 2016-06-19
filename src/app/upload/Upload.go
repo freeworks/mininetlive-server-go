@@ -11,41 +11,41 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	//	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strconv"
+	//	"os"
+	//	"strconv"
 	"time"
 
 	"github.com/martini-contrib/render"
 )
 
-func Upload(r *http.Request, render render.Render) {
-	logger.Info("parsing form")
-	err := r.ParseMultipartForm(100000)
-	// CheckErr("upload ParseMultipartForm",err)
-	if err != nil {
-		render.JSON(500, "server err")
-	}
-	file, head, err := r.FormFile("file")
-	CheckErr(err, "upload Fromfile")
-	logger.Info(head.Filename)
-	defer file.Close()
-	tempDir := "/Users/cainli/mininetlive/temp/"
-	filepath := tempDir + head.Filename
-	fW, err := os.Create(tempDir + head.Filename)
-	CheckErr(err, "create file error")
-	defer fW.Close()
-	_, err = io.Copy(fW, file)
-	CheckErr(err, "create file error")
-	url, err := UploadToUCloudCND(filepath, head.Filename, render)
-	if err == nil {
-		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
-	} else {
-		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
-	}
-}
+//func Upload(r *http.Request, render render.Render) {
+//	logger.Info("parsing form")
+//	err := r.ParseMultipartForm(100000)
+//	// CheckErr("upload ParseMultipartForm",err)
+//	if err != nil {
+//		render.JSON(500, "server err")
+//	}
+//	file, head, err := r.FormFile("file")
+//	CheckErr(err, "upload Fromfile")
+//	logger.Info(head.Filename)
+//	defer file.Close()
+//	tempDir := "/Users/cainli/mininetlive/temp/"
+//	filepath := tempDir + head.Filename
+//	fW, err := os.Create(tempDir + head.Filename)
+//	CheckErr(err, "create file error")
+//	defer fW.Close()
+//	_, err = io.Copy(fW, file)
+//	CheckErr(err, "create file error")
+//	url, err := UploadToUCloudCND(filepath, head.Filename, render)
+//	if err == nil {
+//		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
+//	} else {
+//		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
+//	}
+//}
 
 func UploadToUCloudCND(path string, fileName string, render render.Render) (string, error) {
 	u := NewUcloudApiClient(

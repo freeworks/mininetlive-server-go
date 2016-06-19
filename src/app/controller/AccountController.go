@@ -2,8 +2,13 @@ package controller
 
 import (
 	. "app/common"
+	config "app/config"
+	logger "app/logger"
 	. "app/models"
+	upload "app/upload"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -14,6 +19,9 @@ import (
 func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	uid := req.PostFormValue("uid")
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+	}
 	var user User
 	err := dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
 	CheckErr(err, "GetUser selectOne failed")
@@ -28,6 +36,9 @@ func UpdateAccountNickName(req *http.Request, r render.Render, dbmap *gorp.DbMap
 	req.ParseForm()
 	name := req.PostFormValue("nickname")
 	uid := req.PostFormValue("uid")
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+	}
 	_, err := dbmap.Exec("UPDATE t_user SET nickname = ? WHERE uid = ?", name, uid)
 	CheckErr(err, "Update nickname get failed")
 	if err != nil {
@@ -55,6 +66,11 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	phone := req.PostFormValue("phone")
 	vCode := req.PostFormValue("vcode")
 	uid := req.PostFormValue("uid")
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+	}
+	//Test
+
 	if cacheVCode, found := c.Get(phone); found {
 		if cacheVCode.(string) == vCode {
 			_, err := dbmap.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
@@ -69,6 +85,35 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 		}
 	} else {
 		r.JSON(200, Resp{1011, "验证码过期,请重新获取验证码", nil})
+	}
+}
+
+func UploadAccountAvatar(req *http.Request, r render.Render) {
+	err := req.ParseMultipartForm(100000)
+	CheckErr(err, "upload ParseMultipartForm")
+	if err != nil {
+		r.JSON(500, "server err")
+	}
+	uid := req.FormValue("uid")
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+	}
+	file, head, err := req.FormFile("file")
+	CheckErr(err, "upload Fromfile")
+	logger.Info(head.Filename)
+	defer file.Close()
+	fileName := uid + "_avatar.png"
+	filepath := config.ImgDir + fileName
+	fW, err := os.Create(filepath)
+	CheckErr(err, "create file error")
+	defer fW.Close()
+	_, err = io.Copy(fW, file)
+	CheckErr(err, "create file error")
+	url, err := upload.UploadToUCloudCND(filepath, fileName, r)
+	if err == nil {
+		r.JSON(200, Resp{0, "头像上传成功", map[string]string{"url": url}})
+	} else {
+		r.JSON(200, Resp{1012, "头像上传失败", nil})
 	}
 }
 
