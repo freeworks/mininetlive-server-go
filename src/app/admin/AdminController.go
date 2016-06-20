@@ -3,6 +3,7 @@ package admin
 import (
 	. "app/common"
 	config "app/config"
+	easemob "app/easemob"
 	logger "app/logger"
 	. "app/models"
 	"app/sessionauth"
@@ -10,18 +11,15 @@ import (
 	upload "app/upload"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/AsGz/httpAuthClient"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
-	"github.com/pborman/uuid"
+	cache "github.com/patrickmn/go-cache"
 )
 
 var mDbMap *gorp.DbMap
@@ -179,27 +177,29 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	r.HTML(200, "activitylist", newmap)
 }
 
-func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
+func NewActivity(activity Activity, admin AdminModel, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+	uid := UUID()
+	//TODO
+	err := easemob.CreateGroup("usssss", uid, activity.Title, c)
+	if err != nil {
+		CheckErr(err, "easemob create group error")
+		r.JSON(500, "创建活动失败")
+		return
+	}
 	logger.Info(activity.String())
 	activity.VideoId = GeneraToken8()
 	activity.VideoPushPath = fmt.Sprintf(config.RtmpPath, activity.VideoId)
-	activity.Uid = "uidtest"
+	activity.Uid = uid
 	//奇葩
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
 	activity.Updated = time.Now()
-
-	_, err := CreateGroup(activity.Title, activity.Uid)
 	CheckErr(err, "create group")
+	err = dbmap.Insert(&activity)
+	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
-		err := dbmap.Insert(&activity)
-		CheckErr(err, "NewActivity insert failed")
-		if err == nil {
-			r.JSON(200, "/activity")
-		} else {
-			r.JSON(500, "创建活动")
-		}
+		r.JSON(200, "/activity")
 	} else {
 		r.JSON(500, "创建活动失败")
 	}
@@ -207,7 +207,7 @@ func NewActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 
 func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
 	logger.Info(activity.String())
-	activity.VideoId = uuid.New()
+	activity.VideoId = UUID()
 	activity.VideoPushPath = "xxxxxx"
 	//奇葩
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
@@ -245,92 +245,19 @@ func Upload(r *http.Request, render render.Render) {
 	CheckErr(err, "upload Fromfile")
 	logger.Info(head.Filename)
 	defer file.Close()
+	err = Mkdir(config.ImgDir)
+	CheckErr(err, "create dir error")
 	filepath := config.ImgDir + head.Filename
 	fW, err := os.Create(filepath)
 	CheckErr(err, "create file error")
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
-	CheckErr(err, "create file error")
+	CheckErr(err, "copy file error")
 	url, err := upload.UploadToUCloudCND(filepath, "frontCover/"+head.Filename, render)
 	if err == nil {
 		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
 	} else {
 		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
-	}
-}
-
-//{
-//  "action" : "post",
-//  "application" : "4d7e4ba0-dc4a-11e3-90d5-e1ffbaacdaf5",
-//  "params" : { },
-//  "uri" : "https://a1.easemob.com/easemob-demo/chatdemoui",
-//  "entities" : [ ],
-//  "data" : {
-//    "groupid" : "1411527886490154"
-//  },
-//  "timestamp" : 1411527886457,
-//  "duration" : 125,
-//  "organization" : "easemob-demo",
-//  "applicationName" : "chatdemoui"
-//}
-
-func Test() {
-	CreateGroup("test", "test")
-}
-
-//TODO 用户人数
-func CreateGroup(title, uid string) (interface{}, error) {
-	url := "https://a1.easemob.com/mininetlive/mininetlive/chatgroups"
-	logger.Info("URL:>", url)
-	var jsonStr = []byte(`{"groupname":"` + title + `",
-	"desc":"` + title + `",
-	"public":true,
-	"approval":false,
-	"owner":"` + uid + `",
-	"maxusers":10000,
-	"members":[]}`)
-	logger.Info("create group json:>", jsonStr)
-
-	postEasemobRequest(url, string(jsonStr))
-
-	return nil, nil
-
-	//	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	//	req.Header.Set("Authorization", "Bearer "+token)
-	//	req.Header.Set("Content-Type", "application/json")
-	//	req.Header.Set("Accept", "application/json")
-
-	//	client := &http.Client{}
-	//	resp, err := client.Do(req)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	defer resp.Body.Close()
-	//	if resp.Status == 200 {
-	//		return json.NewDecoder(r.Body).Decode(target), nil
-	//	} else {
-	//		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
-	//		logger.Info(result)
-	//		return nil, error.New(result)
-	//	}
-}
-
-func postEasemobRequest(url, params string) {
-	clientId := "YXA6Zp1gwDYSEeasYzMDSE8dCA"
-	clientSecret := "YXA6WWzjQOVY3DASCGa22MCALGyKzoA"
-	req, err := http.NewRequest("POST", url, strings.NewReader(params))
-	req.Header.Set("Content-Type", "application/json")
-	err = httpAuthClient.ApplyHttpDigestAuth(clientId, clientSecret, url, req)
-	if err != nil {
-		logger.Error(err)
-	} else {
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			logger.Error(err)
-		}
-		var b []byte
-		b, err = ioutil.ReadAll(resp.Body)
-		fmt.Println(resp.StatusCode, string(b), err)
 	}
 }
 

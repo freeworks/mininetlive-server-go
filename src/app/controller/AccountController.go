@@ -7,11 +7,9 @@ import (
 	. "app/models"
 	upload "app/upload"
 	"io"
-	//	"io/ioutil"
 	"net/http"
 	"os"
 	//	"strings"
-	easemob "app/easemob"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -19,20 +17,12 @@ import (
 	cache "github.com/patrickmn/go-cache"
 )
 
-func Test(req *http.Request, r render.Render, c *cache.Cache) {
-	//	CreateGroup("test", "test")
-	_, err := easemob.RegisterUser("testuser", c)
-	if err == nil {
-		easemob.CreateGroup("testuser", "test", "test", c)
-	}
-	r.JSON(200, Resp{0, "ok", nil})
-}
-
 func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	uid := req.PostFormValue("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
 	}
 	var user User
 	err := dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
@@ -50,6 +40,7 @@ func UpdateAccountNickName(req *http.Request, r render.Render, dbmap *gorp.DbMap
 	uid := req.PostFormValue("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
 	}
 	_, err := dbmap.Exec("UPDATE t_user SET nickname = ? WHERE uid = ?", name, uid)
 	CheckErr(err, "Update nickname get failed")
@@ -80,23 +71,26 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	uid := req.PostFormValue("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
 	}
-	//Test
-
 	if cacheVCode, found := c.Get(phone); found {
 		if cacheVCode.(string) == vCode {
 			_, err := dbmap.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
 			CheckErr(err, "Update phone get failed")
 			if err != nil {
 				r.JSON(200, Resp{1002, "绑定手机失败，服务器异常", nil})
+				return
 			} else {
 				r.JSON(200, Resp{0, "版定手机成功", nil})
+				return
 			}
 		} else {
 			r.JSON(200, Resp{1010, "输入验证码有误,请重新输入", nil})
+			return
 		}
 	} else {
 		r.JSON(200, Resp{1011, "验证码过期,请重新获取验证码", nil})
+		return
 	}
 }
 
@@ -106,10 +100,12 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 	CheckErr(err, "upload ParseMultipartForm")
 	if err != nil {
 		r.JSON(500, "server err")
+		return
 	}
 	uid := req.FormValue("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
 	}
 	file, head, err := req.FormFile("file")
 	CheckErr(err, "upload Fromfile")

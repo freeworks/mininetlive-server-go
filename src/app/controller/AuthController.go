@@ -2,6 +2,7 @@ package controller
 
 import (
 	. "app/common"
+	easemob "app/easemob"
 	logger "app/logger"
 	. "app/models"
 	"net/http"
@@ -32,17 +33,24 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
-func RegisterOAuth(register OAuthUser, r render.Render, dbmap *gorp.DbMap) {
+func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	var oauth OAuth
 	err := dbmap.SelectOne(&oauth, "select * from t_oauth where openid=?", register.OAuth.OpenId)
 	CheckErr(err, "RegisterOAuth selectOne failed")
 	if err != nil && oauth.OpenId != register.OAuth.OpenId {
-		// err = dbmap.Insert(&register.User)
-		// err = dbmap.Insert(&register.OAuth)
+		//name
+		uid := UUID()
+		uuid, err := easemob.RegisterUser(uid, c)
+		CheckErr(err, "easemob create user")
+		if err != nil {
+			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
+			return
+		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
 		register.User.Created = time.Now()
-		register.User.Uid = GeneraToken16()
+		register.User.EasemobUuid = uuid
+		register.User.Uid = uid
 		trans.Insert(&register.User)
 		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
 		register.OAuth.Uid = register.User.Uid
@@ -80,16 +88,23 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
-func Register(authUser LocalAuthUser, r render.Render, dbmap *gorp.DbMap) {
+func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	var auth LocalAuth
 	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=?", authUser.LocalAuth.Phone)
 	CheckErr(err, "Register selectOne failed")
 	if err != nil && auth.Phone == "" {
-		// err = dbmap.Insert(&authUser.LocalAuth)
+		uid := UUID()
+		uuid, err := easemob.RegisterUser(uid, c)
+		CheckErr(err, "easemob create user")
+		if err != nil {
+			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
+			return
+		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "Register begin trans failed")
-		authUser.User.Updated = time.Now()
 		authUser.User.Created = time.Now()
+		authUser.User.EasemobUuid = uuid
+		authUser.User.Uid = uid
 		err = trans.Insert(&authUser.User)
 		CheckErr(err, "Register insert user failed")
 		authUser.LocalAuth.Uid = authUser.User.Uid
@@ -118,6 +133,7 @@ func GetVCode(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.Db
 	CheckErr(err, "check phone is registed")
 	if err != nil {
 		r.JSON(200, Resp{1009, "获取验证码失败，服务器异常", nil})
+		return
 	}
 	if count == 0 {
 		vCode, err := SendSMS(phone)

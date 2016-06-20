@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 
+	. "github.com/bitly/go-simplejson"
 	cache "github.com/patrickmn/go-cache"
 )
 
@@ -65,8 +67,6 @@ func RegisterUser(username string, c *cache.Cache) (string, error) {
 	}
 	url := "https://a1.easemob.com/mininetlive/mininetlive/users"
 	var jsonStr = []byte(`{"username":"` + username + `","password":"123456"}`)
-	logger.Info(access_token)
-	logger.Info(string(jsonStr))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("Authorization", "Bearer "+access_token)
 	req.Header.Set("Content-Type", "application/json")
@@ -78,11 +78,11 @@ func RegisterUser(username string, c *cache.Cache) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		var target interface{}
-		json.NewDecoder(resp.Body).Decode(&target)
-		m := target.(map[string]interface{})
-		logger.Info(m)
-		return "", nil
+		data, _ := ioutil.ReadAll(resp.Body)
+		js, _ := NewJson(data)
+		uuid, _ := js.Get("entities").GetIndex(0).Get("uuid").String()
+		logger.Info(string(data))
+		return uuid, nil
 	} else {
 		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
 		logger.Info(result)
@@ -90,10 +90,10 @@ func RegisterUser(username string, c *cache.Cache) (string, error) {
 	}
 }
 
-func CreateGroup(owner, title, uid string, c *cache.Cache) (string, error) {
+func CreateGroup(owner, title, uid string, c *cache.Cache) error {
 	access_token := GetAccessToken(c)
 	if access_token == "" {
-		return "", errors.New("create group get token fail")
+		return errors.New("create group get token fail")
 	}
 	//create group
 	url := "https://a1.easemob.com/mininetlive/mininetlive/chatgroups"
@@ -112,18 +112,14 @@ func CreateGroup(owner, title, uid string, c *cache.Cache) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		var target interface{}
-		json.NewDecoder(resp.Body).Decode(&target)
-		m := target.(map[string]interface{})
-		logger.Info(m)
-		return "", nil
+		return nil
 	} else {
 		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
 		logger.Info(result)
-		return "", errors.New(result)
+		return errors.New(result)
 	}
 }

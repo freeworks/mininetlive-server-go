@@ -56,7 +56,6 @@ func SessionUser(newUser func() User) martini.Handler {
 	return func(s sessions.Session, c martini.Context, l *log.Logger) {
 		userId := s.Get(SessionKey)
 		user := newUser()
-
 		if userId != nil {
 			err := user.GetById(userId)
 			if err != nil {

@@ -71,10 +71,11 @@ func main() {
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
-	m.Get("/test", Test)
 	go func() {
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()
+		c := cache.New(cache.NoExpiration, 30*time.Second)
+		m.Map(c)
 		m.Map(dbmap)
 		m.Use(logger.Logger())
 		m.Use(render.Renderer())
