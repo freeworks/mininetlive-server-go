@@ -194,7 +194,6 @@ func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *c
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
-	activity.Updated = time.Now()
 	CheckErr(err, "create group")
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
