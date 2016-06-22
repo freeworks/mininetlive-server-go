@@ -40,7 +40,9 @@ func init() {
 }
 
 func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
-	amount, err := strconv.Atoi(req.FormValue("amount"))
+	uid := req.PostFormValue("uid")
+	logger.Info("uid:", uid)
+	amount, err := strconv.Atoi(req.PostFormValue("amount"))
 	if err != nil {
 		render.JSON(200, Resp{2001, "支付金额不正确", nil})
 		return
@@ -48,7 +50,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
 	if amount == 0 {
 		amount = 1
 	}
-	channel := req.FormValue("channel")
+	channel := req.PostFormValue("channel")
 	if channel != "alipay" && channel != "wx" {
 		render.JSON(200, Resp{2002, "支付渠道异常", nil})
 		return
@@ -91,42 +93,47 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
 }
 
 type RedEnvelopeModel struct {
-	Nickname    string
-	SendName    string
-	Subject     string
-	Body        string
-	Description string
-	Amount      uint64
+	Uid         string `form:"uid"`
+	Body        string `form:"Body"`
+	Description string `form:"Description"`
+	RecipinetId string `form:"-"`
 }
 
 func Withdraw(req *http.Request, redEnvelope RedEnvelopeModel, render render.Render) {
+	uid := req.PostFormValue("uid")
+	logger.Info("uid:", uid)
 	//TODO 是否绑定微信,
 	//TODO 是否绑定电话
-	result, err := NewRedEnvelope(redEnvelope)
+	recipinetId := "xxx" //from db
+	amount, err := strconv.Atoi(req.PostFormValue("amount"))
+	if err != nil {
+		render.JSON(200, Resp{2001, "支付金额不正确", nil})
+		return
+	}
+	result, err := NewRedEnvelope(recipinetId, uint64(amount))
 	if err == nil {
-		render.JSON(200, Resp{2003, "提现成功", result})
+		render.JSON(200, Resp{0, "提现成功", result})
 	} else {
 		logger.Info(err)
-		render.JSON(200, Resp{0, "提现失败", nil})
+		render.JSON(200, Resp{2003, "提现失败", nil})
 	}
 }
 
-func NewRedEnvelope(redEnvelopeModel RedEnvelopeModel) (interface{}, error) {
+func NewRedEnvelope(recipinetId string, amount uint64) (interface{}, error) {
 	extra := make(map[string]interface{})
-	extra["nick_name"] = redEnvelopeModel.Nickname
-	extra["send_name"] = redEnvelopeModel.SendName
+	extra["send_name"] = "微网直播间"
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	orderno := r.Intn(999999999999999)
 	redenvelopeParams := &pingpp.RedEnvelopeParams{
 		App:         pingpp.App{Id: APP_ID},
 		Channel:     "wx_pub",
 		Order_no:    strconv.Itoa(orderno),
-		Amount:      redEnvelopeModel.Amount,
+		Amount:      amount,
 		Currency:    "cny",
-		Recipient:   WX_OPEN_ID,
-		Subject:     redEnvelopeModel.Subject,
-		Body:        redEnvelopeModel.Body,
-		Description: redEnvelopeModel.Description,
+		Recipient:   recipinetId,
+		Subject:     "奖励",
+		Body:        "",
+		Description: "",
 		Extra:       extra,
 	}
 	redEnvelope, err := redEnvelope.New(redenvelopeParams)

@@ -72,6 +72,8 @@ func main() {
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
+	logger.Info(Token())
+	logger.Info(Token2())
 	logger.Info(GeneraToken32())
 	go func() {
 		admin.SetDBMap(dbmap)

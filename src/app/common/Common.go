@@ -2,14 +2,17 @@ package common
 
 import (
 	logger "app/logger"
+	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	mathRand "math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,6 +93,19 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 func GenerateRandomString(s int) (string, error) {
 	b, err := GenerateRandomBytes(s)
 	return base64.URLEncoding.EncodeToString(b), err
+}
+
+func Token() string {
+	now := time.Now().Unix()
+	h := md5.New()
+	io.WriteString(h, strconv.FormatInt(now, 10))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func Token2() string {
+	b := make([]byte, 8)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
 func UUID() string {
