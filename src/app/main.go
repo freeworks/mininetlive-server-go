@@ -2,6 +2,7 @@ package main
 
 import (
 	admin "app/admin"
+	. "app/common"
 	config "app/config"
 	. "app/controller"
 	db "app/db"
@@ -64,13 +65,14 @@ func main() {
 		r.Post("/play", PlayActivity)
 	})
 	m.Group("/pay", func(r martini.Router) {
-		r.Get("/charge", pay.GetCharge)
+		r.Post("/charge", pay.GetCharge)
 		r.Post("/webhook", pay.Webhook)
 		r.Post("/withdraw", pay.Withdraw)
 	})
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
+	logger.Info(GeneraToken32())
 	go func() {
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()

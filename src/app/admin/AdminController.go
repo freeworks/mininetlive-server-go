@@ -46,6 +46,7 @@ func (u *AdminModel) Login() {
 	// Update last login time
 	// Add to logged-in user's list
 	// etc ...
+	logger.Info("login ....")
 	u.authenticated = true
 }
 
@@ -68,7 +69,7 @@ func (u *AdminModel) UniqueId() interface{} {
 // GetById will populate a user object from a database model with
 // a matching id.
 func (u *AdminModel) GetById(id interface{}) error {
-	logger.Info(id)
+	logger.Info("GetById:", id)
 	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE id = ?", id)
 	CheckErr(err, "GetById select one")
 	if err != nil {
@@ -177,10 +178,9 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	r.HTML(200, "activitylist", newmap)
 }
 
-func NewActivity(activity Activity, admin AdminModel, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	uid := UUID()
-	//TODO
-	err := easemob.CreateGroup("usssss", uid, activity.Title, c)
+	err := easemob.CreateGroup(strconv.FormatInt(user.UniqueId().(int64), 10), activity.Title, activity.Title, c)
 	if err != nil {
 		CheckErr(err, "easemob create group error")
 		r.JSON(500, "创建活动失败")

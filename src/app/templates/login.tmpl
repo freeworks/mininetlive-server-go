@@ -85,6 +85,7 @@
 				$.post("login?next="+getUrlParam("next"), 
 					{ "username": username, "password": pwd },
 					function(data) {
+						alert(data)
 						window.location = data;
 					})
             });		

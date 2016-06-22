@@ -31,6 +31,9 @@ package controller
 //1302 获取支付记录失败
 
 
+//2000 获取charge失败
+
+
 
 
 //func CancelAppointmentActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
