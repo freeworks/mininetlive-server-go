@@ -29,7 +29,7 @@ func SendSMS(mobile string) (string, error) {
 	//uid := "verifyPhone"  //该条短信在您业务系统内的ID
 	//callback_url
 	res, err := http.Post(url, "application/x-www-form-urlencoded",
-		strings.NewReader("apikey=47d1ae5bc2c8f1bf6ed14ac828200299&mobile="+mobile+"&text=【微网直播间】您的验证码是"+vcode))
+		strings.NewReader("apikey=47d1ae5bc2c8f1bf6ed14ac828200299&mobile="+mobile+"&text=【微网直播间】您的验证码为"+vcode+""))
 	if err != nil {
 		CheckErr(err, "GetSMSCode send msg")
 		return "", err
@@ -38,7 +38,7 @@ func SendSMS(mobile string) (string, error) {
 		js, _ := NewJson(data)
 		logger.Info(string(data))
 		code, _ := js.Get("code").Int()
-		if code != 0 {
+		if code == 0 {
 			sid, _ := js.Get("result").Get("sid").Int()
 			logger.Info(sid)
 		} else {
