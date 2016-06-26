@@ -108,6 +108,10 @@ func Token2() string {
 	return fmt.Sprintf("%x", b)
 }
 
+func UID() string {
+	return Token2()
+}
+
 func UUID() string {
 	return uuid.New()
 }

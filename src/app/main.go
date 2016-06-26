@@ -58,7 +58,8 @@ func main() {
 		r.Get("/info/:uid", GetUser)
 	})
 	m.Group("/activity", func(r martini.Router) {
-		r.Get("/list", GetActivityList)
+		r.Get("/list", GetActivityList2)
+		r.Get("/live/list", GetActivityList)
 		r.Get("/list/more", GetMoreActivityList)
 		r.Get("/detail/:id", GetActivityDetail)
 		r.Post("/appointment", AppointmentActivity)

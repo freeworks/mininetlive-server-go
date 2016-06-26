@@ -39,7 +39,7 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 	CheckErr(err, "RegisterOAuth selectOne failed")
 	if err != nil && oauth.OpenId != register.OAuth.OpenId {
 		//name
-		uid := UUID()
+		uid := UID()
 		uuid, err := easemob.RegisterUser(uid, c)
 		CheckErr(err, "easemob create user")
 		if err != nil {
@@ -81,10 +81,12 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 		obj, err := dbmap.Get(User{}, auth.Uid)
 		CheckErr(err, "Login get user")
 		if obj == nil {
-			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
+			r.JSON(200, Resp{1002, "账户错误，请重新注册", nil})
+			dbmap.Delete(&auth)
+		} else {
+			user := obj.(*User)
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": auth.Token, "user": user}})
 		}
-		user := obj.(*User)
-		r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": auth.Token, "user": user}})
 	}
 }
 
@@ -93,7 +95,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=?", authUser.LocalAuth.Phone)
 	CheckErr(err, "Register selectOne failed")
 	if err != nil && auth.Phone == "" {
-		uid := UUID()
+		uid := UID()
 		uuid, err := easemob.RegisterUser(uid, c)
 		CheckErr(err, "easemob create user")
 		if err != nil {

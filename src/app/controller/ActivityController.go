@@ -49,6 +49,20 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
+func GetActivityList2(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	var activities []Activity
+	_, err := dbmap.Select(&activities, "select * from t_activity")
+	CheckErr(err, "GetActivityList select failed")
+	var activities2 []Activity
+	_, err = dbmap.Select(&activities2, "select * from t_activity")
+	CheckErr(err, "GetActivityList select failed")
+	if err != nil {
+		r.JSON(200, Resp{1104, "查询活动失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "查询活动成功", map[string]interface{}{"recommend": activities, "general": activities2}})
+	}
+}
+
 //TODO 前10个
 func GetMoreActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	var activities []Activity
