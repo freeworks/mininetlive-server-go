@@ -28,7 +28,7 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 		if err != nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
 		} else {
-			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "user": user}})
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": true, "user": user}})
 		}
 	}
 }
@@ -50,7 +50,9 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
 		register.User.Created = time.Now()
 		register.User.EasemobUuid = uuid
+		register.User.InviteCode = GeneraVCode6()
 		register.User.Uid = uid
+		register.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
 		trans.Insert(&register.User)
 		register.OAuth.Expires = time.Now().Add(time.Second * time.Duration(register.OAuth.ExpiresIn))
 		register.OAuth.Uid = register.User.Uid
@@ -58,7 +60,7 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 		err = trans.Commit()
 		CheckErr(err, "RegisterOAuth trans commit ")
 		if err == nil {
-			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"user": register.User}})
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": true, "user": register.User}})
 		} else {
 			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
@@ -107,6 +109,8 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		authUser.User.Created = time.Now()
 		authUser.User.EasemobUuid = uuid
 		authUser.User.Uid = uid
+		authUser.User.InviteCode = GeneraVCode6()
+		authUser.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
 		err = trans.Insert(&authUser.User)
 		CheckErr(err, "Register insert user failed")
 		authUser.LocalAuth.Uid = authUser.User.Uid

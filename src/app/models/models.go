@@ -16,7 +16,7 @@ type User struct {
 	Uid         string    `form:"uid"  json:"uid" db:"uid"`
 	EasemobUuid string    `json:"easemobUuid" db:"easemob_uuid"`
 	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
-	Avatar      string    `form:"avatar" json:"nickname"  db:"avatar"`
+	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
 	Gender      int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
 	Balance     int       `form:"balance" json:"balance" db:"balance"`
 	InviteCode  string    `form:"inviteCode" json:"inviteCode" db:"invite_code"`
