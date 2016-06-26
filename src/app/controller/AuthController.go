@@ -113,6 +113,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		authUser.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
 		err = trans.Insert(&authUser.User)
 		CheckErr(err, "Register insert user failed")
+		authUser.LocalAuth.Token = Token()
 		authUser.LocalAuth.Uid = authUser.User.Uid
 		authUser.LocalAuth.Expires = time.Now().Add(time.Hour * 24 * 30)
 		err = trans.Insert(&authUser.LocalAuth)
@@ -120,7 +121,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		err = trans.Commit()
 		CheckErr(err, "Register commit failed")
 		if err == nil {
-			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": auth.Token, "user": authUser.User}})
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": authUser.LocalAuth.To, "user": authUser.User}})
 		} else {
 			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
