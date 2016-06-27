@@ -178,3 +178,22 @@ func (a *Activity) PreUpdate(s gorp.SqlExecutor) error {
 func (a Activity) String() string {
 	return fmt.Sprintf("[%s, %s, %s]", a.Id, a.Title, a.FontCover)
 }
+
+type Recomend struct {
+	Id      string    `db:"id"`
+	aid     string    `db:"aid"`
+	Updated time.Time `db:"update_time"`
+	Created time.Time `db:"create_time"`
+}
+
+type Order struct {
+	Id       int       `db:"id"`
+	OrderNo  string    `db:"no"`
+	Amount   uint64    `db:"amount"`
+	Channel  string    `db:"channel"`
+	ClientIP string    `db:"client_ip"`
+	Subject  string    `db:"subject"`
+	Aid      string    `db:"aid"`
+	PayType  int       `db:"type"`
+	Created  time.Time `db:"create_time"`
+}

@@ -19,7 +19,7 @@ import (
 
 func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -37,7 +37,7 @@ func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 func UpdateAccountNickName(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	name := req.PostFormValue("nickname")
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -65,10 +65,10 @@ func GetVCodeForUpdatePhone(req *http.Request, c *cache.Cache, r render.Render) 
 }
 
 func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
 	req.ParseForm()
 	phone := req.PostFormValue("phone")
 	vCode := req.PostFormValue("vcode")
-	uid := req.PostFormValue("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -102,7 +102,7 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 		r.JSON(500, "server err")
 		return
 	}
-	uid := req.FormValue("uid")
+	uid := req.Header.Get("uid")
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -127,8 +127,7 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 }
 
 func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	req.ParseForm()
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	var playRecords []PlayRecord
 	_, err := dbmap.Select(&playRecords, "SELECT * FROM t_play_record WHERE uid=? ORDER BY create_time", uid)
 	CheckErr(err, "GetPlayRecords failed")
@@ -141,7 +140,7 @@ func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 
 func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	var appointmentRecords []AppointmentRecord
 	_, err := dbmap.Select(&appointmentRecords, "SELECT * FROM t_appointment_record WHERE uid=? ORDER BY create_time", uid)
 	CheckErr(err, "GetPlayRecords failed")
@@ -153,8 +152,7 @@ func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.Db
 }
 
 func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	req.ParseForm()
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	var payRecords []PayRecord
 	_, err := dbmap.Select(&payRecords, "SELECT * FROM t_pay_record ORDER BY create_timeWHERE uid=? ORDER BY create_time", uid)
 	CheckErr(err, "GetPayRecords failed")

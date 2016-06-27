@@ -1,6 +1,7 @@
 package pay
 
 import (
+	. "app/common"
 	logger "app/logger"
 	. "app/models"
 	"bytes"
@@ -16,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	pingpp "github.com/pingplusplus/pingpp-go/pingpp"
@@ -30,6 +32,19 @@ const (
 	WX_OPEN_ID string = `wx36d2981a085f6370`
 )
 
+func newOrder(orderno, channel, clientIP, subject, aid string, amount uint64, payType int) Order {
+	return Order{
+		OrderNo:  orderno,
+		Amount:   amount,
+		Channel:  channel,
+		ClientIP: clientIP,
+		Subject:  subject,
+		Aid:      aid,
+		PayType:  payType,
+		Created:  time.Now(),
+	}
+}
+
 func init() {
 	pingpp.LogLevel = 2
 	pingpp.Key = API_KEY
@@ -39,14 +54,22 @@ func init() {
 	//pingpp.AccountPrivateKey
 }
 
-func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
-	uid := req.PostFormValue("uid")
+func GetCharge(req *http.Request, parms martini.Params, render render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
 	logger.Info("uid:", uid)
 	amount, err := strconv.Atoi(req.PostFormValue("amount"))
+	CheckErr(err, "get amount")
 	if err != nil {
-		render.JSON(200, Resp{2001, "支付金额不正确", nil})
+		render.JSON(200, Resp{2001, "金额不正确", nil})
 		return
 	}
+	payType, err := strconv.Atoi(req.PostFormValue("payType"))
+	CheckErr(err, "get payType")
+	if err != nil {
+		render.JSON(200, Resp{2003, "订单类型不正确", nil})
+		return
+	}
+	aid := req.PostFormValue("aid")
 	if amount == 0 {
 		amount = 1
 	}
@@ -61,6 +84,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
 	extra := make(map[string]interface{})
 	log.Printf(req.RemoteAddr)
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+	log.Print()
 	if err != nil {
 		log.Print("userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
@@ -69,15 +93,17 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
 		log.Print("userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 
+	subject := "Your Subject"
+	body := "Your Body"
 	params := &pingpp.ChargeParams{
 		Order_no:  strconv.Itoa(orderno),
 		App:       pingpp.App{Id: APP_ID},
 		Amount:    uint64(amount),
 		Channel:   channel,
 		Currency:  "cny",
-		Client_ip: userIP.String(),
-		Subject:   "Your Subject",
-		Body:      "Your Body",
+		Client_ip: "127.0.0.1", //userIP.String(),
+		Subject:   subject,
+		Body:      body,
 		Extra:     extra,
 	}
 	ch, err := charge.New(params)
@@ -88,8 +114,12 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
 		chs, _ := json.Marshal(ch)
 		//fmt.Fprintln(w, string(chs))
 		//TODO 创建订单
+		order := newOrder(strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
+		err := dbmap.Insert(&order)
+		CheckErr(err, "create order")
 		render.JSON(200, Resp{0, "获取charge成功", chs})
 	}
+
 }
 
 type RedEnvelopeModel struct {
@@ -100,7 +130,7 @@ type RedEnvelopeModel struct {
 }
 
 func Withdraw(req *http.Request, redEnvelope RedEnvelopeModel, render render.Render) {
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	logger.Info("uid:", uid)
 	//TODO 是否绑定微信,
 	//TODO 是否绑定电话
