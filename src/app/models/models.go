@@ -1,11 +1,12 @@
 package models
 
 import (
+	"database/sql/driver"
 	"fmt"
-	"time"
 	"reflect"
 	"strconv"
-	"database/sql/driver"
+	"time"
+
 	"github.com/coopernurse/gorp"
 )
 
@@ -18,19 +19,19 @@ type Resp struct {
 }
 
 type User struct {
-	Id          int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
-	Uid         string    `form:"uid"  json:"uid" db:"uid"`
-	EasemobUuid string    `json:"easemobUuid" db:"easemob_uuid"`
-	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
-	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
-	Gender      int       `form:"gender" json:"gender" binding:"required" db:"gender"` //binding:"required"  TODO 0 default not bindle
-	Balance     int       `form:"balance" json:"balance" db:"balance"`
-	InviteCode  string    `form:"inviteCode" json:"inviteCode" db:"invite_code"`
-	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
-	Phone       string    `form:"phone" json:"phone" db:"phone"`
-	BeInvitedUid string  `json:"-" db:"be_invited_uid"`
-	Updated     time.Time `json:"-" db:"update_time"`
-	Created     time.Time `json:"-" db:"create_time"`
+	Id           int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
+	Uid          string    `form:"uid"  json:"uid" db:"uid"`
+	EasemobUuid  string    `json:"easemobUuid" db:"easemob_uuid"`
+	NickName     string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
+	Avatar       string    `form:"avatar" json:"avatar"  db:"avatar"`
+	Gender       int       `form:"gender" json:"gender" binding:"required" db:"gender"` //binding:"required"  TODO 0 default not bindle
+	Balance      int       `form:"balance" json:"balance" db:"balance"`
+	InviteCode   string    `form:"inviteCode" json:"inviteCode" db:"invite_code"`
+	Qrcode       string    `form:"qrcode" json:"qrcode" db:"qrcode"`
+	Phone        string    `form:"phone" json:"phone" db:"phone"`
+	BeInvitedUid string    `json:"-" db:"be_invited_uid"`
+	Updated      time.Time `json:"-" db:"update_time"`
+	Created      time.Time `json:"-" db:"create_time"`
 }
 
 func (u User) Value() (driver.Value, error) {
@@ -41,10 +42,10 @@ func (u *User) Scan(value interface{}) (err error) {
 	switch src := value.(type) {
 	case []byte:
 		u.Uid = string(src)
-		Dbmap.SelectOne(u,"SELECT * FROM t_user WHERE uid  = ?",u.Uid)
+		Dbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
 	case int:
 		u.Uid = strconv.Itoa(src)
-		Dbmap.SelectOne(u,"SELECT * FROM t_user WHERE uid  = ?",u.Uid)
+		Dbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
 	default:
 		typ := reflect.TypeOf(value)
 		return fmt.Errorf("Expected person value to be convertible to int64, got %v (type %s)", value, typ)
@@ -53,20 +54,19 @@ func (u *User) Scan(value interface{}) (err error) {
 }
 
 func (u *User) PreInsert(s gorp.SqlExecutor) error {
-    u.Created = time.Now()
-    u.Updated = u.Created
-    return nil
+	u.Created = time.Now()
+	u.Updated = u.Created
+	return nil
 }
 
 func (u *User) PreUpdate(s gorp.SqlExecutor) error {
-    u.Updated = time.Now()
-    return nil
+	u.Updated = time.Now()
+	return nil
 }
 
 func (u *User) String() string {
 	return fmt.Sprintf("[%d,%s, %s, %d]", u.Id, u.Uid, u.NickName, u.Gender)
 }
-
 
 type OAuth struct {
 	Id          int       `form:"id" json:"-"` //  `form:"id"  db:"id,primarykey, autoincrement"`
@@ -107,8 +107,8 @@ type AppointmentRecord struct {
 }
 
 func (a *AppointmentRecord) PreInsert(s gorp.SqlExecutor) error {
-    a.Created = time.Now()
-    return nil
+	a.Created = time.Now()
+	return nil
 }
 
 type PayRecord struct {
@@ -121,8 +121,8 @@ type PayRecord struct {
 }
 
 func (p *PayRecord) PreInsert(s gorp.SqlExecutor) error {
-    p.Created = time.Now()
-    return nil
+	p.Created = time.Now()
+	return nil
 }
 
 type PlayRecord struct {
@@ -134,8 +134,8 @@ type PlayRecord struct {
 }
 
 func (pl *PlayRecord) PreInsert(s gorp.SqlExecutor) error {
-    pl.Created = time.Now()
-    return nil
+	pl.Created = time.Now()
+	return nil
 }
 
 type Activity struct {
@@ -146,33 +146,33 @@ type Activity struct {
 	ADate            int64     `form:"date" json:"-"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" json:"desc" binding:"required" db:"desc"`
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
-	Type             int       `form:"type" json:"type" binding:"required" db:"type"` //0直播，1点播
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	Owner  			 User 	   `db:"uid",json:"owner"`
+	Owner            User      `db:"uid",json:"owner"`
 	VideoId          string    `form:"videoId" json:"videoId" db:"video_id"`
-	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 免费， 1收费
+	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 直播，1 视频
 	VideoPullPath    string    `form:"videoPullPath" json:"videoPullPath" db:"video_pull_path"`
 	VideoPushPath    string    `form:"videoPushPath" json:"videoPushPath" db:"video_push_path"`
 	VideoStorePath   string    `form:"videoPushPath" json:"-" db:"video_store_path"`
-	State            int       `json:"state" db:"state"` //0.未开播，1.正在直播，2.可点播，3.已下线
+	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束
+	ActivityType     int       `form:"ActivityType" json:"activityType" binding:"required" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
+	PayState         int       `json:"payState" db:"-"`
+	AppointState     int       `json:"appoinState" db:"-"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          time.Time `json:"-" db:"create_time"`
 }
 
-
-
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {
-    a.Created = time.Now()
-    a.Updated = a.Created
-    return nil
+	a.Created = time.Now()
+	a.Updated = a.Created
+	return nil
 }
 
 func (a *Activity) PreUpdate(s gorp.SqlExecutor) error {
-    a.Updated = time.Now()
-    return nil
+	a.Updated = time.Now()
+	return nil
 }
 
 func (a Activity) String() string {
