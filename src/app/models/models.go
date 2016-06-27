@@ -17,11 +17,12 @@ type User struct {
 	EasemobUuid string    `json:"easemobUuid" db:"easemob_uuid"`
 	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
 	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
-	Gender      int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
+	Gender      int       `form:"gender" json:"gender" binding:"required" db:"gender"` //binding:"required"  TODO 0 default not bindle
 	Balance     int       `form:"balance" json:"balance" db:"balance"`
 	InviteCode  string    `form:"inviteCode" json:"inviteCode" db:"invite_code"`
 	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
 	Phone       string    `form:"phone" json:"phone" db:"phone"`
+	BeInvitedUid string  `json:"-" db:"be_invited_uid"`
 	Updated     time.Time `json:"-" db:"update_time"`
 	Created     time.Time `json:"-" db:"create_time"`
 }

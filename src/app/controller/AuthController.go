@@ -28,7 +28,7 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 		if err != nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
 		} else {
-			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": true, "user": user}})
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": user.BeInvitedUid == "", "user": user}})
 		}
 	}
 }
@@ -80,14 +80,14 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 		auth.Expires = time.Now().Add(time.Hour * 24 * 30)
 		_, err := dbmap.Update(&auth)
 		CheckErr(err, "Login update auth")
-		obj, err := dbmap.Get(User{}, auth.Uid)
+		var user User
+		err = dbmap.SelectOne(&user,"select * from t_user where t_user.uid = ?",auth.Uid)
 		CheckErr(err, "Login get user")
-		if obj == nil {
+		if err != nil {
 			r.JSON(200, Resp{1002, "账户错误，请重新注册", nil})
-			dbmap.Delete(&auth)
+			// dbmap.Delete(&auth)
 		} else {
-			user := obj.(*User)
-			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": auth.Token, "user": user}})
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": auth.Token, "showInvited": false, "user": user}})
 		}
 	}
 }
@@ -121,7 +121,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		err = trans.Commit()
 		CheckErr(err, "Register commit failed")
 		if err == nil {
-			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": authUser.LocalAuth.To, "user": authUser.User}})
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": authUser.LocalAuth.Token, "showInvited": false, "user": authUser.User}})
 		} else {
 			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
