@@ -40,7 +40,7 @@ func init() {
 }
 
 func GetCharge(req *http.Request, parms martini.Params, render render.Render) {
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	logger.Info("uid:", uid)
 	amount, err := strconv.Atoi(req.PostFormValue("amount"))
 	if err != nil {
@@ -100,7 +100,7 @@ type RedEnvelopeModel struct {
 }
 
 func Withdraw(req *http.Request, redEnvelope RedEnvelopeModel, render render.Render) {
-	uid := req.PostFormValue("uid")
+	uid := req.Header.Get("uid")
 	logger.Info("uid:", uid)
 	//TODO 是否绑定微信,
 	//TODO 是否绑定电话

@@ -80,7 +80,7 @@ func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 		_, err := dbmap.Update(&auth)
 		CheckErr(err, "Login update auth")
 		var user User
-		err = dbmap.SelectOne(&user,"select * from t_user where t_user.uid = ?",auth.Uid)
+		err = dbmap.SelectOne(&user, "select * from t_user where t_user.uid = ?", auth.Uid)
 		CheckErr(err, "Login get user")
 		if err != nil {
 			r.JSON(200, Resp{1002, "账户错误，请重新注册", nil})
@@ -169,7 +169,7 @@ func VerifyPhone(req *http.Request, c *cache.Cache, r render.Render) {
 }
 
 func Logout(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	uid := req.PostFormValue("uid")
-	logger.Info("logout:",uid)
+	uid := req.Header.Get("uid")
+	logger.Info("logout:", uid)
 	r.JSON(200, Resp{0, "退出成功", nil})
 }
