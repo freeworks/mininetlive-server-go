@@ -148,7 +148,7 @@ type Activity struct {
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	Owner            User      `db:"uid",json:"owner"`
+	Owner            User      `json:"owner" db:"uid"`
 	VideoId          string    `form:"videoId" json:"videoId" db:"video_id"`
 	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 直播，1 视频
 	VideoPullPath    string    `form:"videoPullPath" json:"videoPullPath" db:"video_pull_path"`
