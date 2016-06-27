@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	. "github.com/bitly/go-simplejson"
 	"github.com/pborman/uuid"
 )

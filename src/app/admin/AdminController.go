@@ -179,7 +179,7 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 }
 
 func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
-	uid := UUID()
+	// uid := UUID()
 	err := easemob.CreateGroup(strconv.FormatInt(user.UniqueId().(int64), 10), activity.Title, activity.Title, c)
 	if err != nil {
 		CheckErr(err, "easemob create group error")
@@ -189,7 +189,7 @@ func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *c
 	logger.Info(activity.String())
 	activity.VideoId = GeneraToken8()
 	activity.VideoPushPath = fmt.Sprintf(config.RtmpPath, activity.VideoId)
-	activity.Uid = uid
+	// activity.Uid = uid
 	//奇葩
 	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
 	activity.Date = time.Unix(activity.ADate, 0)

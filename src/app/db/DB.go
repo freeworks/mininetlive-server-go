@@ -3,14 +3,11 @@ package db
 import (
 	. "app/admin"
 	. "app/common"
-	. "app/models"
+	models "app/models"
 	"database/sql"
 	"os"
-
 	"github.com/coopernurse/gorp"
 )
-
-var dbmap *gorp.DbMap
 
 func InitDb() *gorp.DbMap {
 	_, err := os.Open("martini-sessionauth.bin")
@@ -22,15 +19,14 @@ func InitDb() *gorp.DbMap {
 	CheckErr(err, "sql.Open failed")
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
-
-	dbmap.AddTableWithName(User{}, "t_user").SetKeys(true, "Id")
-	dbmap.AddTableWithName(OAuth{}, "t_oauth").SetKeys(true, "Id")
-	dbmap.AddTableWithName(LocalAuth{}, "t_local_auth").SetKeys(true, "Id")
-	dbmap.AddTableWithName(Activity{}, "t_activity").SetKeys(true, "Id")
-	dbmap.AddTableWithName(PlayRecord{}, "t_play_record").SetKeys(true, "Id")
-	dbmap.AddTableWithName(PayRecord{}, "t_pay_record").SetKeys(true, "Id")
-	dbmap.AddTableWithName(AppointmentRecord{}, "t_appointment_record").SetKeys(true, "Id")
+	models.Dbmap = dbmap
+	dbmap.AddTableWithName(models.User{}, "t_user").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.OAuth{}, "t_oauth").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.LocalAuth{}, "t_local_auth").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.Activity{}, "t_activity").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.PlayRecord{}, "t_play_record").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.PayRecord{}, "t_pay_record").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.AppointmentRecord{}, "t_appointment_record").SetKeys(true, "Id")
 	dbmap.AddTableWithName(AdminModel{}, "t_admin").SetKeys(true, "Id")
-
 	return dbmap
 }

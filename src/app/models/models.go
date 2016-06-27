@@ -3,7 +3,13 @@ package models
 import (
 	"fmt"
 	"time"
+	"reflect"
+	"strconv"
+	"database/sql/driver"
+	"github.com/coopernurse/gorp"
 )
+
+var Dbmap *gorp.DbMap
 
 type Resp struct {
 	Ret  int64       `form:"ret" json:"ret"`
@@ -27,9 +33,40 @@ type User struct {
 	Created     time.Time `json:"-" db:"create_time"`
 }
 
-func (u User) String() string {
-	return fmt.Sprintf("[%s,%s, %s, %d]", u.Id, u.Uid, u.NickName, u.Gender)
+func (u User) Value() (driver.Value, error) {
+	return u.Uid, nil
 }
+
+func (u *User) Scan(value interface{}) (err error) {
+	switch src := value.(type) {
+	case []byte:
+		u.Uid = string(src)
+		Dbmap.SelectOne(u,"SELECT * FROM t_user WHERE uid  = ?",u.Uid)
+	case int:
+		u.Uid = strconv.Itoa(src)
+		Dbmap.SelectOne(u,"SELECT * FROM t_user WHERE uid  = ?",u.Uid)
+	default:
+		typ := reflect.TypeOf(value)
+		return fmt.Errorf("Expected person value to be convertible to int64, got %v (type %s)", value, typ)
+	}
+	return
+}
+
+func (u *User) PreInsert(s gorp.SqlExecutor) error {
+    u.Created = time.Now()
+    u.Updated = u.Created
+    return nil
+}
+
+func (u *User) PreUpdate(s gorp.SqlExecutor) error {
+    u.Updated = time.Now()
+    return nil
+}
+
+func (u *User) String() string {
+	return fmt.Sprintf("[%d,%s, %s, %d]", u.Id, u.Uid, u.NickName, u.Gender)
+}
+
 
 type OAuth struct {
 	Id          int       `form:"id" json:"-"` //  `form:"id"  db:"id,primarykey, autoincrement"`
@@ -69,6 +106,11 @@ type AppointmentRecord struct {
 	Created time.Time `db:"create_time" json:"createTime"`
 }
 
+func (a *AppointmentRecord) PreInsert(s gorp.SqlExecutor) error {
+    a.Created = time.Now()
+    return nil
+}
+
 type PayRecord struct {
 	Id      int       `db:"id" json:"-"`
 	Aid     string    `db:"aid" json:"aid"`
@@ -78,12 +120,22 @@ type PayRecord struct {
 	Created time.Time `db:"create_time" json:"createTime"`
 }
 
+func (p *PayRecord) PreInsert(s gorp.SqlExecutor) error {
+    p.Created = time.Now()
+    return nil
+}
+
 type PlayRecord struct {
 	Id      int       `db:"id" json:"-"`
 	Aid     string    `db:"aid" json:"aid"`
 	Uid     string    `db:"uid" json:"uid"`
 	Type    int       `db:"type" json:"type"` //0 直播，1点播
 	Created time.Time `db:"create_time" json:"create_time"`
+}
+
+func (pl *PlayRecord) PreInsert(s gorp.SqlExecutor) error {
+    pl.Created = time.Now()
+    return nil
 }
 
 type Activity struct {
@@ -97,7 +149,7 @@ type Activity struct {
 	Type             int       `form:"type" json:"type" binding:"required" db:"type"` //0直播，1点播
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	Uid              string    `form:"uid" json:"uid" db:"uid"`
+	Owner  			 User 	   `db:"uid",json:"owner"`
 	VideoId          string    `form:"videoId" json:"videoId" db:"video_id"`
 	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 免费， 1收费
 	VideoPullPath    string    `form:"videoPullPath" json:"videoPullPath" db:"video_pull_path"`
@@ -108,6 +160,19 @@ type Activity struct {
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          time.Time `json:"-" db:"create_time"`
+}
+
+
+
+func (a *Activity) PreInsert(s gorp.SqlExecutor) error {
+    a.Created = time.Now()
+    a.Updated = a.Created
+    return nil
+}
+
+func (a *Activity) PreUpdate(s gorp.SqlExecutor) error {
+    a.Updated = time.Now()
+    return nil
 }
 
 func (a Activity) String() string {

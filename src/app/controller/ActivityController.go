@@ -4,8 +4,6 @@ import (
 	. "app/common"
 	. "app/models"
 	"net/http"
-	"time"
-
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -16,7 +14,6 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	var record AppointmentRecord
 	record.Aid = req.PostFormValue("aid")
 	record.Uid = req.PostFormValue("uid")
-	record.Created = time.Now()
 	err := dbmap.Insert(&record)
 	CheckErr(err, "AppointmentActivity insert failed")
 	if err != nil {
@@ -31,7 +28,6 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	var record PlayRecord
 	record.Aid = req.PostFormValue("aid")
 	record.Uid = req.PostFormValue("uid")
-	record.Created = time.Now()
 	err := dbmap.Insert(&record)
 	CheckErr(err, "PayActivity insert failed")
 	r.JSON(200, Resp{0, "ok", nil})

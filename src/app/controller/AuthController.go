@@ -48,7 +48,6 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
-		register.User.Created = time.Now()
 		register.User.EasemobUuid = uuid
 		register.User.InviteCode = GeneraVCode6()
 		register.User.Uid = uid
@@ -106,7 +105,6 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "Register begin trans failed")
-		authUser.User.Created = time.Now()
 		authUser.User.EasemobUuid = uuid
 		authUser.User.Uid = uid
 		authUser.User.InviteCode = GeneraVCode6()
@@ -171,6 +169,7 @@ func VerifyPhone(req *http.Request, c *cache.Cache, r render.Render) {
 }
 
 func Logout(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	//TODO
+	uid := req.PostFormValue("uid")
+	logger.Info("logout:",uid)
 	r.JSON(200, Resp{0, "退出成功", nil})
 }

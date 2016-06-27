@@ -150,7 +150,6 @@ func SetRollingDaily(fileDir, fileName string) {
 
 func mkdirlog(dir string) (e error) {
 	_, er := os.Stat(dir)
-	log.Println(er)
 	b := er == nil || os.IsExist(er)
 	if !b {
 		if err := os.MkdirAll(dir, 0777); err != nil {
