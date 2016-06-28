@@ -176,7 +176,7 @@ type Activity struct {
 
 type QActivity struct {
 	Activity
-	Owner User `db:"uid"`
+	Owner User `json:"owner",db:"uid"`
 }
 
 type NActivity struct {
