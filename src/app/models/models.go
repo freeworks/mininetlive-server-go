@@ -169,19 +169,19 @@ type Activity struct {
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	PayState         int       `json:"payState" db:"-"`
 	AppointState     int       `json:"appoinState" db:"-"`
-	GroupId     	string     `json:"groupId" db:"group_id"`
+	GroupId          string    `json:"groupId" db:"group_id"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          time.Time `json:"-" db:"create_time"`
 }
 
-type QActivity struct{
+type QActivity struct {
 	Activity
-	Owner            User      `db:"uid"`
+	Owner User `db:"uid"`
 }
 
-type NActivity struct{
+type NActivity struct {
 	Activity
-	Uid            string      `db:"uid"`
+	Uid string `db:"uid"`
 }
 
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {

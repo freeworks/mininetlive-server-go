@@ -117,7 +117,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		order := newOrder(strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
 		CheckErr(err, "create order")
-		render.JSON(200, Resp{0, "获取charge成功", chs})
+		render.JSON(200, Resp{0, "获取charge成功", map[string]string{"charge": chs}})
 	}
 
 }
