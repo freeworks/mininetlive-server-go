@@ -15,7 +15,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-
+	"log"
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -25,7 +25,7 @@ import (
 var mDbMap *gorp.DbMap
 
 func (admin AdminModel) String() string {
-	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Username, admin.Password)
+	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.NickName, admin.Password)
 	logger.Info(adminString)
 	return adminString
 }
@@ -47,7 +47,7 @@ func (u *AdminModel) Login() {
 	// Add to logged-in user's list
 	// etc ...
 	logger.Info("login ....")
-	u.authenticated = true
+	u.Authenticated = true
 }
 
 // Logout will preform any actions that are required to completely
@@ -55,22 +55,22 @@ func (u *AdminModel) Login() {
 func (u *AdminModel) Logout() {
 	// Remove from logged-in user's list
 	// etc ...
-	u.authenticated = false
+	u.Authenticated = false
 }
 
 func (u *AdminModel) IsAuthenticated() bool {
-	return u.authenticated
+	return u.Authenticated
 }
 
 func (u *AdminModel) UniqueId() interface{} {
-	return u.Id
+	return u.Uid
 }
 
 // GetById will populate a user object from a database model with
 // a matching id.
-func (u *AdminModel) GetById(id interface{}) error {
-	logger.Info("GetById:", id)
-	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE id = ?", id)
+func (u *AdminModel) GetById(uid interface{}) error {
+	logger.Info("GetById:", uid)
+	err := mDbMap.SelectOne(u, "SELECT * FROM t_admin WHERE uid = ?", uid)
 	CheckErr(err, "GetById select one")
 	if err != nil {
 		return err
@@ -85,15 +85,14 @@ func Index(r render.Render) {
 
 func Login(args martini.Params, req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
-	if len(req.Form["username"]) > 0 && len(req.Form["password"]) > 0 {
-		username := req.Form["username"][0]
-		password := req.Form["password"][0]
-		logger.Info("admin-login:" + username + " " + password)
+	phone := req.PostFormValue("phone")
+	password := req.PostFormValue("password")
+	if validatePhone(phone) && validatePassword(password) {
+		logger.Info("admin-login:" + phone + " " + password)
 		var admin AdminModel
-		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", username, password)
+		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE phone = ? AND password = ?", phone, password)
 		CheckErr(err, "Login select one")
 		if err != nil {
-			//			r.Redirect("/login")
 			r.JSON(500, "用户名密码错误")
 			return
 		} else {
@@ -114,10 +113,21 @@ func Login(args martini.Params, req *http.Request, session sessions.Session, r r
 			r.JSON(200, redirectPath)
 			return
 		}
-	} else {
-		r.JSON(500, "缺参数")
+	}else{
+		r.JSON(500, "账号或密码错误！")
 	}
 }
+
+func validatePhone(phone string) bool {
+	//TODO
+	return true
+}
+
+func validatePassword(password string) bool {
+	//TODO
+	return true
+}
+
 
 func RedirectLogin(r render.Render) {
 	r.HTML(200, "login", nil)
@@ -140,12 +150,6 @@ func GetAdminList(r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
-//type UserMode struct {
-//	User
-//	accountType int
-//	Phone       string
-//	Plat
-//}
 func GetUserList(r render.Render, dbmap *gorp.DbMap) {
 	var thiredUserModel []ThiredUserModel
 	_, err := dbmap.Select(&thiredUserModel, "SELECT t_user.id,t_user.name,gender,avatar,balance,update_time,create_time,plat FROM t_user,t_oauth WHERE t_user.id = t_oauth.user_id")
@@ -178,23 +182,25 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 	r.HTML(200, "activitylist", newmap)
 }
 
-func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
-	// uid := UUID()
-	err := easemob.CreateGroup(strconv.FormatInt(user.UniqueId().(int64), 10), activity.Title, activity.Title, c)
+func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "NewActivity:", log.Lmicroseconds))
+	logger.Info("NewActivity ")
+	// uid := user.UniqueId().(string)
+	uid :="1e046709049d59b5"
+	groupId,err := easemob.CreateGroup(uid, activity.Title, c)
 	if err != nil {
 		CheckErr(err, "easemob create group error")
 		r.JSON(500, "创建活动失败")
 		return
 	}
-	logger.Info(activity.String())
+	activity.Aid = AID()
 	activity.VideoId = GeneraToken8()
 	activity.VideoPushPath = fmt.Sprintf(config.RtmpPath, activity.VideoId)
-	// activity.Uid = uid
-	//奇葩
-	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
+	activity.Uid = uid
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
-	CheckErr(err, "create group")
+	activity.GroupId = groupId
+	logger.Info("info ",activity.String())
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
@@ -202,6 +208,7 @@ func NewActivity(activity Activity, user sessionauth.User, r render.Render, c *c
 	} else {
 		r.JSON(500, "创建活动失败")
 	}
+	dbmap.TraceOff()
 }
 
 func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {

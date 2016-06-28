@@ -88,10 +88,11 @@ func Logout(s sessions.Session, user User) {
 // authenticated, they will be redirected to /login with the "next" get parameter
 // set to the attempted URL.
 func LoginRequired(r render.Render, user User, req *http.Request) {
-	if user.IsAuthenticated() == false {
-		path := fmt.Sprintf("%s?%s=%s", RedirectUrl, RedirectParam, req.URL.Path)
-		r.Redirect(path, 302)
-	}
+	// if user.IsAuthenticated() == false {
+	// 	path := fmt.Sprintf("%s?%s=%s", RedirectUrl, RedirectParam, req.URL.Path)
+	// 	r.Redirect(path, 302)
+	// }
+	fmt.Printf("LoginRequired")
 }
 
 // UpdateUser updates the User object stored in the session. This is useful incase a change

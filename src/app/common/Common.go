@@ -111,6 +111,10 @@ func UID() string {
 	return Token2()
 }
 
+func AID() string {
+	return Token2()
+}
+
 func UUID() string {
 	return uuid.New()
 }

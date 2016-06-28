@@ -46,8 +46,8 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	_, err := dbmap.Select(&recomendIds, "SELECT aid FROM t_recomend ORDER BY update_time DESC")
 	CheckErr(err, "get aid from recomend")
 
-	var recomendActivities []Activity
-	var activities []Activity
+	var recomendActivities []QActivity
+	var activities []QActivity
 	logger.Info(recomendIds)
 	if len(recomendIds) == 0 {
 		_, err = dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE aid ORDER BY update_time DESC")
@@ -86,7 +86,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	uid := req.Header.Get("uid")
 	lastAid := params["lastAid"]
 	lastId, err := dbmap.SelectInt("SELECT id FROM t_activity WHERE aid = ? ", lastAid)
-	var activities []Activity
+	var activities []QActivity
 	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE id > ? ORDER BY create_time DESC LIMIT 10", lastId)
 	CheckErr(err, "GetActivityList select failed")
 	if err != nil {
@@ -101,7 +101,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
-	var activities []Activity
+	var activities []QActivity
 	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND video_type = 0 ORDER BY create_time DESC LIMIT 10")
 	CheckErr(err, "GetLiveActivityList select failed")
 	if err != nil {
@@ -114,7 +114,7 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	}
 }
 
-func queryCount(activity Activity, uid string, dbmap *gorp.DbMap) {
+func queryCount(activity QActivity, uid string, dbmap *gorp.DbMap) {
 	count, err := dbmap.SelectInt("select count(*) from t_play_record where aid = ? ", activity.Aid)
 	CheckErr(err, "get play count")
 	activity.PlayCount = int(count)
@@ -141,7 +141,7 @@ func queryCount(activity Activity, uid string, dbmap *gorp.DbMap) {
 }
 
 func GetActivityDetail(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	var activity Activity
+	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", args["id"])
 	CheckErr(err, "GetActivity select failed")
 	if err != nil {

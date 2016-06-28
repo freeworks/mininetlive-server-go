@@ -90,10 +90,10 @@ func RegisterUser(username string, c *cache.Cache) (string, error) {
 	}
 }
 
-func CreateGroup(owner, title, uid string, c *cache.Cache) error {
+func CreateGroup(owner, title string, c *cache.Cache) (string,error) {
 	access_token := GetAccessToken(c)
 	if access_token == "" {
-		return errors.New("create group get token fail")
+		return "",errors.New("create group get token fail")
 	}
 	//create group
 	url := "https://a1.easemob.com/mininetlive/mininetlive/chatgroups"
@@ -112,14 +112,18 @@ func CreateGroup(owner, title, uid string, c *cache.Cache) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return "",err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 200 {
-		return nil
+		data, _ := ioutil.ReadAll(resp.Body)
+		js, _ := NewJson(data)
+		groupId, _ := js.Get("data").Get("groupid").String()
+		logger.Info("group id->",groupId)
+		return groupId,nil
 	} else {
 		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
 		logger.Info(result)
-		return errors.New(result)
+		return "",errors.New(result)
 	}
 }

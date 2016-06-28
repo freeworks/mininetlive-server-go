@@ -36,7 +36,7 @@
         <div class="span4 box">
             <div class="content-wrap">
                 <h6>登 录</h6>
-                <input id="username" class="span12" type="text" placeholder="账号" />
+                <input id="phone" class="span12" type="text" placeholder="账号" />
                 <input id="password" class="span12" type="password" placeholder="密码" />
 <!--            <a href="#" class="forgot">找回密码?</a>-->
 <!--            <div class="remember">
@@ -72,9 +72,9 @@
             // bg switcher
             var $btns = $("#loginbtn");
             $btns.click(function (e) {
-            	var username = $("#username").val()
+            	var phone = $("#phone").val()
 				var pwd = $("#password").val()
-				if(username == ""){
+				if(phone == ""){
 					alert("用户名不能为空" )
 					return;
 				}
@@ -83,9 +83,8 @@
 					return;
 				}
 				$.post("login?next="+getUrlParam("next"), 
-					{ "username": username, "password": pwd },
+					{ "phone": phone, "password": pwd },
 					function(data) {
-						alert(data)
 						window.location = data;
 					})
             });		

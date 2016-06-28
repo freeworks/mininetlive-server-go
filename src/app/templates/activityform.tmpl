@@ -228,10 +228,12 @@
 						alert("活动创建成功！")
 						window.location = data;
 				   },
-	               error: function(request) {
-	                   alert(request);
-	               }
-					
+	               error: function(data) {
+	                   alert(data);
+                       for(attribute in data){ 
+                                alert(data[attribute]); 
+                            } 
+    	               }
 				})
 		    });
 			

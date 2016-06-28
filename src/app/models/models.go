@@ -34,6 +34,16 @@ type User struct {
 	Created      time.Time `json:"-" db:"create_time"`
 }
 
+type ThiredUserModel struct {
+	User
+	Plat string
+}
+
+type PhoneUserModel struct {
+	User
+	Phone string
+}
+
 func (u User) Value() (driver.Value, error) {
 	return u.Uid, nil
 }
@@ -139,29 +149,39 @@ func (pl *PlayRecord) PreInsert(s gorp.SqlExecutor) error {
 }
 
 type Activity struct {
-	Id               int       `form:"id" json:"-" db:"id"`
-	Aid              string    `form:"aid" json:"aid" db:"aid"`
+	Id               int       `json:"-" db:"id"`
+	Aid              string    `json:"aid" db:"aid"`
 	Title            string    `form:"title" json:"title"  binding:"required" db:"title"`
-	Date             time.Time `db:"date" json:"date"`
+	Date             time.Time `json:"date" db:"date"`
 	ADate            int64     `form:"date" json:"-"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" json:"desc" binding:"required" db:"desc"`
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	Owner            User      `json:"owner" db:"uid"`
-	VideoId          string    `form:"videoId" json:"videoId" db:"video_id"`
+	VideoId          string    `json:"videoId" db:"video_id"`
 	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 直播，1 视频
-	VideoPullPath    string    `form:"videoPullPath" json:"videoPullPath" db:"video_pull_path"`
-	VideoPushPath    string    `form:"videoPushPath" json:"videoPushPath" db:"video_push_path"`
-	VideoStorePath   string    `form:"videoPushPath" json:"-" db:"video_store_path"`
+	VideoPullPath    string    `json:"videoPullPath" db:"video_pull_path"`
+	VideoPushPath    string    `json:"videoPushPath" db:"video_push_path"`
+	VideoStorePath   string    `json:"-" db:"video_store_path"`
 	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束
-	ActivityType     int       `form:"ActivityType" json:"activityType" binding:"required" db:"activity_type"` //0免费，1收费
+	ActivityType     int       `form:"activityType" json:"activityType" binding:"required" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	PayState         int       `json:"payState" db:"-"`
 	AppointState     int       `json:"appoinState" db:"-"`
+	GroupId     	string     `json:"groupId" db:"group_id"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          time.Time `json:"-" db:"create_time"`
+}
+
+type QActivity struct{
+	Activity
+	Owner            User      `db:"uid"`
+}
+
+type NActivity struct{
+	Activity
+	Uid            string      `db:"uid"`
 }
 
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {
@@ -176,7 +196,7 @@ func (a *Activity) PreUpdate(s gorp.SqlExecutor) error {
 }
 
 func (a Activity) String() string {
-	return fmt.Sprintf("[%s, %s, %s]", a.Id, a.Title, a.FontCover)
+	return fmt.Sprintf("[%d, %s, %s]", a.Id, a.Aid, a.Title)
 }
 
 type Recomend struct {

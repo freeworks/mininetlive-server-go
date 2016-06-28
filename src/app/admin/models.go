@@ -1,28 +1,18 @@
 package admin
 
 import (
-	. "app/models"
 	"time"
 )
 
-// AdminModel can be any struct that represents a user in my system
 type AdminModel struct {
 	Id            int64     `form:"id" db:"id"`
-	Uuid          string    ` db:"uuid"`
-	Username      string    `form:"name" db:"username"`
+	Uid          string    ` db:"uid"`
+	Phone      string    	`form:"phone" db:"phone"`
+	NickName      string    `form:"nickName" db:"nickname"`
 	Password      string    `form:"password" db:"password"`
 	Avatar        string    `form:"avatar"  db:"avatar"`
+	EasemobUUID    string    `form:"-"  db:"easemob_uuid"`
 	Updated       time.Time `db:"update_time"`
 	Created       time.Time `db:"create_time"`
-	authenticated bool      `form:"-" db:"-"`
-}
-
-type ThiredUserModel struct {
-	User
-	Plat string
-}
-
-type PhoneUserModel struct {
-	User
-	Phone string
+	Authenticated bool      `form:"-" db:"-"`
 }
