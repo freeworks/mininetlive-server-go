@@ -158,11 +158,10 @@ type Activity struct {
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	VideoId          string    `json:"videoId" db:"video_id"`
-	VideoType        int       `form:"videoType" json:"videoType" binding:"required" db:"video_type"` //0 直播，1 视频
-	VideoPullPath    string    `json:"videoPullPath" db:"video_pull_path"`
-	VideoPushPath    string    `json:"videoPushPath" db:"video_push_path"`
-	VideoStorePath   string    `json:"-" db:"video_store_path"`
+	StreamId          string   `json:"streamId" json:"streamId" db:"stream_id"`
+	StreamType        int      `form:"streamType" json:"streamType" binding:"required" db:"stream_type"` //0 直播，1 视频
+	LivePullPath     string    `json:"livePullPath" db:"live_pull_path"`
+	VideoPath        string    `json:"videoPath" db:"video_path"`
 	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束
 	ActivityType     int       `form:"activityType" json:"activityType" binding:"required" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
@@ -176,12 +175,15 @@ type Activity struct {
 
 type QActivity struct {
 	Activity
-	Owner User `json:"owner",db:"uid"`
+	Owner 			User 	  `json:"owner" db:"uid"`
+	LivePushPath    string    `json:"-" db:"live_push_path"`
 }
 
 type NActivity struct {
 	Activity
 	Uid string `db:"uid"`
+	IsRecord bool `from:"isRecord" json:"-" db:"-"`
+	LivePushPath    string    `json:"livePushPath" db:"live_push_path"`
 }
 
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {

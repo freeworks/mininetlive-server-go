@@ -69,6 +69,9 @@ func main() {
 		r.Post("/webhook", pay.Webhook)
 		r.Post("/withdraw", pay.Withdraw)
 	})
+	m.Get("/live/CallbackRecordFinish",CallbackRecordFinish)
+	m.Get("/live/CallbackLiveBegin",CallbackLiveBegin)
+	m.Get("/live/CallbackLiveEnd",CallbackLiveEnd)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
@@ -90,7 +93,7 @@ func main() {
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
 		m.Get("/activity", sessionauth.LoginRequired, admin.GetActivityList)
 		m.Post("/activity", sessionauth.LoginRequired, binding.Bind(NActivity{}), admin.NewActivity)
-		m.Put("/activity/update/:id", binding.Bind(NActivity{}), admin.UpdateActivity)
+		// m.Put("/activity/update/:id", binding.Bind(NActivity{}), admin.UpdateActivity)
 		m.Delete("/activity/:id", sessionauth.LoginRequired, admin.DeleteActivity)
 		m.Get("/addactivity", sessionauth.LoginRequired, admin.AddActivity)
 		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)

@@ -194,12 +194,12 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 		return
 	}
 	activity.Aid = AID()
-	activity.VideoId = GeneraToken8()
-	activity.VideoPushPath = fmt.Sprintf(config.RtmpPath, activity.VideoId)
 	activity.Uid = uid
 	activity.Date = time.Unix(activity.ADate, 0)
 	activity.Created = time.Now()
 	activity.GroupId = groupId
+	activity.StreamId = GeneraToken8()
+	activity.LivePushPath = generatePushPath(activity.StreamId,activity.IsRecord,"")
 	logger.Info("info ",activity.String())
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
@@ -211,21 +211,14 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	dbmap.TraceOff()
 }
 
-func UpdateActivity(activity Activity, r render.Render, dbmap *gorp.DbMap) {
-	logger.Info(activity.String())
-	activity.VideoId = UUID()
-	activity.VideoPushPath = "xxxxxx"
-	//奇葩
-	// activity.Date = time.Unix(activity.ADate, 0).Format("2006-01-02 15:04:05")
-	activity.Date = time.Unix(activity.ADate, 0)
-	activity.Updated = time.Now()
-	_, err := dbmap.Update(&activity)
-	CheckErr(err, "NewActivity insert failed")
-	if err == nil {
-		r.JSON(200, "/activity")
-	} else {
-		r.JSON(500, "删除活动失败")
+func generatePushPath(streamId string,record bool,filename string) string {
+	pushPath := "rtmp://域名/接入点/"+streamId+"?record="+strconv.FormatBool(record)
+	if filename != "" {
+		pushPath = pushPath+ "&filename="+filename 
 	}
+	logger.Info("GeneratePushPath :",pushPath)
+
+	return  pushPath
 }
 
 func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
