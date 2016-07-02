@@ -165,7 +165,7 @@ type Activity struct {
 	Id               int       `json:"id" db:"id"`
 	Aid              string    `json:"aid" db:"aid"`
 	Title            string    `form:"title" json:"title"  binding:"required" db:"title"`
-	Date             time.Time `json:"date" db:"date"`
+	Date             JsonTime  `json:"date" db:"date"`
 	ADate            int64     `form:"date" json:"-"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" json:"desc" binding:"required" db:"desc"`
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
@@ -184,7 +184,36 @@ type Activity struct {
 	GroupId          string    `json:"groupId" db:"group_id"`
 	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
-	Created          time.Time `json:"-" db:"create_time"`
+	Created          JsonTime  `json:"createTime" db:"create_time"`
+}
+
+type JsonTime struct {
+	Time  time.Time
+	Valid bool
+}
+
+func (j JsonTime) format() string {
+	return time.Time(j.Time).Format("2006-01-02 15:04")
+}
+
+func (j JsonTime) MarshalText() ([]byte, error) {
+	return []byte(j.format()), nil
+}
+
+func (j JsonTime) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + j.format() + `"`), nil
+}
+
+func (j *JsonTime) Scan(value interface{}) error {
+	j.Time, j.Valid = value.(time.Time)
+	return nil
+}
+
+func (j JsonTime) Value() (driver.Value, error) {
+	if !j.Valid {
+		return nil, nil
+	}
+	return j.Time, nil
 }
 
 type QActivity struct {
@@ -201,8 +230,8 @@ type NActivity struct {
 }
 
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {
-	a.Created = time.Now()
-	a.Updated = a.Created
+	a.Created = JsonTime{time.Now(), true}
+	a.Updated = a.Created.Time
 	return nil
 }
 

@@ -193,8 +193,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	}
 	activity.Aid = AID()
 	activity.Uid = uid
-	activity.Date = time.Unix(activity.ADate, 0)
-	activity.Created = time.Now()
+	activity.Date = JsonTime{time.Unix(activity.ADate, 0), true}
 	activity.GroupId = groupId
 	activity.StreamId = GeneraToken8()
 	activity.LivePushPath = generatePushPath(activity.StreamId, activity.IsRecord, "")
@@ -204,6 +203,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	if err == nil {
 		r.JSON(200, "/activity")
 	} else {
+		//TODO 删除环信id
 		r.JSON(500, "创建活动失败")
 	}
 }
