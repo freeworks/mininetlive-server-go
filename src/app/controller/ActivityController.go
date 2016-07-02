@@ -2,17 +2,20 @@ package controller
 
 import (
 	. "app/common"
+	easemob "app/easemob"
 	logger "app/logger"
 	. "app/models"
 	"net/http"
+	"strings"
 
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+	cache "github.com/patrickmn/go-cache"
 )
 
 const (
-	PageSize int = 5
+	PageSize int = 9
 )
 
 func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
@@ -148,5 +151,68 @@ func GetActivityDetail(args martini.Params, r render.Render, dbmap *gorp.DbMap) 
 		r.JSON(200, Resp{1103, "活动不存在", nil})
 	} else {
 		r.JSON(200, Resp{0, "查询活动成功", activity})
+	}
+}
+
+func JoinGroup(req *http.Request, r render.Render, c *cache.Cache) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	groupId := req.PostFormValue("groupId")
+	if uid == "" || groupId == "" {
+		logger.Info("JoinGroup", "uid or groupId is ''")
+	} else {
+		easemob.JoinGroup(groupId, uid, c)
+	}
+	r.JSON(200, Resp{0, "成功", nil})
+}
+
+func LeaveGroup(req *http.Request, r render.Render, c *cache.Cache) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	groupId := req.PostFormValue("groupId")
+	if uid == "" || groupId == "" {
+		logger.Info("LeaveGroup", "uid or groupId is ''")
+	} else {
+		easemob.LeaveGroup(groupId, uid, c)
+	}
+	r.JSON(200, Resp{0, "成功", nil})
+}
+
+func GetLiveActivityMemberCount(req *http.Request, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	groupId := req.PostFormValue("groupId")
+	if uid == "" || groupId == "" {
+		logger.Info("LeaveGroup", "uid or groupId is ''")
+		r.JSON(200, Resp{0, "缺少参数", nil})
+	} else {
+		count, err := easemob.GetGroupMemberCount(groupId, c)
+
+		if err == nil {
+			r.JSON(200, Resp{0, "获取在线成员信息成功", map[string]int{"count": count}})
+		} else {
+			r.JSON(200, Resp{1402, "获取在线成员信息失败", nil})
+		}
+	}
+}
+
+func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	groupId := req.PostFormValue("groupId")
+	if uid == "" || groupId == "" {
+		logger.Info("LeaveGroup", "uid or groupId is ''")
+		r.JSON(200, Resp{0, "缺少参数", nil})
+	} else {
+		uids, err := easemob.GetGroupMemberList(groupId, c)
+		if err == nil {
+			var users []User
+			_, err = dbmap.Select(&users, "SELECT * FROM t_user WHERE uid IN ('"+strings.Join(uids, "','")+"')")
+			if err == nil {
+				r.JSON(200, Resp{0, "获取在线成员信息成功", users})
+				return
+			}
+		}
+		r.JSON(200, Resp{1402, "获取在线成员信息失败", nil})
 	}
 }

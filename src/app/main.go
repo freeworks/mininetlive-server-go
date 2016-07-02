@@ -5,6 +5,7 @@ import (
 	config "app/config"
 	. "app/controller"
 	db "app/db"
+	intervaler "app/intervaler"
 	logger "app/logger"
 	. "app/models"
 	pay "app/pay"
@@ -63,6 +64,11 @@ func main() {
 		r.Get("/detail/:id", GetActivityDetail)
 		r.Post("/appointment", AppointmentActivity)
 		r.Post("/play", PlayActivity)
+		r.Post("/group/join", JoinGroup)
+		r.Post("/group/leave", LeaveGroup)
+		r.Post("/group/member/list", GetLiveActivityMemberList)
+		r.Post("/group/member/count", GetLiveActivityMemberCount)
+
 	})
 	m.Group("/pay", func(r martini.Router) {
 		r.Post("/charge", pay.GetCharge)
@@ -75,6 +81,8 @@ func main() {
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
+	go intervaler.PollGroupOnlineUser(c, dbmap)
+
 	go func() {
 		admin.SetDBMap(dbmap)
 		m := martini.Classic()
@@ -104,4 +112,5 @@ func main() {
 	}()
 
 	m.RunOnAddr(":8080")
+
 }

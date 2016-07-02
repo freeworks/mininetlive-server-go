@@ -182,6 +182,7 @@ type Activity struct {
 	PayState         int       `json:"payState" db:"-"`
 	AppointState     int       `json:"appoinState" db:"-"`
 	GroupId          string    `json:"groupId" db:"group_id"`
+	OnlineCount      int       `json:"onlineCount" db:"online_count"`
 	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          JsonTime  `json:"createTime" db:"create_time"`
