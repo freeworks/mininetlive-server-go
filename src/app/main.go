@@ -69,9 +69,9 @@ func main() {
 		r.Post("/webhook", pay.Webhook)
 		r.Post("/withdraw", pay.Withdraw)
 	})
-	m.Get("/live/CallbackRecordFinish",CallbackRecordFinish)
-	m.Get("/live/CallbackLiveBegin",CallbackLiveBegin)
-	m.Get("/live/CallbackLiveEnd",CallbackLiveEnd)
+	m.Get("/live/CallbackRecordFinish", CallbackRecordFinish)
+	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
+	m.Get("/live/CallbackLiveEnd", CallbackLiveEnd)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})

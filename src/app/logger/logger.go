@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 )
 
@@ -74,7 +75,8 @@ type logstashEvent struct {
 
 // Logger returns a middleware handler prints the request in a Logstash-JSON compatiable format
 func Logger() martini.Handler {
-	return func(res http.ResponseWriter, req *http.Request, c martini.Context, log *log.Logger) {
+	return func(res http.ResponseWriter, req *http.Request, c martini.Context, logref *log.Logger, dbmap *gorp.DbMap) {
+		dbmap.TraceOn("[gorp]", log.New(os.Stdout, "", log.Lmicroseconds))
 		start := time.Now()
 		rw := res.(martini.ResponseWriter)
 		c.Next()
@@ -91,10 +93,11 @@ func Logger() martini.Handler {
 		output, err := json.Marshal(event)
 		if err != nil {
 			// Should this be fatal?
-			log.Printf("Unable to JSON-ify our event (%#v): %v", event, err)
+			logref.Printf("Unable to JSON-ify our event (%#v): %v", event, err)
 			return
 		}
 		Info(string(output))
+		dbmap.TraceOff()
 	}
 }
 

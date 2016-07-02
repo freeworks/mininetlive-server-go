@@ -4,21 +4,26 @@ import (
 	. "app/common"
 	logger "app/logger"
 	. "app/models"
-	"bytes"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 )
 
+const (
+	PageSize int = 5
+)
+
 func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
+	aid := req.PostFormValue("aid")
+	if aid == "" {
+		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
+	}
 	var record AppointmentRecord
-	record.Aid = req.PostFormValue("aid")
+	record.Aid = aid
 	record.Uid = uid
 	err := dbmap.Insert(&record)
 	CheckErr(err, "AppointmentActivity insert failed")
@@ -42,87 +47,81 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 
 func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
-	var recomendIds []string
-	_, err := dbmap.Select(&recomendIds, "SELECT aid FROM t_recomend ORDER BY update_time DESC")
-	CheckErr(err, "get aid from recomend")
-
 	var recomendActivities []QActivity
 	var activities []QActivity
-	logger.Info(recomendIds)
-	if len(recomendIds) == 0 {
-		_, err = dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE aid ORDER BY update_time DESC")
-		CheckErr(err, "get recomend list")
-		_, err = dbmap.Select(&activities, "SELECT * FROM t_activity ORDER BY update_time DESC")
-		CheckErr(err, "get Activity List")
-	} else {
-		var buffer bytes.Buffer
-		values := make(map[string]string)
-		for index, recomendId := range recomendIds {
-			key := "id" + strconv.Itoa(index)
-			buffer.WriteString(":" + key + ",")
-			values[key] = recomendId
+	_, err := dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE is_recommend = 1 ORDER BY create_time DESC")
+	CheckErr(err, "get recomend list")
+	if err == nil {
+		for _, activity := range recomendActivities {
+			queryState(activity, uid, dbmap)
 		}
-		condition := strings.TrimRight(buffer.String(), ",")
-		sql := "SELECT * FROM t_activity WHERE aid IN (" + condition + ") ORDER BY update_time DESC"
-		logger.Info(sql)
-		logger.Info(values)
-		_, err = dbmap.Select(&recomendActivities, sql, values)
-		CheckErr(err, "get recomend list")
-		sql = "SELECT * FROM t_activity WHERE aid NOT IN (" + condition + ") ORDER BY update_time DESC"
-		_, err = dbmap.Select(&activities, sql, values)
-		CheckErr(err, "get Activity List")
+	}
+	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE is_recommend = 0 ORDER BY create_time DESC LIMIT ? ", PageSize+1)
+	CheckErr(err, "get Activity List")
+	if err == nil {
+		for _, activity := range activities {
+			queryState(activity, uid, dbmap)
+		}
 	}
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
-		for _, activity := range activities {
-			queryCount(activity, uid, dbmap)
+		var hasmore bool
+		logger.Info(len(activities))
+		if len(activities) > PageSize {
+			hasmore = true
+			activities = activities[:PageSize]
+		} else {
+			hasmore = false
 		}
-		r.JSON(200, Resp{0, "查询活动成功", map[string]interface{}{"recommend": recomendActivities, "general": activities}})
+		r.JSON(200, Resp{0, "查询活动成功", map[string]interface{}{
+			"hasmore": hasmore, "recommend": recomendActivities, "general": activities}})
 	}
 }
 
 func GetMoreActivityList(req *http.Request, params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	lastAid := params["lastAid"]
-	lastId, err := dbmap.SelectInt("SELECT id FROM t_activity WHERE aid = ? ", lastAid)
+	var activity QActivity
+	_, err := dbmap.Select(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	var activities []QActivity
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE id > ? ORDER BY create_time DESC LIMIT 10", lastId)
+	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND is_recommend = 0 ORDER BY create_time DESC LIMIT ?", activity.Created, PageSize+1)
 	CheckErr(err, "GetActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
 		for _, activity := range activities {
-			queryCount(activity, uid, dbmap)
+			queryState(activity, uid, dbmap)
 		}
-		r.JSON(200, Resp{0, "查询活动成功", activities})
+		var hasmore bool
+		if len(activities) > PageSize {
+			hasmore = true
+			activities = activities[:PageSize]
+		} else {
+			hasmore = false
+		}
+		r.JSON(200, Resp{0, "查询活动成功", map[string]interface{}{"hasmore": hasmore, "general": activities}})
 	}
 }
 
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND video_type = 0 ORDER BY create_time DESC LIMIT 10")
+	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND video_type = 0 ORDER BY create_time DESC")
 	CheckErr(err, "GetLiveActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
 		for _, activity := range activities {
-			queryCount(activity, uid, dbmap)
+			queryState(activity, uid, dbmap)
 		}
 		r.JSON(200, Resp{0, "查询活动成功", activities})
 	}
 }
 
-func queryCount(activity QActivity, uid string, dbmap *gorp.DbMap) {
-	count, err := dbmap.SelectInt("select count(*) from t_play_record where aid = ? ", activity.Aid)
-	CheckErr(err, "get play count")
-	activity.PlayCount = int(count)
-	count, err = dbmap.SelectInt("select count(*) from t_appointment_record where aid = ? ", activity.Aid)
-	CheckErr(err, "get appointment count")
-	activity.PlayCount = int(count)
+func queryState(activity QActivity, uid string, dbmap *gorp.DbMap) {
 	if uid != "" {
-		count, err = dbmap.SelectInt("select count(*) from t_pay_record where aid = ? and uid = ?", activity.Aid, uid)
+		count, err := dbmap.SelectInt("select count(*) from t_pay_record where aid = ? and uid = ?", activity.Aid, uid)
 		CheckErr(err, "get appointment count")
 		if count == 0 {
 			activity.PayState = 0

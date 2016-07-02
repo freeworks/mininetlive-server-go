@@ -1,6 +1,7 @@
 package models
 
 import (
+	. "app/common"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -118,6 +119,12 @@ type AppointmentRecord struct {
 
 func (a *AppointmentRecord) PreInsert(s gorp.SqlExecutor) error {
 	a.Created = time.Now()
+	update := "UPDATE t_activity SET appointment_count = appointment_count+1 WHERE aid =?"
+	_, err := s.Exec(update, a.Aid)
+	CheckErr(err, "AppointmentRecord PreInsert")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -145,11 +152,17 @@ type PlayRecord struct {
 
 func (pl *PlayRecord) PreInsert(s gorp.SqlExecutor) error {
 	pl.Created = time.Now()
+	update := "UPDATE t_activity SET play_count = play_count+1 WHERE aid =?"
+	_, err := s.Exec(update, pl.Aid)
+	CheckErr(err, "PlayRecord PreInsert")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 type Activity struct {
-	Id               int       `json:"-" db:"id"`
+	Id               int       `json:"id" db:"id"`
 	Aid              string    `json:"aid" db:"aid"`
 	Title            string    `form:"title" json:"title"  binding:"required" db:"title"`
 	Date             time.Time `json:"date" db:"date"`
@@ -158,8 +171,8 @@ type Activity struct {
 	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
-	StreamId          string   `json:"streamId" json:"streamId" db:"stream_id"`
-	StreamType        int      `form:"streamType" json:"streamType" binding:"required" db:"stream_type"` //0 直播，1 视频
+	StreamId         string    `json:"streamId" json:"streamId" db:"stream_id"`
+	StreamType       int       `form:"streamType" json:"streamType" binding:"required" db:"stream_type"` //0 直播，1 视频
 	LivePullPath     string    `json:"livePullPath" db:"live_pull_path"`
 	VideoPath        string    `json:"videoPath" db:"video_path"`
 	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束
@@ -169,21 +182,22 @@ type Activity struct {
 	PayState         int       `json:"payState" db:"-"`
 	AppointState     int       `json:"appoinState" db:"-"`
 	GroupId          string    `json:"groupId" db:"group_id"`
+	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          time.Time `json:"-" db:"create_time"`
 }
 
 type QActivity struct {
 	Activity
-	Owner 			User 	  `json:"owner" db:"uid"`
-	LivePushPath    string    `json:"-" db:"live_push_path"`
+	Owner        User   `json:"owner" db:"uid"`
+	LivePushPath string `json:"-" db:"live_push_path"`
 }
 
 type NActivity struct {
 	Activity
-	Uid string `db:"uid"`
-	IsRecord bool `from:"isRecord" json:"-" db:"-"`
-	LivePushPath    string    `json:"livePushPath" db:"live_push_path"`
+	Uid          string `db:"uid"`
+	IsRecord     bool   `from:"isRecord" json:"-" db:"-"`
+	LivePushPath string `json:"livePushPath" db:"live_push_path"`
 }
 
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {

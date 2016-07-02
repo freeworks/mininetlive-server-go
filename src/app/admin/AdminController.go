@@ -15,7 +15,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"log"
+
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -113,7 +113,7 @@ func Login(args martini.Params, req *http.Request, session sessions.Session, r r
 			r.JSON(200, redirectPath)
 			return
 		}
-	}else{
+	} else {
 		r.JSON(500, "账号或密码错误！")
 	}
 }
@@ -127,7 +127,6 @@ func validatePassword(password string) bool {
 	//TODO
 	return true
 }
-
 
 func RedirectLogin(r render.Render) {
 	r.HTML(200, "login", nil)
@@ -183,11 +182,10 @@ func GetActivityList(r render.Render, dbmap *gorp.DbMap) {
 }
 
 func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
-	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "NewActivity:", log.Lmicroseconds))
 	logger.Info("NewActivity ")
 	// uid := user.UniqueId().(string)
-	uid :="1e046709049d59b5"
-	groupId,err := easemob.CreateGroup(uid, activity.Title, c)
+	uid := "1e046709049d59b5"
+	groupId, err := easemob.CreateGroup(uid, activity.Title, c)
 	if err != nil {
 		CheckErr(err, "easemob create group error")
 		r.JSON(500, "创建活动失败")
@@ -199,8 +197,8 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	activity.Created = time.Now()
 	activity.GroupId = groupId
 	activity.StreamId = GeneraToken8()
-	activity.LivePushPath = generatePushPath(activity.StreamId,activity.IsRecord,"")
-	logger.Info("info ",activity.String())
+	activity.LivePushPath = generatePushPath(activity.StreamId, activity.IsRecord, "")
+	logger.Info("info ", activity.String())
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
@@ -208,17 +206,16 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	} else {
 		r.JSON(500, "创建活动失败")
 	}
-	dbmap.TraceOff()
 }
 
-func generatePushPath(streamId string,record bool,filename string) string {
-	pushPath := "rtmp://域名/接入点/"+streamId+"?record="+strconv.FormatBool(record)
+func generatePushPath(streamId string, record bool, filename string) string {
+	pushPath := "rtmp://域名/接入点/" + streamId + "?record=" + strconv.FormatBool(record)
 	if filename != "" {
-		pushPath = pushPath+ "&filename="+filename 
+		pushPath = pushPath + "&filename=" + filename
 	}
-	logger.Info("GeneratePushPath :",pushPath)
+	logger.Info("GeneratePushPath :", pushPath)
 
-	return  pushPath
+	return pushPath
 }
 
 func DeleteActivity(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
