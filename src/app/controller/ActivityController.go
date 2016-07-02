@@ -52,14 +52,14 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var recomendActivities []QActivity
 	var activities []QActivity
-	_, err := dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE is_recommend = 1 ORDER BY create_time DESC")
+	_, err := dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC")
 	CheckErr(err, "get recomend list")
 	if err == nil {
 		for _, activity := range recomendActivities {
 			queryState(activity, uid, dbmap)
 		}
 	}
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE is_recommend = 0 ORDER BY create_time DESC LIMIT ? ", PageSize+1)
+	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ? ", PageSize+1)
 	CheckErr(err, "get Activity List")
 	if err == nil {
 		for _, activity := range activities {
@@ -89,7 +89,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	logger.Info("GetMoreActivityList..", activity.Created)
 	var activities []QActivity
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND is_recommend = 0 ORDER BY create_time DESC LIMIT ?", activity.Created, PageSize+1)
+	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND is_recommend = 0 ORDER BY activity_state ASC, create_time DESC  LIMIT ?", activity.Created, PageSize+1)
 	CheckErr(err, "GetActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
@@ -111,7 +111,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND video_type = 0 ORDER BY create_time DESC")
+	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND stream_type = 0 ORDER BY create_time DESC")
 	CheckErr(err, "GetLiveActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
