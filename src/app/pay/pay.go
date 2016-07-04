@@ -26,9 +26,9 @@ import (
 )
 
 const (
-	API_KEY string = `sk_test_GaLOuHePyX1KjnjzbDW5m9KG`
-	APP_ID  string = `app_m5y1CSzTGCi5zjjj`
-	//	API_KEY    string = `sk_live_SOmLyDHanHSGe5irXPWfnvj5`
+	//	API_KEY string = `sk_test_GaLOuHePyX1KjnjzbDW5m9KG`
+	APP_ID     string = `app_m5y1CSzTGCi5zjjj`
+	API_KEY    string = `sk_live_SOmLyDHanHSGe5irXPWfnvj5`
 	WX_OPEN_ID string = `wx36d2981a085f6370`
 )
 
@@ -63,15 +63,20 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		render.JSON(200, Resp{2001, "金额不正确", nil})
 		return
 	}
+	if amount == 0 {
+		amount = 1
+	}
 	payType, err := strconv.Atoi(req.PostFormValue("payType"))
 	CheckErr(err, "get payType")
 	if err != nil {
-		render.JSON(200, Resp{2003, "订单类型不正确", nil})
+		render.JSON(200, Resp{2003, "订单类型不正确，支付类型不正确", nil})
 		return
 	}
 	aid := req.PostFormValue("aid")
-	if amount == 0 {
-		amount = 1
+	title, err := dbmap.SelectStr("SELECT title FROM t_activity WHERE aid=?", aid)
+	if err != nil {
+		render.JSON(200, Resp{2003, "订单类型不正确,活动不存在", nil})
+		return
 	}
 	channel := req.PostFormValue("channel")
 	if channel != "alipay" && channel != "wx" {
@@ -93,8 +98,11 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		log.Print("userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 
-	subject := "Your Subject"
-	body := "Your Body"
+	subject := title
+	if payType == 0 {
+		subject = title + "(奖赏)"
+	}
+	body := "sjfdlfjlsdjflsdfjdslf"
 	params := &pingpp.ChargeParams{
 		Order_no:  strconv.Itoa(orderno),
 		App:       pingpp.App{Id: APP_ID},
@@ -112,7 +120,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		render.JSON(200, Resp{2000, "获取支付信息失败", nil})
 	} else {
 		chs, _ := json.Marshal(ch)
-		//fmt.Fprintln(w, string(chs))
+		logger.Info(string(chs))
 		//TODO 创建订单
 		order := newOrder(strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
