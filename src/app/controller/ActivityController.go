@@ -25,9 +25,10 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	if aid == "" {
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
 	}
-	var record AppointmentRecord
+	var record Record
 	record.Aid = aid
 	record.Uid = uid
+	record.Type = 0
 	err := dbmap.Insert(&record)
 	CheckErr(err, "AppointmentActivity insert failed")
 	if err != nil {
@@ -40,9 +41,10 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
-	var record PlayRecord
+	var record Record
 	record.Aid = req.PostFormValue("aid")
 	record.Uid = uid
+	record.Type = 1
 	err := dbmap.Insert(&record)
 	CheckErr(err, "PayActivity insert failed")
 	r.JSON(200, Resp{0, "ok", nil})

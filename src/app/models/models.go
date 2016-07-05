@@ -1,7 +1,6 @@
 package models
 
 import (
-	. "app/common"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -108,56 +107,17 @@ type LocalAuthUser struct {
 	LocalAuth LocalAuth
 }
 
-//TODO 预约活动是否已经过期
-type AppointmentRecord struct {
+
+type Record struct {
 	Id      int       `db:"id" json:"-"`
 	Aid     string    `db:"aid" json:"aid"`
-	Uid     string    `db:"uid" json:"uid"`
-	State   int       `db:"state" json:"state"` //0 未开始，1 活动过期，3,取消
-	Created time.Time `db:"create_time" json:"createTime"`
+	Uid     string    `db:"uid" json:"-"`
+	Type    int       `db:"type" json:"-"`  //0 预约，1，观看，2 支付，购买
+	Created JsonTime  `db:"create_time" json:"createTime"`
 }
 
-func (a *AppointmentRecord) PreInsert(s gorp.SqlExecutor) error {
-	a.Created = time.Now()
-	update := "UPDATE t_activity SET appointment_count = appointment_count+1 WHERE aid =?"
-	_, err := s.Exec(update, a.Aid)
-	CheckErr(err, "AppointmentRecord PreInsert")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-type PayRecord struct {
-	Id      int       `db:"id" json:"-"`
-	Aid     string    `db:"aid" json:"aid"`
-	Uid     int       `db:"uid"  json:"uid"`
-	Amount  int       `db:"amount" json:"amount"`
-	Type    int       `db:"type" json:"type"` //0 支付观看，1奖赏
-	Created time.Time `db:"create_time" json:"createTime"`
-}
-
-func (p *PayRecord) PreInsert(s gorp.SqlExecutor) error {
-	p.Created = time.Now()
-	return nil
-}
-
-type PlayRecord struct {
-	Id      int       `db:"id" json:"-"`
-	Aid     string    `db:"aid" json:"aid"`
-	Uid     string    `db:"uid" json:"uid"`
-	Type    int       `db:"type" json:"type"` //0 直播，1点播
-	Created time.Time `db:"create_time" json:"create_time"`
-}
-
-func (pl *PlayRecord) PreInsert(s gorp.SqlExecutor) error {
-	pl.Created = time.Now()
-	update := "UPDATE t_activity SET play_count = play_count+1 WHERE aid =?"
-	_, err := s.Exec(update, pl.Aid)
-	CheckErr(err, "PlayRecord PreInsert")
-	if err != nil {
-		return err
-	}
+func (pl *Record) PreInsert(s gorp.SqlExecutor) error {
+	pl.Created = JsonTime{time.Now(), true}
 	return nil
 }
 
