@@ -22,7 +22,7 @@ import (
 	"github.com/martini-contrib/render"
 	pingpp "github.com/pingplusplus/pingpp-go/pingpp"
 	"github.com/pingplusplus/pingpp-go/pingpp/charge"
-	"github.com/pingplusplus/pingpp-go/pingpp/redEnvelope"
+	"github.com/pingplusplus/pingpp-go/pingpp/transfer"
 )
 
 const (
@@ -132,58 +132,57 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 
 }
 
-type RedEnvelopeModel struct {
-	Uid         string `form:"uid"`
-	Body        string `form:"Body"`
-	Description string `form:"Description"`
-	RecipinetId string `form:"-"`
-}
-
-func Withdraw(req *http.Request, redEnvelope RedEnvelopeModel, render render.Render) {
+func Transfer(req *http.Request, parms martini.Params, render render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
-	logger.Info("uid:", uid)
-	//TODO 是否绑定微信,
-	//TODO 是否绑定电话
-	recipinetId := "xxx" //from db
-	amount, err := strconv.Atoi(req.PostFormValue("amount"))
-	if err != nil {
-		render.JSON(200, Resp{2001, "支付金额不正确", nil})
+	if uid == "" {
+		render.JSON(200, Resp{1013, "uidb不正确", nil})
 		return
 	}
-	result, err := NewRedEnvelope(recipinetId, uint64(amount))
-	if err == nil {
-		render.JSON(200, Resp{0, "提现成功", result})
-	} else {
-		logger.Info(err)
-		render.JSON(200, Resp{2003, "提现失败", nil})
+	var oauth OAuth
+	err := dbmap.SelectOne(&oauth, "SELECT * FROM t_oauth WHERE uid=?", uid)
+	if err != nil {
+		render.JSON(200, Resp{1013, "服务器异常，查询用户信息失败", nil})
+		return
 	}
-}
+	if oauth.Plat != "Wechat" {
+		render.JSON(200, Resp{2005, "用户还没有开通微信", nil})
+		return
+	}
+	amount, err := strconv.ParseInt(req.PostFormValue("amount"), 10, 64)
+	amount2 := uint64(amount)
+	if err != nil {
+		logger.Info(err)
+		render.JSON(200, Resp{2005, "金额不正确", nil})
+		return
+	}
 
-func NewRedEnvelope(recipinetId string, amount uint64) (interface{}, error) {
+	//TODO 校验金额类型，以及用户余额是否可以提现
+
+	openId := oauth.OpenId
 	extra := make(map[string]interface{})
-	extra["send_name"] = "微网直播间"
+	extra["user_name"] = "user name"
+	extra["force_check"] = false
+	//这里是随便设置的随机数作为订单号，仅作示例，该方法可能产生相同订单号，商户请自行生成订单号，不要纠结该方法。
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	orderno := r.Intn(999999999999999)
-	redenvelopeParams := &pingpp.RedEnvelopeParams{
+	transferParams := &pingpp.TransferParams{
 		App:         pingpp.App{Id: APP_ID},
 		Channel:     "wx_pub",
 		Order_no:    strconv.Itoa(orderno),
-		Amount:      amount,
+		Amount:      amount2,
 		Currency:    "cny",
-		Recipient:   recipinetId,
-		Subject:     "奖励",
-		Body:        "",
-		Description: "",
+		Type:        "b2c",
+		Recipient:   openId,
+		Description: "Your Description",
 		Extra:       extra,
 	}
-	redEnvelope, err := redEnvelope.New(redenvelopeParams)
+	transfer, err := transfer.New(transferParams)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
 	}
-	logger.Info(redEnvelope)
-	redString, _ := json.Marshal(redEnvelope)
-	return redString, nil
+	logger.Info(transfer)
+	fr, _ := json.Marshal(transfer)
+	logger.Info(string(fr))
 }
 
 func Webhook(w http.ResponseWriter, r *http.Request) {

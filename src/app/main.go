@@ -73,7 +73,7 @@ func main() {
 	m.Group("/pay", func(r martini.Router) {
 		r.Post("/charge", pay.GetCharge)
 		r.Post("/webhook", pay.Webhook)
-		r.Post("/withdraw", pay.Withdraw)
+		r.Post("/withdraw", pay.Transfer)
 	})
 	m.Get("/live/CallbackRecordFinish", CallbackRecordFinish)
 	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
