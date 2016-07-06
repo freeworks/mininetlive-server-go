@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	PageSize int = 9
+	PageSize int = 10
 )
 
 func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
@@ -91,7 +91,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	logger.Info("GetMoreActivityList..", activity.Created)
 	var activities []QActivity
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND is_recommend = 0 ORDER BY activity_state ASC, create_time DESC  LIMIT ?", activity.Created, PageSize+1)
+	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND activity_state >= ? AND is_recommend = 0 ORDER BY activity_state ASC, create_time DESC  LIMIT ?", activity.Created, activity.ActivityState, PageSize+1)
 	CheckErr(err, "GetActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
