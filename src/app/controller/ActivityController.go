@@ -127,7 +127,7 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 
 func queryState(activity QActivity, uid string, dbmap *gorp.DbMap) {
 	if uid != "" {
-		count, err := dbmap.SelectInt("select count(*) from t_pay_record where aid = ? and uid = ?", activity.Aid, uid)
+		count, err := dbmap.SelectInt("select count(*) from t_record where type = 2 and aid = ? and uid = ?", activity.Aid, uid)
 		CheckErr(err, "get appointment count")
 		if count == 0 {
 			activity.PayState = 0
@@ -135,7 +135,7 @@ func queryState(activity QActivity, uid string, dbmap *gorp.DbMap) {
 			activity.PayState = 1
 		}
 
-		count, err = dbmap.SelectInt("select count(*) from t_appointment_record where aid = ? and uid = ?", activity.Aid, uid)
+		count, err = dbmap.SelectInt("select count(*) from t_record where  type = 0 && aid = ? and uid = ?", activity.Aid, uid)
 		CheckErr(err, "get appointment count")
 		if count == 0 {
 			activity.AppointState = 0
