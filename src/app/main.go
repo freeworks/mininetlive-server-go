@@ -2,6 +2,7 @@ package main
 
 import (
 	admin "app/admin"
+	push "app/push"
 	config "app/config"
 	. "app/controller"
 	db "app/db"
@@ -79,6 +80,8 @@ func main() {
 	m.Get("/live/CallbackRecordFinish", CallbackRecordFinish)
 	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
 	m.Get("/live/CallbackLiveEnd", CallbackLiveEnd)
+	m.Get("/pushtest", push.PushAppointment)
+
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
