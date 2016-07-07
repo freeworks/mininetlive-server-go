@@ -1,34 +1,38 @@
 package push
 
 import (
+	logger "app/logger"
+	. "app/models"
+	"bytes"
+	"crypto/md5"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 	"time"
-		"crypto/md5"
-		"net/http"
-		"io/ioutil"
-		"bytes"
-		"io"
-		"fmt"
-		"errors"
-		"strconv"
-		logger "app/logger"
+
 	. "github.com/bitly/go-simplejson"
+	"github.com/go-martini/martini"
+	"github.com/martini-contrib/render"
 )
 
 const (
-	APP_KEY string = "5774a96d67e58e4ef7001fa5"
+	APP_KEY           string = "5774a96d67e58e4ef7001fa5"
 	APP_MASTER_SECRET string = "7negllhaock3ncnkm7z2b57gbvais5ds"
 )
 
-func  getSign(method,url,body string) string{
+func getSign(method, url, body string) string {
 	h := md5.New()
 	io.WriteString(h, method+url+body+APP_MASTER_SECRET)
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func push(payload [] byte) (*Json,string) {
-	logger.Info("push","PushAppointment",string(payload))
-	sign := getSign("POST","http://msg.umeng.com/api/send",string(payload))
-	logger.Info("sign",sign)
+func push(payload []byte) (*Json, error) {
+	logger.Info("push", "PushAppointment", string(payload))
+	sign := getSign("POST", "http://msg.umeng.com/api/send", string(payload))
+	logger.Info("sign", sign)
 	req, err := http.NewRequest("POST", "http://msg.umeng.com/api/send?sign="+sign, bytes.NewBuffer(payload))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -41,7 +45,7 @@ func push(payload [] byte) (*Json,string) {
 	if resp.StatusCode == 200 {
 		body, _ := ioutil.ReadAll(resp.Body)
 		js, _ := NewJson(body)
-		data,_ := js.Get("ret").String()
+		data, _ := js.Get("ret").String()
 		logger.Info(data)
 		return js, nil
 	} else {
@@ -52,32 +56,47 @@ func push(payload [] byte) (*Json,string) {
 	}
 }
 
+func TestPush(params martini.Params, r render.Render) {
+	mType := params["type"]
+	if mType == "part" {
+		PushAppointment("test", "test1")
+	} else if mType == "all" {
+		PushNewActivity("test2")
+	}
+	r.JSON(200, Resp{0, "test成功", nil})
+}
 
-func PushAppointment(title,aid string){
- 	payload := []byte(`{
-			"appkey": "`+APP_KEY+`",
-			"timestamp": `+strconv.FormatInt(time.Now().Unix(), 10) +`,
+func PushAppointment(title, aid string) {
+	payload := []byte(`{
+			"appkey": "` + APP_KEY + `",
+			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
 			"type": "groupcast",
 			"payload":{
-				  "aps":{ "alert":"【新活动上线】`+title+`"}
+				"display_type":"notification",
+				"body":{
+					"ticker":"新活动上线",
+					"title":"有新的活动即将上线!",
+					"text":"` + title + `",
+					"after_open":"go_app",
+				}
 			},
 			"filter":{
 				"where": {
 					    "and": 
 					    [
-					      {"tag":"`+aid+`"}
+					      {"tag":"` + aid + `"}
 					    ]
 				}
 			}
 	}`)
 	push(payload)
 	//IOS
-	payload := []byte(`{
-			"appkey": "`+APP_KEY+`",
-			"timestamp": `+strconv.FormatInt(time.Now().Unix(), 10) +`,
+	payload = []byte(`{
+			"appkey": "` + APP_KEY + `",
+			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
 			"type": "broadcast",
 			"payload":{
-				  "aps":{ "alert":"【新活动上线】`+title+`"}
+				  "aps":{ "alert":"【新活动上线】` + title + `"}
 			}
 	}`)
 	push(payload)
@@ -85,28 +104,28 @@ func PushAppointment(title,aid string){
 
 func PushNewActivity(title string) {
 	//android
- 	payload := []byte(`{
-			"appkey": "`+APP_KEY+`",
-			"timestamp": `+strconv.FormatInt(time.Now().Unix(), 10) +`,
+	payload := []byte(`{
+			"appkey": "` + APP_KEY + `",
+			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
 			"type": "broadcast",
 			"payload":{
 				"display_type":"notification",
 				"body":{
 					"ticker":"新活动上线",
 					"title":"有新的活动即将上线!",
-					"text":"`+title+`",
+					"text":"` + title + `",
 					"after_open":"go_app",
 				}
 			}
 	}`)
 	push(payload)
 	//IOS
-	payload := []byte(`{
-			"appkey": "`+APP_KEY+`",
-			"timestamp": `+strconv.FormatInt(time.Now().Unix(), 10) +`,
+	payload = []byte(`{
+			"appkey": "` + APP_KEY + `",
+			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
 			"type": "broadcast",
 			"payload":{
-				  "aps":{ "alert":"【新活动上线】`+title+`"}
+				  "aps":{ "alert":"【新活动上线】` + title + `"}
 			}
 	}`)
 	push(payload)
