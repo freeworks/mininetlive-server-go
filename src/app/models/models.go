@@ -1,6 +1,7 @@
 package models
 
 import (
+	. "app/common"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -32,16 +33,6 @@ type User struct {
 	BeInvitedUid string    `json:"-" db:"be_invited_uid"`
 	Updated      time.Time `json:"-" db:"update_time"`
 	Created      time.Time `json:"-" db:"create_time"`
-}
-
-type ThiredUserModel struct {
-	User
-	Plat string
-}
-
-type PhoneUserModel struct {
-	User
-	Phone string
 }
 
 func (u User) Value() (driver.Value, error) {
@@ -107,13 +98,12 @@ type LocalAuthUser struct {
 	LocalAuth LocalAuth
 }
 
-
 type Record struct {
-	Id      int       `db:"id" json:"-"`
-	Aid     string    `db:"aid" json:"aid"`
-	Uid     string    `db:"uid" json:"-"`
-	Type    int       `db:"type" json:"-"`  //0 预约，1，观看，2 支付，购买
-	Created JsonTime  `db:"create_time" json:"createTime"`
+	Id      int      `db:"id" json:"-"`
+	Aid     string   `db:"aid" json:"aid"`
+	Uid     string   `db:"uid" json:"-"`
+	Type    int      `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买
+	Created JsonTime `db:"create_time" json:"createTime"`
 }
 
 func (pl *Record) PreInsert(s gorp.SqlExecutor) error {
@@ -128,7 +118,7 @@ type Activity struct {
 	Date             JsonTime  `json:"date" db:"date"`
 	ADate            int64     `form:"date" json:"-"  db:"-"` /*binding:"required"*/
 	Desc             string    `form:"desc" json:"desc" binding:"required" db:"desc"`
-	FontCover        string    `form:"fontCover" json:"fontCover" binding:"required" db:"front_cover"`
+	FrontCover       string    `form:"frontCover" json:"frontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
 	StreamId         string    `json:"streamId" json:"streamId" db:"stream_id"`
@@ -146,35 +136,6 @@ type Activity struct {
 	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          JsonTime  `json:"createTime" db:"create_time"`
-}
-
-type JsonTime struct {
-	Time  time.Time
-	Valid bool
-}
-
-func (j JsonTime) format() string {
-	return time.Time(j.Time).Format("2006-01-02 15:04")
-}
-
-func (j JsonTime) MarshalText() ([]byte, error) {
-	return []byte(j.format()), nil
-}
-
-func (j JsonTime) MarshalJSON() ([]byte, error) {
-	return []byte(`"` + j.format() + `"`), nil
-}
-
-func (j *JsonTime) Scan(value interface{}) error {
-	j.Time, j.Valid = value.(time.Time)
-	return nil
-}
-
-func (j JsonTime) Value() (driver.Value, error) {
-	if !j.Valid {
-		return nil, nil
-	}
-	return j.Time, nil
 }
 
 type QActivity struct {
@@ -213,13 +174,13 @@ type Recomend struct {
 }
 
 type Order struct {
-	Id       int       `db:"id"`
-	OrderNo  string    `db:"no"`
-	Amount   uint64    `db:"amount"`
-	Channel  string    `db:"channel"`
-	ClientIP string    `db:"client_ip"`
-	Subject  string    `db:"subject"`
-	Aid      string    `db:"aid"`
-	PayType  int       `db:"type"`
-	Created  time.Time `db:"create_time"`
+	Id       int      `json:"-" db:"id"`
+	OrderNo  string   `json:"no" db:"no"`
+	Amount   uint64   `json:"amount" db:"amount"`
+	Channel  string   `json:"channel" db:"channel"`
+	ClientIP string   `json:"ip" db:"client_ip"`
+	Subject  string   `json:"subject" db:"subject"`
+	Aid      string   `json:"aid" db:"aid"`
+	PayType  int      `json:"type" db:"type"`
+	Created  JsonTime `json:"createTime" db:"create_time"`
 }

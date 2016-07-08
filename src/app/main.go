@@ -25,7 +25,6 @@ func main() {
 	logger.SetConsole(true)
 	logger.SetRollingDaily(config.LogDir, "mininetlive.log")
 	logger.SetLevel(logger.ALL)
-
 	dbmap := db.InitDb()
 	defer dbmap.Db.Close()
 	c := cache.New(cache.NoExpiration, 30*time.Second)
@@ -94,7 +93,7 @@ func main() {
 		m.Use(logger.Logger())
 		m.Use(render.Renderer())
 		m.Use(sessions.Sessions("my_session", []byte("secret123")))
-		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser()))
+		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
 		sessionauth.RedirectUrl = "/login"
 		sessionauth.RedirectParam = "next"
 
@@ -102,7 +101,7 @@ func main() {
 
 		m.Post("/login", admin.PostLogin)
 		m.Get("/login", admin.GetLogin)
-		m.Get("/getvcode", GetVCode)
+		m.Post("/getVCode", admin.GetVCode)
 		m.Post("/password/update", admin.UpdatePassword)
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
 
@@ -115,7 +114,7 @@ func main() {
 		}, sessionauth.LoginRequired)
 
 		m.Get("/order/list", sessionauth.LoginRequired, admin.GetOrderList)
-		m.Get("/order/list/filter", sessionauth.LoginRequired, admin.QueryOrderList)
+		m.Get("/order/list/filter", sessionauth.LoginRequired, admin.FilterOrderList)
 		m.Get("/order/chart/:graph", sessionauth.LoginRequired, admin.GetOrderChat)
 		m.Get("/income/chart/:graph", sessionauth.LoginRequired, admin.GetIncomChart)
 

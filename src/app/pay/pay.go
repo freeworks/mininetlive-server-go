@@ -41,7 +41,7 @@ func newOrder(orderno, channel, clientIP, subject, aid string, amount uint64, pa
 		Subject:  subject,
 		Aid:      aid,
 		PayType:  payType,
-		Created:  time.Now(),
+		Created:  JsonTime{time.Now(), true},
 	}
 }
 

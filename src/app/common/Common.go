@@ -20,6 +20,27 @@ import (
 	"github.com/pborman/uuid"
 )
 
+func GetLimit(req *http.Request) (int, int) {
+	mPageIndex := 0
+	mPageSize := 10
+	pageSizes := req.URL.Query()["pageSize"]
+	if len(pageSizes) > 0 && pageSizes[0] != "null" {
+		pageSize, _ := strconv.Atoi(pageSizes[0])
+		mPageSize = pageSize
+	}
+	pageIndexs := req.URL.Query()["pageIndex"]
+	if len(pageIndexs) > 0 && pageIndexs[0] != "null" {
+		pageIndex, _ := strconv.Atoi(pageIndexs[0])
+		mPageIndex = pageIndex
+	}
+	start := mPageIndex * mPageSize
+	return start, mPageSize
+}
+
+//func GetTimesampe(req *http.Request) (beginTime, endTime) {
+//	beginDate := req.URL.Query()["beginDate"]
+//}
+
 func SendSMS(mobile string) (string, error) {
 	//TODO 判断电话号码
 	url := "https://sms.yunpian.com/v1/sms/send.json"

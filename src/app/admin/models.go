@@ -5,6 +5,7 @@ import (
 	logger "app/logger"
 	"app/sessionauth"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -58,4 +59,22 @@ func (admin *AdminModel) GetById(uid interface{}, dbmap *gorp.DbMap) error {
 
 func GenerateAnonymousUser() sessionauth.User {
 	return &AdminModel{}
+}
+
+type QUserModel struct {
+	Uid          string   `json:"uid" db:"uid"`
+	EasemobUuid  string   `json:"easemobUuid" db:"easemob_uuid"`
+	NickName     string   `json:"nickname" db:"nickname"`
+	Avatar       string   `json:"avatar"  db:"avatar"`
+	Gender       int      `json:"gender"db:"gender"`
+	Balance      int      `json:"balance" db:"balance"`
+	BeInvitedUid string   `json:"uid" db:"be_invited_uid"`
+	Created      JsonTime `json:"createTime" db:"create_time"`
+	Phone        string   `json:"phone" db:"phone"`
+	Plat         string   `json:"plat" db:"plat"`
+}
+
+func (u *QUserModel) Scan(value interface{}) (err error) {
+	logger.Info(reflect.TypeOf(value))
+	return nil
 }
