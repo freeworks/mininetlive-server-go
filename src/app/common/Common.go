@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	. "github.com/bitly/go-simplejson"
 	"github.com/pborman/uuid"
 )
@@ -132,4 +133,14 @@ func Mkdir(dir string) (e error) {
 		}
 	}
 	return
+}
+
+func ValidatePhone(phone string) bool {
+	//TODO
+	return true
+}
+
+func ValidatePassword(password string) bool {
+	//TODO
+	return true
 }

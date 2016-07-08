@@ -7,6 +7,7 @@ import (
 
 	"app/sessions"
 
+	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 )
@@ -43,7 +44,7 @@ type User interface {
 	UniqueId() interface{}
 
 	// Populate this user object with values
-	GetById(id interface{}) error
+	GetById(id interface{}, dbmap *gorp.DbMap) error
 }
 
 // SessionUser will try to read a unique user ID out of the session. Then it tries
@@ -53,11 +54,11 @@ type User interface {
 // The newUser() function should provide a valid 0value structure for the caller's
 // user type.
 func SessionUser(newUser func() User) martini.Handler {
-	return func(s sessions.Session, c martini.Context, l *log.Logger) {
+	return func(s sessions.Session, c martini.Context, l *log.Logger, dbmap *gorp.DbMap) {
 		userId := s.Get(SessionKey)
 		user := newUser()
 		if userId != nil {
-			err := user.GetById(userId)
+			err := user.GetById(userId, dbmap)
 			if err != nil {
 				l.Printf("Login Error: %v\n", err)
 			} else {

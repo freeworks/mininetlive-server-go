@@ -43,7 +43,6 @@ func main() {
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 	m.Group("/common", func(r martini.Router) {
 		r.Post("/inviteCode", PostInviteCode)
-		r.Post("/upload", admin.Upload)
 	})
 	m.Group("/account", func(r martini.Router) {
 		r.Post("/info", GetAccountInfo)
@@ -88,7 +87,6 @@ func main() {
 	go intervaler.PollGroupOnlineUser(c, dbmap)
 
 	go func() {
-		admin.SetDBMap(dbmap)
 		m := martini.Classic()
 		c := cache.New(cache.NoExpiration, 30*time.Second)
 		m.Map(c)
@@ -96,22 +94,33 @@ func main() {
 		m.Use(logger.Logger())
 		m.Use(render.Renderer())
 		m.Use(sessions.Sessions("my_session", []byte("secret123")))
-		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
+		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser()))
 		sessionauth.RedirectUrl = "/login"
 		sessionauth.RedirectParam = "next"
+
 		m.Get("/", sessionauth.LoginRequired, admin.Index)
-		m.Post("/login", admin.Login)
-		m.Get("/login", admin.RedirectLogin)
+
+		m.Post("/login", admin.PostLogin)
+		m.Get("/login", admin.GetLogin)
+		m.Get("/getvcode", GetVCode)
+		m.Post("/password/update", admin.UpdatePassword)
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
-		m.Get("/activity", sessionauth.LoginRequired, admin.GetActivityList)
-		m.Post("/activity", sessionauth.LoginRequired, binding.Bind(NActivity{}), admin.NewActivity)
-		// m.Put("/activity/update/:id", binding.Bind(NActivity{}), admin.UpdateActivity)
-		m.Delete("/activity/:id", sessionauth.LoginRequired, admin.DeleteActivity)
-		m.Get("/addactivity", sessionauth.LoginRequired, admin.AddActivity)
-		m.Get("/admin", sessionauth.LoginRequired, admin.GetAdminList)
-		m.Get("/user", sessionauth.LoginRequired, admin.GetUserList)
-		m.Get("/income", sessionauth.LoginRequired, admin.GetIncome)
-		m.Post("/upload", admin.Upload)
+
+		m.Group("/activity", func(r martini.Router) {
+			r.Get("/list", admin.GetActivityList)
+			r.Get("/detail/:id", admin.GetActivity)
+			r.Post("/new", binding.Bind(NActivity{}), admin.NewActivity)
+			r.Put("/update/:id", binding.Bind(NActivity{}), admin.UpdateActivity)
+			r.Delete("/delete/:id", admin.DeleteActivity)
+		}, sessionauth.LoginRequired)
+
+		m.Get("/order/list", sessionauth.LoginRequired, admin.GetOrderList)
+		m.Get("/order/list/filter", sessionauth.LoginRequired, admin.QueryOrderList)
+		m.Get("/order/chart/:graph", sessionauth.LoginRequired, admin.GetOrderChat)
+		m.Get("/income/chart/:graph", sessionauth.LoginRequired, admin.GetIncomChart)
+
+		m.Get("/user/list", sessionauth.LoginRequired, admin.GetUserList)
+
 		m.RunOnAddr(":8081")
 	}()
 
