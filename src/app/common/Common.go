@@ -37,9 +37,18 @@ func GetLimit(req *http.Request) (int, int) {
 	return start, mPageSize
 }
 
-//func GetTimesampe(req *http.Request) (beginTime, endTime) {
-//	beginDate := req.URL.Query()["beginDate"]
-//}
+func GetTimesampe(req *http.Request) (string, string) {
+	var mBeginDate, mEndDate string
+	beginDate := req.URL.Query()["beginDate"]
+	if len(beginDate) > 0 && beginDate[0] != "null" {
+		mBeginDate = beginDate[0]
+	}
+	endDate := req.URL.Query()["endDate"]
+	if len(endDate) > 0 && endDate[0] != "null" {
+		mEndDate = endDate[0]
+	}
+	return mBeginDate, mEndDate
+}
 
 func SendSMS(mobile string) (string, error) {
 	//TODO 判断电话号码

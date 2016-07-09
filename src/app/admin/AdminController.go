@@ -21,9 +21,15 @@ import (
 	cache "github.com/patrickmn/go-cache"
 )
 
-func Index(r render.Render) {
-	logger.Debug("Index")
-	r.HTML(200, "index", nil)
+func Index(r render.Render, dbmap *gorp.DbMap) {
+	newAmount, err := dbmap.SelectInt("SELECT sum(amount) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
+	CheckErr(err, "index ")
+	newOrderCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
+	CheckErr(err, "index ")
+	newUserCount, err := dbmap.SelectInt("SELECT count(*) FROM t_user Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
+	CheckErr(err, "index ")
+	newmap := map[string]interface{}{"newAmount": newAmount, "newOrderCount": newOrderCount, "newUserCount": newUserCount}
+	r.HTML(200, "index", newmap)
 }
 
 func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
@@ -130,28 +136,44 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func FilterOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	//	start, size := GetTimeDatae(req)
-	//	t1, e := time.Parse(
-	//		time.RFC3339,
-	//		"2012-11-01T22:08:41+00:00")
-	//	p(t1)
-	//	var orders []Order
-	//	_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,?", start, size)
-	//	CheckErr(err, "GetOrderList")
-	//	if err == nil {
-	//		//	newmap := map[string]interface{}{"orders": orders}
-	//		//	r.HTML(200, "xxxxx", newmap)
-	//		r.JSON(200, orders)
-	//	} else {
-	//		r.HTML(500, "服务器异常", nil)
-	//	}
+
+	beginDate, endDate := GetTimesampe(req)
+	logger.Info("FilterOrderList", beginDate, endDate)
+	var orders []Order
+	var mErr error
+	if beginDate == "" && endDate == "" {
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order")
+		mErr = err
+	} else if beginDate != "" && endDate != "" {
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE create_time >= ? AND create_time <= ?",
+			beginDate,
+			endDate)
+		mErr = err
+	} else if beginDate == "" {
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ?",
+			endDate)
+		mErr = err
+	} else if endDate == "" {
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ?",
+			beginDate)
+		mErr = err
+	}
+	CheckErr(mErr, "GetOrderList")
+	if mErr == nil {
+		//	newmap := map[string]interface{}{"orders": orders}
+		//	r.HTML(200, "xxxxx", newmap)
+		r.JSON(200, orders)
+	} else {
+		r.HTML(500, "服务器异常", nil)
+	}
 }
 
 func GetOrderChat() {
-
+	//todo
 }
 
 func GetIncomChart() {
+	//todo
 
 }
 
