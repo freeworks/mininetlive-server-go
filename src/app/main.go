@@ -32,7 +32,7 @@ func main() {
 	m.Map(dbmap)
 	m.Map(c)
 	m.Use(logger.Logger())
-	m.Use(render.Renderer())
+	m.Use(render.Renderer()) // 解析模板，默认路径为templates
 	m.Post("/auth/login", binding.Bind(LocalAuth{}), Login)
 	m.Post("/auth/register", binding.Bind(LocalAuthUser{}), Register)
 	m.Post("/auth/logout", Logout)
@@ -86,7 +86,7 @@ func main() {
 	go intervaler.PollGroupOnlineUser(c, dbmap)
 
 	go func() {
-		m := martini.Classic()
+		m := martini.Classic() // 默认配置静态目录public
 		c := cache.New(cache.NoExpiration, 30*time.Second)
 		m.Map(c)
 		m.Map(dbmap)
