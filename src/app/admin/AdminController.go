@@ -2,16 +2,17 @@ package admin
 
 import (
 	. "app/common"
-	. "app/models"
-	//	config "app/config"
+	config "app/config"
 	easemob "app/easemob"
 	logger "app/logger"
+	. "app/models"
 	"app/sessionauth"
 	"app/sessions"
 	//	"fmt"
-	//	"io"
+	upload "app/upload"
+	"io"
 	"net/http"
-	//	"os"
+	"os"
 	"strconv"
 	"time"
 
@@ -29,7 +30,8 @@ func Index(r render.Render, dbmap *gorp.DbMap) {
 	newUserCount, err := dbmap.SelectInt("SELECT count(*) FROM t_user Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
 	CheckErr(err, "index ")
 	newmap := map[string]interface{}{"newAmount": newAmount, "newOrderCount": newOrderCount, "newUserCount": newUserCount}
-	r.HTML(200, "index", newmap)
+	//	r.HTML(200, "index", newmap)
+	r.JSON(200, Resp{0, "首页获取成功", newmap})
 }
 
 func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
@@ -83,14 +85,14 @@ func GetVCode(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.Db
 			vCode, err := SendSMS(phone)
 			if err == nil {
 				c.Set(phone, vCode, 60*time.Second)
-				r.JSON(200, "验证码发送成功!")
+				r.JSON(200, Resp{0, "验证码发送成功!", nil})
 				return
 			}
 		}
-		r.JSON(500, "验证码发送失败!")
+		r.JSON(200, Resp{1016, "验证码发送失败", nil})
 		return
 	} else {
-		r.JSON(406, "手机号格式错误！")
+		r.JSON(200, Resp{1015, "手机号格式错误！", nil})
 	}
 }
 
@@ -104,20 +106,20 @@ func UpdatePassword(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 				_, err := dbmap.Exec("UPDATE t_admin SET password=? WHERE phone=?", password, phone)
 				CheckErr(err, "update password")
 				if err == nil {
-					r.JSON(200, "密码更新成功！")
+					r.JSON(200, Resp{0, "密码更新成功！", nil})
 					return
 				} else {
-					r.JSON(500, "系统内部错误！")
+					r.JSON(200, Resp{1014, "系统内部错误！", nil})
 					return
 				}
 			} else {
-				r.JSON(406, "验证码错误，请重新输入！")
+				r.JSON(200, Resp{1013, "验证码错误，请重新输入！", nil})
 			}
 		} else {
-			r.JSON(406, "验证码过期,请重新获取验证码！")
+			r.JSON(200, Resp{1012, "验证码过期,请重新获取验证码！", nil})
 		}
 	} else {
-		r.JSON(406, "账号，密码格式错误！")
+		r.JSON(200, Resp{1011, "账号，密码格式错误！", nil})
 	}
 }
 
@@ -126,17 +128,22 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	var orders []Order
 	_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,?", start, size)
 	CheckErr(err, "GetOrderList")
+	//	if err == nil {
+	//		newmap := map[string]interface{}{"orders": orders}
+	//		r.HTML(200, "xxxxx", newmap)
+	//		r.JSON(200, orders)
+	//	} else {
+	//		r.HTML(500, "服务器异常", nil)
+	//	}
+
 	if err == nil {
-		//	newmap := map[string]interface{}{"orders": orders}
-		//	r.HTML(200, "xxxxx", newmap)
-		r.JSON(200, orders)
+		r.JSON(200, Resp{0, "获取订单列表查询成功", orders})
 	} else {
-		r.HTML(500, "服务器异常", nil)
+		r.JSON(200, Resp{1010, "获取订单列表失败", nil})
 	}
 }
 
 func FilterOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-
 	beginDate, endDate := GetTimesampe(req)
 	logger.Info("FilterOrderList", beginDate, endDate)
 	var orders []Order
@@ -159,22 +166,40 @@ func FilterOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		mErr = err
 	}
 	CheckErr(mErr, "GetOrderList")
+	//	if mErr == nil {
+	//		//	newmap := map[string]interface{}{"orders": orders}
+	//		//	r.HTML(200, "xxxxx", newmap)
+	//		r.JSON(200, orders)
+	//	} else {
+	//		r.HTML(500, "服务器异常", nil)
+	//	}
 	if mErr == nil {
-		//	newmap := map[string]interface{}{"orders": orders}
-		//	r.HTML(200, "xxxxx", newmap)
-		r.JSON(200, orders)
+		r.JSON(200, Resp{0, "订单列表查询成功", orders})
 	} else {
-		r.HTML(500, "服务器异常", nil)
+		r.JSON(200, Resp{1009, "订单列表查询失败", nil})
 	}
 }
 
-func GetOrderChat() {
-	//todo
+func GetOrderChat(r render.Render, dbmap *gorp.DbMap) {
+	sql := "SELECT DATE_FORMAT(create_time,'%Y/%m/%d') date,count(id) count FROM t_order GROUP BY date"
+	var result []Graph
+	_, err := dbmap.Select(&result, sql)
+	if err == nil {
+		r.JSON(200, Resp{0, "成功", result})
+	} else {
+		r.JSON(200, Resp{1017, "失败", nil})
+	}
 }
 
-func GetIncomChart() {
-	//todo
-
+func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
+	sql := "SELECT DATE_FORMAT(create_time,'%Y/%m/%d') date,SUM(amount) count FROM t_order GROUP BY date"
+	var result []Graph
+	_, err := dbmap.Select(&result, sql)
+	if err == nil {
+		r.JSON(200, Resp{0, "成功", result})
+	} else {
+		r.JSON(200, Resp{1018, "失败", nil})
+	}
 }
 
 func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
@@ -190,22 +215,32 @@ func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			LIMIT ?,? `
 	var userList []QUserModel
 	_, err := dbmap.Select(&userList, sql, start, size, start, size)
+	//	if err == nil {
+	//		r.HTML(200, "userlist", userList)
+	//	} else {
+	//		logger.Info(err)
+	//		r.HTML(500, "服务器异常", nil)
+	//	}
 	if err == nil {
-		r.HTML(200, "userlist", userList)
+		r.JSON(200, Resp{0, "获取用户列表成功", userList})
 	} else {
-		logger.Info(err)
-		r.HTML(500, "服务器异常", nil)
+		r.JSON(200, Resp{1008, "获取用户列表失败", nil})
 	}
 }
 
 func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
-	var activities []Activity
+	var activities []QActivity
 	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity LIMIT ?,?", start, size)
 	CheckErr(err, "GetActivityList")
 	logger.Info(activities)
 	newmap := map[string]interface{}{"activities": activities}
-	r.HTML(200, "activitylist", newmap)
+	if err == nil {
+		r.JSON(200, Resp{0, "获取活动列表成功", newmap})
+	} else {
+		r.JSON(200, Resp{1007, "获取活动列表失败", nil})
+	}
+	//	r.HTML(200, "activitylist", newmap)
 }
 
 func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
@@ -214,18 +249,24 @@ func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ?", id)
 	CheckErr(err, "GetActivity")
 	logger.Info(activity)
+	if err == nil {
+		r.JSON(200, Resp{0, "获取活动成功", nil})
+	} else {
+		r.JSON(200, Resp{1006, "获取活动失败", nil})
+	}
+
 	//	newmap := map[string]interface{}{"activity": activity}
 	//	r.HTML(200, "activitylist", newmap)
-	r.JSON(200, activity)
+
 }
 
 func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", params["id"])
 	CheckErr(err, "DeleteActivity delete failed")
 	if err == nil {
-		r.JSON(200, "删除活动成功")
+		r.JSON(200, Resp{0, "删除活动成功", nil})
 	} else {
-		r.JSON(500, "删除活动失败")
+		r.JSON(200, Resp{1005, "删除活动失败", nil})
 	}
 }
 
@@ -262,7 +303,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	groupId, err := easemob.CreateGroup(uid, activity.Title, c)
 	if err != nil {
 		CheckErr(err, "easemob create group error")
-		r.JSON(500, "创建活动失败")
+		r.JSON(200, Resp{1001, "创建活动失败", nil})
 		return
 	}
 	activity.Aid = AID()
@@ -276,10 +317,10 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
-		r.JSON(200, "/activity")
+		r.JSON(200, Resp{0, "创建活动成功!", nil})
 	} else {
 		//TODO 删除环信id
-		r.JSON(500, "创建活动失败")
+		r.JSON(200, Resp{1002, "创建活动失败", nil})
 	}
 }
 
@@ -302,7 +343,7 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 	obj, err := dbmap.Get(Activity{}, params["id"])
 	CheckErr(err, "UpdateActivity get Activity err ")
 	if err != nil {
-		r.JSON(200, Resp{1101, "更新活动失败", nil})
+		r.JSON(200, Resp{1003, "更新活动失败", nil})
 	} else {
 		orgActivity := obj.(*Activity)
 		orgActivity.Title = activity.Title
@@ -314,7 +355,7 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 		_, err := dbmap.Update(orgActivity)
 		CheckErr(err, "UpdateActivity  update failed")
 		if err != nil {
-			r.JSON(200, Resp{1101, "更新活动失败", nil})
+			r.JSON(200, Resp{1004, "更新活动失败", nil})
 		} else {
 			r.JSON(200, Resp{0, "更新活动成功", activity})
 		}

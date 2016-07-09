@@ -138,19 +138,6 @@ type Activity struct {
 	Created          JsonTime  `json:"createTime" db:"create_time"`
 }
 
-type QActivity struct {
-	Activity
-	Owner        User   `json:"owner" db:"uid"`
-	LivePushPath string `json:"-" db:"live_push_path"`
-}
-
-type NActivity struct {
-	Activity
-	Uid          string `db:"uid"`
-	IsRecord     bool   `from:"isRecord" json:"-" db:"-"`
-	LivePushPath string `json:"livePushPath" db:"live_push_path"`
-}
-
 func (a *Activity) PreInsert(s gorp.SqlExecutor) error {
 	a.Created = JsonTime{time.Now(), true}
 	a.Updated = a.Created.Time
@@ -164,6 +151,19 @@ func (a *Activity) PreUpdate(s gorp.SqlExecutor) error {
 
 func (a Activity) String() string {
 	return fmt.Sprintf("[%d, %s, %s]", a.Id, a.Aid, a.Title)
+}
+
+type QActivity struct {
+	Activity
+	Owner        User   `json:"owner" db:"uid"`
+	LivePushPath string `json:"-" db:"live_push_path"`
+}
+
+type NActivity struct {
+	Activity
+	Uid          string `db:"uid"`
+	IsRecord     bool   `from:"isRecord" json:"-" db:"-"`
+	LivePushPath string `json:"livePushPath" db:"live_push_path"`
 }
 
 type Recomend struct {

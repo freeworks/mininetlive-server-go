@@ -5,7 +5,6 @@ import (
 	logger "app/logger"
 	"app/sessionauth"
 	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -74,7 +73,7 @@ type QUserModel struct {
 	Plat         string   `json:"plat" db:"plat"`
 }
 
-func (u *QUserModel) Scan(value interface{}) (err error) {
-	logger.Info(reflect.TypeOf(value))
-	return nil
+type Graph struct {
+	Date  string `json:"date" db:"date" `
+	Count string `json:"count" db:"count" `
 }
