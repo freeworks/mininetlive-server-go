@@ -105,6 +105,8 @@ func main() {
 		m.Post("/password/update", admin.UpdatePassword)
 		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
 
+		m.Post("/upload", admin.Upload)
+
 		m.Group("/activity", func(r martini.Router) {
 			r.Get("/list", admin.GetActivityList)
 			r.Get("/detail/:id", admin.GetActivity)

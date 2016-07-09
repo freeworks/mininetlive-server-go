@@ -229,6 +229,32 @@ func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
+func Upload(r *http.Request, render render.Render) {
+	logger.Info("Upload")
+	err := r.ParseMultipartForm(100000)
+	if err != nil {
+		render.JSON(500, "server err")
+	}
+	file, head, err := r.FormFile("file")
+	CheckErr(err, "upload Fromfile")
+	logger.Info(head.Filename)
+	defer file.Close()
+	err = Mkdir(config.ImgDir)
+	CheckErr(err, "create dir error")
+	filepath := config.ImgDir + head.Filename
+	fW, err := os.Create(filepath)
+	CheckErr(err, "create file error")
+	defer fW.Close()
+	_, err = io.Copy(fW, file)
+	CheckErr(err, "copy file error")
+	url, err := upload.UploadToUCloudCND(filepath, "frontCover/"+head.Filename, render)
+	if err == nil {
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
+	} else {
+		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
+	}
+}
+
 func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	logger.Info("NewActivity ")
 	// uid := user.UniqueId().(string)
