@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>微网直播间 管理台 - 订单列表</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- bootstrap -->
+    <link href="css/bootstrap/bootstrap.css" rel="stylesheet" />
+    <link href="css/bootstrap/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="css/bootstrap/bootstrap-overrides.css" type="text/css" rel="stylesheet" />
+
+    <!-- libraries -->
+    <link href="css/lib/jquery-ui-1.10.2.custom.css" rel="stylesheet" type="text/css" />
+    <link href="css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+
+    <!-- global styles -->
+    <link rel="stylesheet" type="text/css" href="/css/layout.css" />
+    <link rel="stylesheet" type="text/css" href="/css/elements.css" />
+    <link rel="stylesheet" type="text/css" href="/css/icons.css" />
+
+    <!-- this page specific styles -->
+    <link rel="stylesheet" href="/css/compiled/index.css" type="text/css" media="screen" />    
+
+
+    <link rel="stylesheet" type="text/css" href="static/css/user-list.css">
+
+    <!-- open sans font -->
+    <link href='http://fonts.useso.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css' />
+
+    <!-- lato font -->
+    <link href='http://fonts.useso.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css' />
+
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+<body>
+
+    <!-- navbar -->
+    <div class="navbar navbar-inverse">
+        <div class="navbar-inner">
+            <button type="button" class="btn btn-navbar visible-phone" id="menu-toggler">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+           
+            <a class="brand"><img src="/img/logo.png" /></a>
+     
+        </div>
+    </div>
+    <!-- end navbar -->
+
+    <!-- sidebar -->
+    <div id="sidebar-nav"></div>
+    <!-- end sidebar -->
+
+
+    <!-- main container -->
+    <div class="content">
+
+        <!-- settings changer -->
+        <div class="skins-nav">
+            <a href="#" class="skin first_nav selected">
+                <span class="icon"></span><span class="text">Default skin</span>
+            </a>
+            <a href="#" class="skin second_nav" data-file="/css/skins/dark.css">
+                <span class="icon"></span><span class="text">Dark skin</span>
+            </a>
+        </div>
+
+        <div class="container-fluid">
+            <div id="pad-wrapper" class="users-list">
+                <!-- Users table -->
+                <div class="row-fluid table">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="span4 sortable">
+                                    No.
+                                </th>
+                                <th class="span3 sortable">
+                                    <span class="line"></span>主题
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>渠道
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>金额
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>状态
+                                </th>
+                                <th class="span3 sortable align-right">
+                                    <span class="line"></span>创建时间
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="userList">
+                        <!-- row -->
+                       <!--  <tr class="first">
+                            <td>
+                                <img src="http://tva4.sinaimg.cn/crop.0.0.720.720.180/6cda04fejw8ei4jyzk4rsj20k00k0t98.jpg" class="img-circle avatar hidden-phone" />
+                                <a href="user-profile.html" class="name">Hey_Cain</a>
+                            </td>
+                            <td>
+                                男
+                            </td>
+                            <td>
+                                18657680900
+                            </td>
+                            <td>
+                                ￥ 0
+                            </td>
+                            <td>
+                                微信
+                            </td>
+                            <td class="align-right">
+                                2016-06-24 18:40
+                            </td>
+                        </tr> -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination pull-right">
+                    <ul>
+                        <li><a href="#">&#8249;</a></li>
+                        <li><a class="active" href="#">1</a></li>
+                        <li><a href="#">2</a></li>
+                        <li><a href="#">3</a></li>
+                        <li><a href="#">4</a></li>
+                        <li><a href="#">5</a></li>
+                        <li><a href="#">&#8250;</a></li>
+                    </ul>
+                </div>
+                <!-- end users table -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- scripts -->
+    <script src="/js/jquery-latest.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/jquery-ui-1.10.2.custom.min.js"></script>
+    <!-- knob -->
+    <script src="/js/jquery.knob.js"></script>
+    <!-- flot charts -->
+    <script src="/js/jquery.flot.js"></script>
+    <script src="/js/jquery.flot.stack.js"></script>
+    <script src="/js/jquery.flot.resize.js"></script>
+    <script src="/js/theme.js"></script>
+
+    
+
+    <script type="text/javascript" src="static/js/common.js"></script>
+    <script type="text/javascript" src="static/js/order-list.js"></script>
+</body>
+</html>

@@ -97,7 +97,7 @@ func main() {
 		sessionauth.RedirectUrl = "/login"
 		sessionauth.RedirectParam = "next"
 
-		m.Get("/", sessionauth.LoginRequired, admin.Index)
+		m.Post("/", sessionauth.LoginRequired, admin.Index)
 
 		m.Post("/login", admin.PostLogin)
 		m.Get("/login", admin.GetLogin)

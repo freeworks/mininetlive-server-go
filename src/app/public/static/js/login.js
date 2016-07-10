@@ -13,8 +13,6 @@ $(document).ready(function(){
         }
 
         mininet.ajax("post", "/login", data, function(rsp){
-            console.log(111111111)
-            console.log(rsp);
             if (rsp.ret == 0){
                 var redirectPath = rsp.data.redirectPath || "/index.html";
                 window.location.href = redirectPath;
