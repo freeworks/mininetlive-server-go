@@ -54,13 +54,15 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 			logger.Info(req.URL)
 			redirectParams := req.URL.Query()[sessionauth.RedirectParam]
 			logger.Info("redirectParams", redirectParams)
+
 			var redirectPath string
 			if len(redirectParams) > 0 && redirectParams[0] != "null" {
 				redirectPath = redirectParams[0]
 			} else {
-				redirectPath = "/"
+				redirectPath = "/index.html"
 			}
-			r.JSON(200, redirectPath)
+			// r.JSON(200, redirectPath)
+			r.JSON(200, Resp{0, "登陆成功!", map[string]interface{}{"redirectPath": redirectPath}});
 			return
 		}
 	} else {
