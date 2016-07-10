@@ -135,9 +135,18 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	//	} else {
 	//		r.HTML(500, "服务器异常", nil)
 	//	}
-
+	totalCount, err := dbmap.SelectInt("select count(*) from t_orders")
+	m := int(totalCount) % size
+	totalPageCount := int(totalCount) / size
+	if m != 0 {
+		totalPageCount = totalPageCount + 1
+	}
+	newmap := map[string]interface{}{
+		"totalCount":     totalCount,
+		"totalPageCount": totalPageCount,
+		"orderList":      orders}
 	if err == nil {
-		r.JSON(200, Resp{0, "获取订单列表查询成功", orders})
+		r.JSON(200, Resp{0, "获取订单列表查询成功", newmap})
 	} else {
 		r.JSON(200, Resp{1010, "获取订单列表失败", nil})
 	}
@@ -221,8 +230,18 @@ func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	//		logger.Info(err)
 	//		r.HTML(500, "服务器异常", nil)
 	//	}
+	totalCount, err := dbmap.SelectInt("select count(*) from t_user")
+	m := int(totalCount) % size
+	totalPageCount := int(totalCount) / size
+	if m != 0 {
+		totalPageCount = totalPageCount + 1
+	}
+	newmap := map[string]interface{}{
+		"totalCount":     totalCount,
+		"totalPageCount": totalPageCount,
+		"userList":       userList}
 	if err == nil {
-		r.JSON(200, Resp{0, "获取用户列表成功", userList})
+		r.JSON(200, Resp{0, "获取用户列表成功", newmap})
 	} else {
 		r.JSON(200, Resp{1008, "获取用户列表失败", nil})
 	}
@@ -234,7 +253,18 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity LIMIT ?,?", start, size)
 	CheckErr(err, "GetActivityList")
 	logger.Info(activities)
-	newmap := map[string]interface{}{"activities": activities}
+
+	totalCount, err := dbmap.SelectInt("select count(*) from t_activity")
+	m := int(totalCount) % size
+	totalPageCount := int(totalCount) / size
+	if m != 0 {
+		totalPageCount = totalPageCount + 1
+	}
+	newmap := map[string]interface{}{
+		"totalCount":     totalCount,
+		"totalPageCount": totalPageCount,
+		"activityList":   activities}
+
 	if err == nil {
 		r.JSON(200, Resp{0, "获取活动列表成功", newmap})
 	} else {
@@ -317,7 +347,8 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
-		r.JSON(200, Resp{0, "创建活动成功!", nil})
+		newmap := map[string]interface{}{"livePushPath": activity.LivePushPath}
+		r.JSON(200, Resp{0, "创建活动成功!", newmap})
 	} else {
 		//TODO 删除环信id
 		r.JSON(200, Resp{1002, "创建活动失败", nil})

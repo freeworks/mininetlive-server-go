@@ -49,10 +49,10 @@ func main() {
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
 
-		r.Put("/name", UpdateAccountNickName)
+		r.Post("/name", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
-		r.Put("/phone", UpdateAccountPhone)
-		r.Put("/avatar", UploadAccountAvatar)
+		r.Post("/phone", UpdateAccountPhone)
+		r.Post("/avatar", UploadAccountAvatar)
 	})
 	m.Group("/user", func(r martini.Router) {
 		r.Get("/info/:uid", GetUser)

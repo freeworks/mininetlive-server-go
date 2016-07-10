@@ -115,16 +115,12 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 		r.JSON(500, "server err")
 		return
 	}
-	uid := req.Header.Get("uid")
-	if uid == "" {
-		r.JSON(200, Resp{1013, "uid不能为空", nil})
-		return
-	}
 	file, head, err := req.FormFile("file")
 	CheckErr(err, "upload Fromfile")
 	logger.Info(head.Filename)
 	defer file.Close()
-	fileName := uid + "_avatar.png"
+	//TODO bug
+	fileName := GeneraToken16() + "_avatar.png"
 	filepath := config.ImgDir + fileName
 	fW, err := os.Create(filepath)
 	CheckErr(err, "create file error")
