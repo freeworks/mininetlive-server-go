@@ -49,7 +49,7 @@ func main() {
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
 
-		r.Post("/name", UpdateAccountNickName)
+		r.Post("/nickname", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Post("/phone", UpdateAccountPhone)
 		r.Post("/avatar", UploadAccountAvatar)

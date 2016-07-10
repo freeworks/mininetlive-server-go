@@ -122,7 +122,7 @@ type Activity struct {
 	Price            int       `form:"price" json:"price"  db:"price"`
 	Password         string    `form:"password" json:"-" db:"pwd"`
 	StreamId         string    `json:"streamId" json:"streamId" db:"stream_id"`
-	StreamType       int       `form:"streamType" json:"streamType" binding:"required" db:"stream_type"` //0 直播，1 视频
+	StreamType       int       `form:"streamType" json:"streamType" db:"stream_type"` //0 直播，1 视频
 	LivePullPath     string    `json:"livePullPath" db:"live_pull_path"`
 	VideoPath        string    `json:"videoPath" db:"video_path"`
 	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束

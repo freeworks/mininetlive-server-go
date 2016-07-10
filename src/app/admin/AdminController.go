@@ -275,12 +275,12 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 
 func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	id := params["id"]
-	var activity Activity
+	var activity QActivity
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ?", id)
 	CheckErr(err, "GetActivity")
 	logger.Info(activity)
 	if err == nil {
-		r.JSON(200, Resp{0, "获取活动成功", nil})
+		r.JSON(200, Resp{0, "获取活动成功", activity})
 	} else {
 		r.JSON(200, Resp{1006, "获取活动失败", nil})
 	}
