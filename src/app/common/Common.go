@@ -31,7 +31,10 @@ func GetLimit(req *http.Request) (int, int) {
 	pageIndexs := req.URL.Query()["pageIndex"]
 	if len(pageIndexs) > 0 && pageIndexs[0] != "null" {
 		pageIndex, _ := strconv.Atoi(pageIndexs[0])
-		mPageIndex = pageIndex
+		mPageIndex = pageIndex - 1
+		if mPageIndex < 0 {
+			mPageIndex = 0
+		}
 	}
 	start := mPageIndex * mPageSize
 	return start, mPageSize

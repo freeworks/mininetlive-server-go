@@ -62,7 +62,7 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 				redirectPath = "/index.html"
 			}
 			// r.JSON(200, redirectPath)
-			r.JSON(200, Resp{0, "登陆成功!", map[string]interface{}{"redirectPath": redirectPath}});
+			r.JSON(200, Resp{0, "登陆成功!", map[string]interface{}{"redirectPath": redirectPath}})
 			return
 		}
 	} else {
@@ -137,7 +137,8 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	//	} else {
 	//		r.HTML(500, "服务器异常", nil)
 	//	}
-	totalCount, err := dbmap.SelectInt("select count(*) from t_orders")
+	totalCount, err := dbmap.SelectInt("select count(*) from t_order")
+	CheckErr(err, "GetOrderList")
 	m := int(totalCount) % size
 	totalPageCount := int(totalCount) / size
 	if m != 0 {
@@ -216,16 +217,13 @@ func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
 func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
 	sql := `SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone  
-			FROM t_user u LEFT JOIN t_oauth auth ON u.uid = auth.uid  
-			WHERE auth.plat != "" 
-			LIMIT ?,? 
+			FROM t_user u JOIN t_oauth auth ON u.uid = auth.uid
 			UNION ALL 
 			SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone  
-			FROM t_user u LEFT JOIN t_local_auth auth ON u.uid = auth.uid 
-			WHERE auth.phone != "" 
+			FROM t_user u JOIN t_local_auth auth ON u.uid = auth.uid 
 			LIMIT ?,? `
 	var userList []QUserModel
-	_, err := dbmap.Select(&userList, sql, start, size, start, size)
+	_, err := dbmap.Select(&userList, sql, start, size)
 	//	if err == nil {
 	//		r.HTML(200, "userlist", userList)
 	//	} else {
