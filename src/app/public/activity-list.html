@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>微网直播间 管理台 - 首页</title>
+    <title>微网直播间 管理台 - 活动列表</title>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
@@ -21,6 +21,9 @@
 
     <!-- this page specific styles -->
     <link rel="stylesheet" href="/css/compiled/index.css" type="text/css" media="screen" />    
+
+
+    <link rel="stylesheet" type="text/css" href="static/css/user-list.css">
 
     <!-- open sans font -->
     <link href='http://fonts.useso.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css' />
@@ -58,34 +61,47 @@
     <div class="content">
 
         <div class="container-fluid">
-
-            <!-- upper main stats -->
-            <div id="main-stats">
-                <div class="row-fluid stats-row">
-                    <div class="span4 stat">
-                        <div class="data">
-                            <span class="number" id="newUserCount">0</span>
-                            新用户
-                        </div>
-                        <!-- <span class="date">Today</span> -->
-                    </div>
-                    <div class="span4 stat">
-                        <div class="data">
-                            <span class="number" id="newOrderCount">0</span>
-                            新订单
-                        </div>
-                        <!-- <span class="date">February 2014</span> -->
-                    </div>
-                    <div class="span4 stat">
-                        <div class="data">
-                            <span class="number" id="newAmount">0</span>
-                            新收入
-                        </div>
-                        <!-- <span class="date">This week</span> -->
-                    </div>
+            <div id="pad-wrapper" class="users-list">
+                <!-- Users table -->
+                <div class="row-fluid table">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="span4 sortable">
+                                    封面图
+                                </th>
+                                <th class="span3 sortable">
+                                    <span class="line"></span>活动状态
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>活动类型
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>预约状态
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>预约次数
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>价格
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>付款状态
+                                </th>
+                                <th class="span2 sortable">
+                                    <span class="line"></span>创建人
+                                </th>
+                                <th class="span3 sortable align-right">
+                                    <span class="line"></span>创建时间
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityList"></tbody>
+                    </table>
                 </div>
+                <div class="pagination pull-right"></div>
+                <!-- end users table -->
             </div>
-            <!-- end upper main stats -->
         </div>
     </div>
 
@@ -102,7 +118,9 @@
     <script src="/js/jquery.flot.resize.js"></script>
     <script src="/js/theme.js"></script>
 
+    
+
     <script type="text/javascript" src="static/js/common.js"></script>
-    <script type="text/javascript" src="static/js/index.js"></script>
+    <script type="text/javascript" src="static/js/activity-list.js"></script>
 </body>
 </html>

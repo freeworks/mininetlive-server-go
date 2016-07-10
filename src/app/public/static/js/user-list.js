@@ -2,16 +2,24 @@ $(document).ready(function(){
     mininet.renderHtmlNavbar('user');
 
     var $userList = $("#userList");
+    var $pagination = $("#pagination");
 
-    mininet.ajax("get", "/user/list", {
-        pageSize: 10,
-        pageIndex: 1
-    }, function(rsp){
+    var params = mininet.parseUrlParams();
+    params.pageSize = params.pageSize || 2;
+    if (params.pageIndex > 0){
+        params.pageIndex = params.pageIndex - 1;
+    } else {
+        params.pageIndex = 0;
+    }
+
+    mininet.ajax("get", "/user/list", params, function(rsp){
+        debugger
         if (rsp.ret == 0){
-            var userList = rsp.data;
+            var userList = rsp.data.userList;
             userList.forEach(function(user){
                 $userList.append(renderHtmlUserRow(user));
             })
+            $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex + 1, params.pageSize));
         } else {
             // TODO 非正常处理
         }

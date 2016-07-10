@@ -5,7 +5,7 @@ $(document).ready(function(){
 
     mininet.ajax("get", "/order/list", {
         pageSize: 10,
-        pageIndex: 1
+        pageIndex: 0
     }, function(rsp){
         debugger
         if (rsp.ret == 0){
