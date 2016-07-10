@@ -137,35 +137,39 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 
 type QueryPlayRecord struct {
 	Record
-	Title    string   `db:"title" json:"title"`
-	NickName string   `db:"nickname" json:"nickname"`
-	Date     JsonTime `db:"date" json:"date"`
+	FrontCover string   `db:"front_cover" json:"frontCover"`
+	Title      string   `db:"title" json:"title"`
+	NickName   string   `db:"nickname" json:"nickname"`
+	PlayCount  int      `db:"play_count" json:"playCount"`
+	Date       JsonTime `db:"date" json:"date"`
 }
 
 type QueryPayRecord struct {
 	Record
-	Title     string   `db:"title" json:"title"`
-	NickName  string   `db:"nickname" json:"nickname"`
-	Amount    int      `db:"amount" json:"amount"`
-	OrderType int      `db:"order_type" json:"orderType"`
-	Date      JsonTime `db:"date" json:"date"`
+	FrontCover string   `db:"front_cover" json:"frontCover"`
+	Title      string   `db:"title" json:"title"`
+	NickName   string   `db:"nickname" json:"nickname"`
+	Amount     int      `db:"amount" json:"amount"`
+	Channel    string   `db:"channel" json:"channel"`
+	Date       JsonTime `db:"date" json:"date"`
 }
 
 type QueryAppointmentRecord struct {
 	Record
-	Title    string   `db:"title" json:"title"`
-	NickName string   `db:"nickname" json:"nickname"`
-	State    int      `db:"activity_state", json:"activityState"`
-	Date     JsonTime `db:"date" json:"date"`
+	FrontCover    string   `db:"front_cover" json:"frontCover"`
+	Title         string   `db:"title" json:"title"`
+	NickName      string   `db:"nickname" json:"nickname"`
+	ActivityState int      `db:"activity_state" json:"activityState"`
+	Date          JsonTime `db:"date" json:"date"`
 }
 
 func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var playRecords []QueryPlayRecord
-	sql := "SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.date,u.nickname " +
-		"FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid " +
-		"WHERE r.type = 1 AND r.uid=? " +
-		"ORDER BY create_time "
+	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.front_cover,a.date,a.play_count,u.nickname 
+		FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
+		WHERE r.type = 1 AND r.uid=? 
+		ORDER BY create_time `
 	_, err := dbmap.Select(&playRecords, sql, uid)
 	CheckErr(err, "GetPlayRecords failed")
 	if err != nil {
@@ -179,10 +183,10 @@ func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.Db
 	req.ParseForm()
 	uid := req.Header.Get("uid")
 	var appointmentRecords []QueryAppointmentRecord
-	sql := "SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.activity_state,a.date,u.nickname " +
-		"FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid " +
-		"WHERE r.type = 0 AND r.uid=? " +
-		"ORDER BY create_time "
+	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.activity_state,a.front_cover,a.date,u.nickname
+	        FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
+		    WHERE r.type = 0 AND r.uid=?
+	        ORDER BY create_time`
 	_, err := dbmap.Select(&appointmentRecords, sql, uid)
 	CheckErr(err, "GetPlayRecords failed")
 	if err != nil {
@@ -195,10 +199,10 @@ func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.Db
 func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var payRecords []QueryPayRecord
-	sql := "SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.date,u.nickname,o.type AS order_type,o.amount " +
-		"FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid LEFT JOIN t_order o ON r.orderno=o.no " +
-		"WHERE r.type = 2 AND r.uid=? " +
-		"ORDER BY create_time"
+	sql := `	    SELECT r.id,r.aid,r.uid,r.create_time,a.front_cover,a.title,a.date,u.nickname,o.channel,o.amount 
+		    FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid LEFT JOIN t_order o ON r.orderno=o.no
+		    WHERE r.type = 2 AND r.uid=? AND o.type = 1
+		    ORDER BY create_time`
 	_, err := dbmap.Select(&payRecords, sql, uid)
 	CheckErr(err, "GetPayRecords failed")
 	if err != nil {
