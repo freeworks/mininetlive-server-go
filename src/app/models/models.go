@@ -125,8 +125,8 @@ type Activity struct {
 	StreamType       int       `form:"streamType" json:"streamType" db:"stream_type"` //0 直播，1 视频
 	LivePullPath     string    `json:"livePullPath" db:"live_pull_path"`
 	VideoPath        string    `json:"videoPath" db:"video_path"`
-	ActivityState    int       `json:"activityState" db:"activity_state"`                                      //0 未开播， 1 直播中 2 直播结束
-	ActivityType     int       `form:"activityType" json:"activityType" binding:"required" db:"activity_type"` //0免费，1收费
+	ActivityState    int       `json:"activityState" db:"activity_state"`                   //0 未开播， 1 直播中 2 直播结束
+	ActivityType     int       `form:"activityType" json:"activityType" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	PayState         int       `json:"payState" db:"-"`

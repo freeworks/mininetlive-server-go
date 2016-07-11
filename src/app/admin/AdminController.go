@@ -72,7 +72,7 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 
 func Logout(session sessions.Session, user sessionauth.User, r render.Render) {
 	sessionauth.Logout(session, user)
-	r.JSON(200, Resp{0, "退出成功!", nil});
+	r.Redirect("/")
 }
 
 func GetLogin(r render.Render) {
@@ -347,7 +347,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
-		newmap := map[string]interface{}{"livePushPath": activity.LivePushPath}
+		newmap := map[string]interface{}{"id": aid, "livePushPath": activity.LivePushPath}
 		r.JSON(200, Resp{0, "创建活动成功!", newmap})
 	} else {
 		//TODO 删除环信id
