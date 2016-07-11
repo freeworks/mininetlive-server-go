@@ -40,7 +40,12 @@
   box-shadow: inset 0px 3px 4px -1px #fafafa; }
 
 /* Stats chart */
-#statsChart {
+#orderChat {
+  width: 97%;
+  height: 250px;
+  margin-top: 35px; }
+
+#incomeChat {
   width: 97%;
   height: 250px;
   margin-top: 35px; }
