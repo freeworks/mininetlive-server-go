@@ -347,7 +347,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
-		newmap := map[string]interface{}{"id": aid, "livePushPath": activity.LivePushPath}
+		newmap := map[string]interface{}{"id": activity.Aid, "livePushPath": activity.LivePushPath}
 		r.JSON(200, Resp{0, "创建活动成功!", newmap})
 	} else {
 		//TODO 删除环信id
