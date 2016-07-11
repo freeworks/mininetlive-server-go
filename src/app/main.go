@@ -116,7 +116,6 @@ func main() {
 		}, sessionauth.LoginRequired)
 
 		m.Get("/order/list", sessionauth.LoginRequired, admin.GetOrderList)
-		m.Get("/order/list/filter", sessionauth.LoginRequired, admin.FilterOrderList)
 		m.Get("/order/chart/:graph", admin.GetOrderChat)
 		m.Get("/income/chart/:graph", admin.GetIncomChart)
 

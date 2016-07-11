@@ -126,73 +126,103 @@ func UpdatePassword(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 }
 
 func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	queryType := req.URL.Query()["type"]
 	start, size := GetLimit(req)
-	var orders []Order
-	_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,?", start, size)
-	CheckErr(err, "GetOrderList")
-	//	if err == nil {
-	//		newmap := map[string]interface{}{"orders": orders}
-	//		r.HTML(200, "xxxxx", newmap)
-	//		r.JSON(200, orders)
-	//	} else {
-	//		r.HTML(500, "服务器异常", nil)
-	//	}
-	totalCount, err := dbmap.SelectInt("select count(*) from t_order")
-	CheckErr(err, "GetOrderList")
-	m := int(totalCount) % size
-	totalPageCount := int(totalCount) / size
-	if m != 0 {
-		totalPageCount = totalPageCount + 1
-	}
-	newmap := map[string]interface{}{
-		"totalCount":     totalCount,
-		"totalPageCount": totalPageCount,
-		"orderList":      orders}
-	if err == nil {
-		r.JSON(200, Resp{0, "获取订单列表查询成功", newmap})
+	if len(queryType) > 0 && queryType[0] == "filter" {
+		beginDate, endDate := GetTimesampe(req)
+		logger.Info("FilterOrderList", beginDate, endDate)
+		var orders []Order
+		var mErr error
+		var mTotalCount, mTotalPageCount int
+		if beginDate == "" && endDate == "" {
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,?", start, size)
+			totalCount, err := dbmap.SelectInt("select count(*) from t_order")
+			CheckErr(err, "GetOrderList")
+			m := int(totalCount) % size
+			totalPageCount := int(totalCount) / size
+			if m != 0 {
+				totalPageCount = totalPageCount + 1
+			}
+			mTotalCount = int(totalCount)
+			mTotalPageCount = totalPageCount
+			mErr = err
+		} else if beginDate != "" && endDate != "" {
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE create_time >= ? AND create_time <= ? LIMIT ?,?",
+				beginDate,
+				endDate, start, size)
+			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE create_time >= ? AND create_time <= ? ", beginDate,
+				endDate)
+			CheckErr(err, "GetOrderList")
+			m := int(totalCount) % size
+			totalPageCount := int(totalCount) / size
+			if m != 0 {
+				totalPageCount = totalPageCount + 1
+			}
+			mTotalCount = int(totalCount)
+			mTotalPageCount = totalPageCount
+			mErr = err
+		} else if beginDate == "" {
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ? LIMIT ?,?",
+				endDate, start, size)
+			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time <= ? ", endDate)
+			CheckErr(err, "GetOrderList")
+			m := int(totalCount) % size
+			totalPageCount := int(totalCount) / size
+			if m != 0 {
+				totalPageCount = totalPageCount + 1
+			}
+			mTotalCount = int(totalCount)
+			mTotalPageCount = totalPageCount
+			mErr = err
+		} else if endDate == "" {
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ? LIMIT ?,?",
+				beginDate, start, size)
+			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time >= ? ", beginDate)
+			CheckErr(err, "GetOrderList")
+			m := int(totalCount) % size
+			totalPageCount := int(totalCount) / size
+			if m != 0 {
+				totalPageCount = totalPageCount + 1
+			}
+			mTotalCount = int(totalCount)
+			mTotalPageCount = totalPageCount
+			mErr = err
+		}
+		CheckErr(mErr, "GetOrderList")
+		if mErr == nil {
+			newmap := map[string]interface{}{
+				"totalCount":     mTotalCount,
+				"totalPageCount": mTotalPageCount,
+				"orderList":      orders}
+			r.JSON(200, Resp{0, "订单列表查询成功", newmap})
+		} else {
+			r.JSON(200, Resp{1009, "订单列表查询失败", nil})
+		}
 	} else {
-		r.JSON(200, Resp{1010, "获取订单列表失败", nil})
-	}
-}
-
-func FilterOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	beginDate, endDate := GetTimesampe(req)
-	logger.Info("FilterOrderList", beginDate, endDate)
-	var orders []Order
-	var mErr error
-	if beginDate == "" && endDate == "" {
-		_, err := dbmap.Select(&orders, "SELECT * FROM t_order")
-		mErr = err
-	} else if beginDate != "" && endDate != "" {
-		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE create_time >= ? AND create_time <= ?",
-			beginDate,
-			endDate)
-		mErr = err
-	} else if beginDate == "" {
-		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ?",
-			endDate)
-		mErr = err
-	} else if endDate == "" {
-		_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ?",
-			beginDate)
-		mErr = err
-	}
-	CheckErr(mErr, "GetOrderList")
-	//	if mErr == nil {
-	//		//	newmap := map[string]interface{}{"orders": orders}
-	//		//	r.HTML(200, "xxxxx", newmap)
-	//		r.JSON(200, orders)
-	//	} else {
-	//		r.HTML(500, "服务器异常", nil)
-	//	}
-	if mErr == nil {
-		r.JSON(200, Resp{0, "订单列表查询成功", orders})
-	} else {
-		r.JSON(200, Resp{1009, "订单列表查询失败", nil})
+		var orders []Order
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,?", start, size)
+		CheckErr(err, "GetOrderList")
+		totalCount, err := dbmap.SelectInt("select count(*) from t_order")
+		CheckErr(err, "GetOrderList")
+		m := int(totalCount) % size
+		totalPageCount := int(totalCount) / size
+		if m != 0 {
+			totalPageCount = totalPageCount + 1
+		}
+		newmap := map[string]interface{}{
+			"totalCount":     totalCount,
+			"totalPageCount": totalPageCount,
+			"orderList":      orders}
+		if err == nil {
+			r.JSON(200, Resp{0, "获取订单列表查询成功", newmap})
+		} else {
+			r.JSON(200, Resp{1010, "获取订单列表失败", nil})
+		}
 	}
 }
 
 func GetOrderChat(r render.Render, dbmap *gorp.DbMap) {
+	//beginDate, endDate := GetTimesampe(req)
 	sql := "SELECT DATE_FORMAT(create_time,'%Y/%m/%d') date,count(id) count FROM t_order GROUP BY date"
 	var result []Graph
 	_, err := dbmap.Select(&result, sql)
@@ -204,6 +234,7 @@ func GetOrderChat(r render.Render, dbmap *gorp.DbMap) {
 }
 
 func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
+	//beginDate, endDate := GetTimesampe(req)
 	sql := "SELECT DATE_FORMAT(create_time,'%Y/%m/%d') date,SUM(amount) count FROM t_order GROUP BY date"
 	var result []Graph
 	_, err := dbmap.Select(&result, sql)
