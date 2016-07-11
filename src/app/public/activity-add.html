@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>微网直播间 管理台 - 活动列表</title>
+    <title>微网直播间 管理台 - 添加活动</title>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
@@ -67,37 +67,48 @@
             <div id="pad-wrapper" class="form-page">
                 <div class="row-fluid form-wrapper">
                     <!-- left column -->
-                    <div class="column">
-                        <form />
+                    <div class="column" >
+                        <form id="activityForm" />
+                            <div class="field-box">
+                                <label>上传图片</label>
+                                <input class="span8" type="file" id="frontCover" name="frontCover"/>
+                            </div>
                             <div class="field-box">
                                 <label>封面</label>
-                                <input class="span8" type="text" />
+                                <input class="span8" type="text" id="frontCover" name="frontCover"/>
                             </div>
                             <div class="field-box">
                                 <label>标题</label>
-                                <input class="span8" type="text" />
+                                <input class="span8" type="text" id="title" name="title"/>
                             </div>
                             <div class="field-box">
                                 <label>时间</label>
-                                <input class="span8" type="text" />
+                                <input class="span8" type="text" id="date" name="date"/>
                             </div>
                             <div class="field-box">
                                 <label>类型</label>
                                 <div class="span8">
                                     <label class="radio">
-                                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked="" />
+                                        <input type="radio" name="payState"  value="0" checked="" />
                                         免费
                                     </label>
                                     <label class="radio">
-                                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2" />
+                                        <input type="radio" name="payState"  value="1" />
                                         收费
                                     </label>
                                 </div>                                
+                            </div>
+                            <div class="field-box">
+                                <label>价格</label>
+                                <input class="span8" type="text" id="price" name="price"/>
                             </div>   
-                            <div></div>                         
                             <div class="field-box">
                                 <label>描述</label>
-                                <textarea class="span8" rows="4"></textarea>
+                                <textarea class="span8" rows="4" name="desc"></textarea>
+                            </div>                        
+                            <div class="field-box">
+                                <a class="btn-flat primary activityAdd" data-activitytype="0">保存</a>
+                                <a class="btn-flat primary activityAdd" data-activitytype="1">发布</a>
                             </div>
                         </form>
                     </div>
@@ -140,7 +151,8 @@
         });
     </script>
 
+    <script type="text/javascript" src="static/js/browser.js"></script>
     <script type="text/javascript" src="static/js/common.js"></script>
-    <script type="text/javascript" src="static/js/activity-list.js"></script>
+    <script type="text/javascript" src="static/js/activity-add.js"></script>
 </body>
 </html>
