@@ -2,17 +2,19 @@ $(document).ready(function(){
     mininet.renderHtmlNavbar('order');
 
     var $userList = $("#userList");
+    var params = _.parseUrlParams();
+    params.pageSize = params.pageSize || 10;
 
-    mininet.ajax("get", "/order/list", {
-        pageSize: 10,
-        pageIndex: 0
-    }, function(rsp){
+    mininet.ajax("get", "/order/list", params, function(rsp){
         debugger
         if (rsp.ret == 0){
-            var orderList = rsp.data;
+            var orderList = rsp.data.orderList;
             orderList.forEach(function(order){
                 $userList.append(renderHtmlOrderRow(order));
             })
+
+            var $pagination = $("#pagination");
+            $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex, params.pageSize));
         } else {
             // TODO 非正常处理
         }

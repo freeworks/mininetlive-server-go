@@ -2,15 +2,8 @@ $(document).ready(function(){
     mininet.renderHtmlNavbar('user');
 
     var $userList = $("#userList");
-    var $pagination = $("#pagination");
-
-    var params = mininet.parseUrlParams();
-    params.pageSize = params.pageSize || 2;
-    if (params.pageIndex > 0){
-        params.pageIndex = params.pageIndex - 1;
-    } else {
-        params.pageIndex = 0;
-    }
+    var params = _.parseUrlParams();
+    params.pageSize = params.pageSize || 10;
 
     mininet.ajax("get", "/user/list", params, function(rsp){
         debugger
@@ -19,7 +12,9 @@ $(document).ready(function(){
             userList.forEach(function(user){
                 $userList.append(renderHtmlUserRow(user));
             })
-            $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex + 1, params.pageSize));
+
+            var $pagination = $("#pagination");
+            $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex, params.pageSize));
         } else {
             // TODO 非正常处理
         }

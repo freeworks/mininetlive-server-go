@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>微网直播间 管理台 - 订单列表</title>
+    <title>微网直播间 管理台 - 活动详情</title>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
@@ -13,6 +13,10 @@
     <!-- libraries -->
     <link href="css/lib/jquery-ui-1.10.2.custom.css" rel="stylesheet" type="text/css" />
     <link href="css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/bootstrap-wysihtml5.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/uniform.default.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/select2.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" />
 
     <!-- global styles -->
     <link rel="stylesheet" type="text/css" href="/css/layout.css" />
@@ -59,59 +63,54 @@
 
     <!-- main container -->
     <div class="content">
-
-        <div class="container-fluid">
-            <div id="pad-wrapper" class="users-list">
-                <!-- Users table -->
-                <div class="row-fluid table">
+         <div class="container-fluid">
+            <div id="pad-wrapper" class="form-page">
+                 <div class="row-fluid table">
                     <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th class="span4 sortable">
-                                    No.
-                                </th>
-                                <th class="span3 sortable">
-                                    <span class="line"></span>主题
-                                </th>
-                                <th class="span2 sortable">
-                                    <span class="line"></span>渠道
-                                </th>
-                                <th class="span2 sortable">
-                                    <span class="line"></span>金额
-                                </th>
-                                <th class="span2 sortable">
-                                    <span class="line"></span>状态
-                                </th>
-                                <th class="span3 sortable align-right">
-                                    <span class="line"></span>创建时间
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="userList"></tbody>
+                        <tbody id="activityDetail">
+                        </tbody>
                     </table>
                 </div>
-                <div class="pagination pull-right" id="pagination"></div>
-                <!-- end users table -->
             </div>
         </div>
     </div>
 
 
     <!-- scripts -->
-    <script src="/js/jquery-latest.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/jquery-ui-1.10.2.custom.min.js"></script>
-    <!-- knob -->
-    <script src="/js/jquery.knob.js"></script>
-    <!-- flot charts -->
-    <script src="/js/jquery.flot.js"></script>
-    <script src="/js/jquery.flot.stack.js"></script>
-    <script src="/js/jquery.flot.resize.js"></script>
-    <script src="/js/theme.js"></script>
+    <script src="js/wysihtml5-0.3.0.js"></script>
+    <script src="js/jquery-latest.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-wysihtml5-0.0.2.js"></script>
+    <script src="js/bootstrap.datepicker.js"></script>
+    <script src="js/jquery.uniform.min.js"></script>
+    <script src="js/select2.min.js"></script>
+    <script src="js/theme.js"></script>
 
-    
+    <script type="text/javascript">
+        $(function () {
+
+            // add uniform plugin styles to html elements
+            $("input:checkbox, input:radio").uniform();
+
+            // select2 plugin for select elements
+            $(".select2").select2({
+                placeholder: "Select a State"
+            });
+
+            // datepicker plugin
+            $('.datepicker').datepicker().on('changeDate', function (ev) {
+                $(this).datepicker('hide');
+            });
+
+            // wysihtml5 plugin on textarea
+            $(".wysihtml5").wysihtml5({
+                "font-styles": false
+            });
+        });
+    </script>
+
     <script type="text/javascript" src="static/js/browser.js"></script>
     <script type="text/javascript" src="static/js/common.js"></script>
-    <script type="text/javascript" src="static/js/order-list.js"></script>
+    <script type="text/javascript" src="static/js/activity-detail.js"></script>
 </body>
 </html>

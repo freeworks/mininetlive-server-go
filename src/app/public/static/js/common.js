@@ -48,6 +48,28 @@ function formatChannel(plat){
     }
 }
 
+function formatStreamType(type){
+    switch(type){
+        case 1:
+            return "点播"
+        case 0:
+            return "直播"
+        default:
+            return type;
+    }
+}
+
+function formatActivityState(state){
+    switch(state){
+        case 0:
+            return "未开播";
+        case 1:
+            return "直播中";
+        case 2:
+            return "已结束"
+    }
+}
+
 function renderHtmlNavbar(route){
     var $siderbar = $("#sidebar-nav");
     var navbar = '<ul id="dashboard-menu">' +
@@ -78,6 +100,10 @@ function renderHtmlNavbar(route){
 }
 
 function renderHtmlPagination(total, current, pageSize){
+    total = parseInt(total);
+    current = parseInt(current);
+    pageSize = parseInt(pageSize);
+    
     var params = {
         pageSize: pageSize || 10
     };
@@ -98,7 +124,7 @@ function renderHtmlPagination(total, current, pageSize){
         }   
     }
 
-    // 后一页åå
+    // 后一页
     params.pageIndex = current + 1;
     if (params.pageIndex > total){
         params.pageIndex = total;
@@ -109,22 +135,9 @@ function renderHtmlPagination(total, current, pageSize){
     return html
 }
 
-function parseUrlParams(){
-    var search = location.search.substring(1);
-    return search?JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}',
-                 function(key, value) { return key===""?value:decodeURIComponent(value) }):{}
-}
-
-function changeUrlParams(newParmas){
-    var params = parseUrlParams();
-    for (var i in newParmas){
-        params[i] = newParmas[i];
-    }
-    return params;
-}
 
 function newLocationPath(params){
-    return location.pathname + "?" + jQuery.param(params);
+    return location.pathname + "?" + _.stringifyUrlParams(params);
 }
 
 mininet.ajax = ajax;
@@ -133,7 +146,6 @@ mininet.formatPlat = formatPlat;
 mininet.formatChannel = formatChannel;
 mininet.renderHtmlNavbar = renderHtmlNavbar;
 mininet.renderHtmlPagination = renderHtmlPagination;
-mininet.parseUrlParams = parseUrlParams;
-mininet.changeUrlParams = changeUrlParams;
+mininet.formatStreamType = formatStreamType;
 
 
