@@ -156,6 +156,10 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		return
 	}
 
+	//
+	render.JSON(200, Resp{0, "提现成功", nil})
+	return
+
 	//TODO 校验金额类型，以及用户余额是否可以提现
 
 	openId := oauth.OpenId
