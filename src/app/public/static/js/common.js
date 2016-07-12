@@ -7,7 +7,7 @@ var mininet = {};
 function ajax(method, path, data, success, fail){
     $.ajax({
         method: method,
-        url: config.host + path,
+        url: path,
         contentType: "application/x-www-form-urlencoded",
         data: data,
         success: success,
