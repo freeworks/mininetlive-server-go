@@ -48,7 +48,7 @@ func main() {
 		r.Get("/record/play/list", GetPlayRecordList)
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
-
+		r.Get("/record/withdraw/list", GetWithdrawRecordList)
 		r.Post("/nickname", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Post("/phone", UpdateAccountPhone)

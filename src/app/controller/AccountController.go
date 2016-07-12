@@ -165,6 +165,11 @@ type QueryAppointmentRecord struct {
 	Date          JsonTime `db:"date" json:"date"`
 }
 
+type QueryWithdrawRecord struct {
+	Amount  int      `db:"amount" json:"amount"`
+	Created JsonTime `db:"create_time" json:"createTime"`
+}
+
 func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var playRecords []QueryPlayRecord
@@ -212,4 +217,17 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	} else {
 		r.JSON(200, Resp{0, "获取支付记录成功", payRecords})
 	}
+}
+
+func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	//	uid := req.Header.Get("uid")
+	withdrawRecords := [2]QueryWithdrawRecord{
+		QueryWithdrawRecord{100, JsonTime{time.Now(), true}},
+		QueryWithdrawRecord{100, JsonTime{time.Now(), true}}}
+	r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
+	//	if err != nil {
+	//		r.JSON(200, Resp{1302, "获取支付记录失败", nil})
+	//	} else {
+	//		r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
+	//	}
 }
