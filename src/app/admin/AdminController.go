@@ -81,6 +81,7 @@ func GetLogin(r render.Render) {
 }
 
 func GetVCode(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
 	phone := req.PostFormValue("phone")
 	if ValidatePhone(phone) {
 		count, err := dbmap.SelectInt("select count(*) from t_admin where phone=?", phone)
@@ -100,6 +101,7 @@ func GetVCode(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.Db
 }
 
 func UpdatePassword(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
 	phone := req.PostFormValue("phone")
 	password := req.PostFormValue("password")
 	vCode := req.PostFormValue("vCode")

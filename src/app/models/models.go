@@ -93,16 +93,51 @@ type LocalAuthUser struct {
 }
 
 type Record struct {
-	Id      int      `db:"id" json:"-"`
-	Aid     string   `db:"aid" json:"aid"`
-	Uid     string   `db:"uid" json:"-"`
-	Type    int      `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买
-	Created JsonTime `db:"create_time" json:"createTime"`
+	Id      int       `db:"id" json:"-"`
+	Aid     string    `db:"aid" json:"aid"`
+	Uid     string    `db:"uid" json:"-"`
+	Type    int       `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买
+	Created JsonTime3 `db:"create_time" json:"createTime"`
 }
 
 func (pl *Record) PreInsert(s gorp.SqlExecutor) error {
-	pl.Created = JsonTime{time.Now(), true}
+	pl.Created = JsonTime3{JsonTime{time.Now(), true}}
 	return nil
+}
+
+type QueryPlayRecord struct {
+	Record
+	FrontCover string    `db:"front_cover" json:"frontCover"`
+	Title      string    `db:"title" json:"title"`
+	NickName   string    `db:"nickname" json:"nickname"`
+	PlayCount  int       `db:"play_count" json:"playCount"`
+	Date       JsonTime2 `db:"date" json:"date"`
+}
+
+type QueryPayRecord struct {
+	Record
+	FrontCover    string    `db:"front_cover" json:"frontCover"`
+	Title         string    `db:"title" json:"title"`
+	NickName      string    `db:"nickname" json:"nickname"`
+	ActivityType  int       `db:"activity_type" json:"activityType"`
+	ActivityState int       `db:"activity_state" json:"activityState"`
+	Amount        int       `db:"amount" json:"amount"`
+	Channel       string    `db:"channel" json:"channel"`
+	Date          JsonTime2 `db:"date" json:"date"`
+}
+
+type QueryAppointmentRecord struct {
+	Record
+	FrontCover    string    `db:"front_cover" json:"frontCover"`
+	Title         string    `db:"title" json:"title"`
+	NickName      string    `db:"nickname" json:"nickname"`
+	ActivityState int       `db:"activity_state" json:"activityState"`
+	Date          JsonTime2 `db:"date" json:"date"`
+}
+
+type QueryWithdrawRecord struct {
+	Amount  int      `db:"amount" json:"amount"`
+	Created JsonTime `db:"create_time" json:"createTime"`
 }
 
 type Activity struct {

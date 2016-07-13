@@ -33,3 +33,25 @@ func (j JsonTime) Value() (driver.Value, error) {
 	}
 	return j.Time, nil
 }
+
+type JsonTime2 struct {
+	JsonTime
+}
+
+func (j JsonTime2) format() string {
+	return time.Time(j.Time).Format("01-02 15:04")
+}
+func (j JsonTime2) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + j.format() + `"`), nil
+}
+
+type JsonTime3 struct {
+	JsonTime
+}
+
+func (j JsonTime3) format() string {
+	return time.Time(j.Time).Format("01月02日 15:04")
+}
+func (j JsonTime3) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + j.format() + `"`), nil
+}

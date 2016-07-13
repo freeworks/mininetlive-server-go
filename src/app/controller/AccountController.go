@@ -126,41 +126,6 @@ func UploadAccountAvatar(req *http.Request, r render.Render) {
 	}
 }
 
-type QueryPlayRecord struct {
-	Record
-	FrontCover string   `db:"front_cover" json:"frontCover"`
-	Title      string   `db:"title" json:"title"`
-	NickName   string   `db:"nickname" json:"nickname"`
-	PlayCount  int      `db:"play_count" json:"playCount"`
-	Date       JsonTime `db:"date" json:"date"`
-}
-
-type QueryPayRecord struct {
-	Record
-	FrontCover    string   `db:"front_cover" json:"frontCover"`
-	Title         string   `db:"title" json:"title"`
-	NickName      string   `db:"nickname" json:"nickname"`
-	ActivityType  int      `db:"activity_type" json:"activityType"`
-	ActivityState int      `db:"activity_state" json:"activityState"`
-	Amount        int      `db:"amount" json:"amount"`
-	Channel       string   `db:"channel" json:"channel"`
-	Date          JsonTime `db:"date" json:"date"`
-}
-
-type QueryAppointmentRecord struct {
-	Record
-	FrontCover    string   `db:"front_cover" json:"frontCover"`
-	Title         string   `db:"title" json:"title"`
-	NickName      string   `db:"nickname" json:"nickname"`
-	ActivityState int      `db:"activity_state" json:"activityState"`
-	Date          JsonTime `db:"date" json:"date"`
-}
-
-type QueryWithdrawRecord struct {
-	Amount  int      `db:"amount" json:"amount"`
-	Created JsonTime `db:"create_time" json:"createTime"`
-}
-
 func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var playRecords []QueryPlayRecord
