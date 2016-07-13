@@ -35,6 +35,7 @@ func Index(r render.Render, dbmap *gorp.DbMap) {
 }
 
 func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
 	phone := req.PostFormValue("phone")
 	password := req.PostFormValue("password")
 	if ValidatePhone(phone) && ValidatePassword(password) {
