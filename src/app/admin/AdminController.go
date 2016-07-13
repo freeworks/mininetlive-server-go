@@ -43,13 +43,14 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE phone = ? AND password = ?", phone, password)
 		CheckErr(err, "Login select one")
 		if err != nil {
-			r.JSON(401, "用户名密码错误")
+			r.JSON(200, Resp{1021, "用户名密码错误!", nil})
 			return
 		} else {
 			err := sessionauth.AuthenticateSession(session, &admin)
 			CheckErr(err, "Login AuthenticateSession")
 			if err != nil {
-				r.JSON(406, err)
+				r.JSON(200, Resp{1022, "校验失败!", nil})
+				return
 			}
 			logger.Info(req.URL)
 			redirectParams := req.URL.Query()[sessionauth.RedirectParam]
@@ -61,12 +62,11 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 			} else {
 				redirectPath = "/index.html"
 			}
-			// r.JSON(200, redirectPath)
 			r.JSON(200, Resp{0, "登陆成功!", map[string]interface{}{"redirectPath": redirectPath}})
 			return
 		}
 	} else {
-		r.JSON(406, "账号，密码格式错误！")
+		r.JSON(200, Resp{1023, "账号，密码格式错误！", nil})
 	}
 }
 

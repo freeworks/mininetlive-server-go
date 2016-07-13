@@ -13,12 +13,6 @@ import (
 
 var Dbmap *gorp.DbMap
 
-type Resp struct {
-	Ret  int64       `form:"ret" json:"ret"`
-	Msg  string      `form:"msg" json:"msg"`
-	Data interface{} `form:"data" json:"data"`
-}
-
 type User struct {
 	Id           int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
 	Uid          string    `form:"uid"  json:"uid" db:"uid"`

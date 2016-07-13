@@ -1,8 +1,8 @@
 package push
 
 import (
+	. "app/common"
 	logger "app/logger"
-	. "app/models"
 	"bytes"
 	"crypto/md5"
 	"errors"

@@ -1,6 +1,7 @@
 package sessionauth
 
 import (
+	. "app/common"
 	"fmt"
 	"log"
 	"net/http"
@@ -91,7 +92,8 @@ func Logout(s sessions.Session, user User) {
 func LoginRequired(r render.Render, user User, req *http.Request) {
 	if user.IsAuthenticated() == false {
 		path := fmt.Sprintf("%s?%s=%s", RedirectUrl, RedirectParam, req.URL.Path)
-		r.Redirect(path, 302)
+		//		r.Redirect(path, 302)
+		r.JSON(200, Resp{-1, "未登录!", map[string]interface{}{"redirectPath": path}})
 	}
 	fmt.Printf("LoginRequired")
 }
