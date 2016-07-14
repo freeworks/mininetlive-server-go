@@ -354,9 +354,9 @@ func Upload(r *http.Request, render render.Render) {
 	CheckErr(err, "copy file error")
 	url, err := upload.UploadToUCloudCND(filepath, "frontCover/"+head.Filename, render)
 	if err == nil {
-		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(1), "id": strconv.Itoa(5), "url": url})
+		render.JSON(200, Resp{1004, "图片上传成功！", map[string]interface{}{"url": url}})
 	} else {
-		render.JSON(200, map[string]interface{}{"status": strconv.Itoa(0)})
+		render.JSON(200, Resp{1004, "图片上传失败！", nil})
 	}
 }
 
