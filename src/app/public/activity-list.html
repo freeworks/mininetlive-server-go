@@ -25,11 +25,8 @@
 
     <link rel="stylesheet" type="text/css" href="static/css/user-list.css">
 
-    <!-- open sans font -->
-    <link href='http://fonts.useso.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css' />
-
-    <!-- lato font -->
-    <link href='http://fonts.useso.com/css?family=Lato:300,400,700,900,300italic,400italic,700italic,900italic' rel='stylesheet' type='text/css' />
+    <link href='font/font.css' type='text/css' />
+    <link href='font/font2.css' type='text/css' />
 
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -61,7 +58,15 @@
     <div class="content">
 
         <div class="container-fluid">
-            <div id="pad-wrapper" class="users-list">
+            <div id="pad-wrapper" class="users-list" style="margin-top: 20px;padding-left:0px">
+                <div class="row-fluid header" style="margin-bottom: 20px">
+                        <a href="/activity-add.html" class="btn-flat success">
+                            <span>+</span>
+                            新增活动
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Users table -->
                 <div class="row-fluid table">
                     <table class="table table-hover">

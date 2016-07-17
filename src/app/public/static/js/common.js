@@ -4,16 +4,46 @@ var config = {
 
 var mininet = {};
 
-function ajax(method, path, data, success, fail){
+function ajax(method, path, data, success, error){
     $.ajax({
-        method: method,
         url: path,
+        method: method,
         contentType: "application/x-www-form-urlencoded",
         data: data,
-        success: success,
+        success: function(rsp){
+            if (rsp.ret == -1){
+                var next = rsp.data.redirectPath;
+                window.location.href = "/login.html?next=" + next;
+            } else {
+                success(rsp);
+            }
+        },
+        error: error
+    })
+}
+
+
+function ajaxFile(method, path, data, success, fail, contentType){
+    // contentType = contentType || "application/x-www-form-urlencoded";
+    debugger
+    $.ajax({
+        url: path,
+        method: method,
+        contentType: false,
+        processData: false,
+        data: data,
+        success: function(rsp){
+            if (rsp.ret == -1){
+                var next = rsp.data.redirectPath;
+                window.location.href = "/login.html?next=" + next;
+            } else {
+                success(rsp);
+            }
+        },
         fail: fail
     })
 }
+
 
 function formatGender(gender){
     switch(gender){
@@ -70,6 +100,19 @@ function formatActivityState(state){
     }
 }
 
+function changeTow(number){
+    number += "";
+    if (number.length == 1){
+        return "0" + number;
+    }
+    return number;
+}
+
+function formatDateTime(date){
+    date = new Date(date);
+    return  date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " " + date.getHours() + ":" + changeTow(date.getMinutes());
+}
+
 function renderHtmlNavbar(route){
     var $siderbar = $("#sidebar-nav");
     var navbar = '<ul id="dashboard-menu">' +
@@ -101,7 +144,7 @@ function renderHtmlNavbar(route){
 
 function renderHtmlPagination(total, current, pageSize){
     total = parseInt(total);
-    current = parseInt(current);
+    current = parseInt(current || 1);
     pageSize = parseInt(pageSize);
     
     var params = {
@@ -141,11 +184,13 @@ function newLocationPath(params){
 }
 
 mininet.ajax = ajax;
+mininet.ajaxFile = ajaxFile;
 mininet.formatGender = formatGender;
 mininet.formatPlat = formatPlat;
 mininet.formatChannel = formatChannel;
 mininet.renderHtmlNavbar = renderHtmlNavbar;
 mininet.renderHtmlPagination = renderHtmlPagination;
 mininet.formatStreamType = formatStreamType;
+mininet.formatDateTime = formatDateTime;
 
 

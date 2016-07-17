@@ -113,6 +113,10 @@
     color: #c73939; }
   .form-wrapper .field-box.error input {
     border-color: #c73939; }
+  .form-wrapper .field-box.error textarea {
+    border-color: #c73939; }
+  .form-wrapper .field-box.error div.errorContainer {
+    border: 1px solid  #c73939; }
   .form-wrapper .field-box.success label,
   .form-wrapper .field-box.success .alert-msg {
     color: #379e48; }

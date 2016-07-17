@@ -24,9 +24,9 @@
     <link rel="stylesheet" type="text/css" href="/css/icons.css" />
 
     <!-- this page specific styles -->
-    <link rel="stylesheet" href="/css/compiled/index.css" type="text/css" media="screen" />    
+    <link rel="stylesheet" href="/css/compiled/index.css" type="text/css" media="screen" /> 
     <link rel="stylesheet" href="css/compiled/form-showcase.css" type="text/css" media="screen" />
-    <link rel="stylesheet" href="css/compiled/form-wizard.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/compiled/form-wizard.css" type="text/css" media="screen" />   
 
 
     <link rel="stylesheet" type="text/css" href="static/css/user-list.css">
@@ -74,7 +74,7 @@
     <!-- main container -->
     <div class="content">
          <div class="container-fluid">
-            <div id="pad-wrapper" class="form-page" style="margin-top: 20px;">
+            <div id="pad-wrapper" class="form-page">
                 <div class="row-fluid form-wrapper">
                     <!-- left column -->
                     <div class="column" >
@@ -83,11 +83,9 @@
                                 <div class="errorContainer uploadContainer">
                                     <form id="uploadFileForm">
                                         <input class="" type="file" id="frontCover" />
-                                        <img src="" id="frontCoverImg" style="width: 320px">
                                         <input style="display: none;" type="text" id="frontCoverString" name="frontCover"/>
                                     </form>
                                 </div>
-                               
                             </div>
                         <form id="activityForm" />
                             <div class="field-box titleContainer">
@@ -96,7 +94,7 @@
                             </div>
                             <div class="field-box">
                                 <label>时间</label>
-                                <input type="text" value="" class="input-large datepicker" id="date" name="date"/>
+                                <input class="span8 datepicker" type="text" id="date" name="date"/>
                             </div>
                             <div class="field-box">
                                 <label>类型</label>
@@ -122,7 +120,7 @@
                             </div>   
                             <div class="field-box descContainer">
                                 <label>描述</label>
-                                <textarea class="span8" rows="4" name="desc"></textarea>
+                                <textarea class="span8" rows="4" name="desc" id="desc"></textarea>
                             </div>                        
                             <div class="field-box" style="margin-top: 20px;">
                                 <label></label>
@@ -144,12 +142,10 @@
     <!-- scripts -->
     <script src="js/jquery-latest.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/bootstrap-wysihtml5-0.0.2.js"></script>
     <script src="js/bootstrap-datetimepicker.js"></script>
     <script src="js/bootstrap-datetimepicker.zh-CN.js"></script>
-    <script src="js/jquery.uniform.min.js"></script>
+     <script src="js/jquery.uniform.min.js"></script>
     <script src="js/theme.js"></script>
-
     <script type="text/javascript">
         $(function () {
 
@@ -161,6 +157,6 @@
 
     <script type="text/javascript" src="static/js/browser.js"></script>
     <script type="text/javascript" src="static/js/common.js"></script>
-    <script type="text/javascript" src="static/js/activity-add.js"></script>
+    <script type="text/javascript" src="static/js/activity-edit.js"></script>
 </body>
 </html>

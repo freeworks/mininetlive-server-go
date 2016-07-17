@@ -6,6 +6,8 @@ $(document).ready(function() {
     var params = _.parseUrlParams();
     var aid = params.aid;
 
+    $("#editActivity").attr("href", "/activity-edit.html?aid=" + aid);
+
     mininet.ajax("get", "/activity/detail/" + aid, {}, function(rsp) {
         debugger
         if (rsp.ret == 0) {
@@ -14,7 +16,7 @@ $(document).ready(function() {
         }
         // TODO 非正常处理
     })
-})
+});
 
 
 function renderHtmlActivity(activity){

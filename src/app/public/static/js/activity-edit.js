@@ -1,16 +1,26 @@
 $(document).ready(function(){
     mininet.renderHtmlNavbar('activity');
     initPriceTypeChange();
-    initDateTimePicker();
+    // initDateTimePicker();
+
+    var params = _.parseUrlParams();
+    var aid = params.aid;
+    var id;
+
+    mininet.ajax("get", "/activity/detail/" + aid, {}, function(rsp) {
+        debugger
+        if (rsp.ret == 0) {
+            id = rsp.data.id;
+            renderHtmlActivityForm(rsp.data);
+        }
+        // TODO 非正常处理
+    })
     
     var $activityAdd = $(".activityAdd");
     var $frontCover = $("#frontCover");
+    var $frontCoverImg = $("#frontCoverImg");
     var $uploadContainer = $(".uploadContainer");
     var params = {};
-
-    $("body").on('click', '.uploadContainer', function(){
-        $frontCover.trigger('click');
-    });
 
     $frontCover.on('change', function(){
         var formData = new FormData();
@@ -25,10 +35,8 @@ $(document).ready(function(){
 
         mininet.ajaxFile("post", "/upload", formData, function(rsp){
             debugger
-            if (rsp.ret == 0){
-                $uploadContainer.css('background-image', "url(" + rsp.data.url + ")");
-                $("#frontCoverString").val(rsp.data.url);
-            }
+             $uploadContainer.css('background-image', "url(" + rsp.data.url + ")");
+            $("#frontCoverString").val(rsp.data.url);
         });
     })
 
@@ -36,13 +44,13 @@ $(document).ready(function(){
         params = _.parseParams($("#activityForm").serialize());
         params.activityType = $(this).data("activitytype");
         params.frontCover = $("#frontCoverString").val();
-        
-        $(".field-box").removeClass('error');
-        mininet.ajax("post", "/activity/new", params, function(rsp){
+
+        debugger
+        mininet.ajax("put", "/activity/update/" + id, params, function(rsp){
+            debugger
             if (rsp.ret == 0){
-                // window.location.href = "/activity-detail.html?aid=" + rsp.data.id;
+                window.location.href = "/activity-detail.html?aid=" + aid;
             } else {
-                debugger
                 // TODO 非正常处理
             }
         }, function(rsp){
@@ -53,8 +61,22 @@ $(document).ready(function(){
                 })
             }
         })
-    });
-})
+    })
+});
+
+function renderHtmlActivityForm(activity){
+    debugger
+    $(".uploadContainer").css('background-image', "url(" + activity.frontCover + ")");
+    $("#frontCoverString").val(activity.frontCover);
+    $("#title").val(activity.title);
+    $("#desc").val(activity.desc);
+    $("#price").val(activity.price);
+    if (activity.payState == 1){
+        $("#priceContainer").show();
+    }
+    initDateTimePicker(activity.date);
+    $("#date").val(activity.date);
+}
 
 function initPriceTypeChange(){
     var $radio = $("input[name=payState]");
@@ -67,7 +89,6 @@ function initPriceTypeChange(){
 function initDateTimePicker(){
     $('.datepicker').datetimepicker({
         language: 'zh-CN',
-        initialDate: new Date(),
         format: "yyyy-mm-dd hh:ii",
         startDate: new Date(),
     }).on('changeDate', function (ev) {

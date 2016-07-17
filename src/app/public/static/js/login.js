@@ -3,6 +3,8 @@ $(document).ready(function(){
     var $phone = $("#phone");
     var $password = $("#password");
 
+    var params = _.parseUrlParams();debugger
+
     $loginbtn.click(function(){
         var phone = $phone.val().trim();
         var password = $password.val().trim();
@@ -14,8 +16,7 @@ $(document).ready(function(){
 
         mininet.ajax("post", "/login", data, function(rsp){
             if (rsp.ret == 0){
-                var redirectPath = rsp.data.redirectPath || "/index.html";
-                window.location.href = redirectPath;
+                window.location.href = params.next || "/index.html";
             } else {
                 // TODO 错误提示
             }
