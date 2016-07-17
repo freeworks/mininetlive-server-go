@@ -372,7 +372,8 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	}
 	activity.Aid = AID()
 	activity.Uid = uid
-	activity.Date = JsonTime{time.Unix(activity.ADate, 0), true}
+	t, err := time.Parse("2006-01-02 15:04", activity.DateString)
+	activity.Date = JsonTime{t, true}
 	activity.GroupId = groupId
 	activity.StreamId = GeneraToken8()
 	activity.LivePushPath = generatePushPath(activity.StreamId, activity.IsRecord, "")
@@ -412,12 +413,14 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 	} else {
 		orgActivity := obj.(*Activity)
 		orgActivity.Title = activity.Title
+		t, err := time.Parse("2006-01-02 15:04", activity.DateString)
+		activity.Date = JsonTime{t, true}
 		orgActivity.Date = activity.Date
 		orgActivity.Desc = activity.Desc
 		orgActivity.ActivityType = activity.ActivityType
 		orgActivity.StreamType = activity.StreamType
 		orgActivity.FrontCover = activity.FrontCover
-		_, err := dbmap.Update(orgActivity)
+		_, err = dbmap.Update(orgActivity)
 		CheckErr(err, "UpdateActivity  update failed")
 		if err != nil {
 			r.JSON(200, Resp{1004, "更新活动失败", nil})

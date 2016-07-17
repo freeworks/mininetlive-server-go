@@ -145,7 +145,7 @@ type Activity struct {
 	Aid              string    `json:"aid" db:"aid"`
 	Title            string    `form:"title" json:"title"  binding:"required" db:"title"`
 	Date             JsonTime  `json:"date" db:"date"`
-	ADate            int64     `form:"date" json:"-"  db:"-"` /*binding:"required"*/
+	DateString       string    `form:"date" json:"-"  db:"-" binding:"required"`
 	Desc             string    `form:"desc" json:"desc" binding:"required" db:"desc"`
 	FrontCover       string    `form:"frontCover" json:"frontCover" binding:"required" db:"front_cover"`
 	Price            int       `form:"price" json:"price"  db:"price"`
