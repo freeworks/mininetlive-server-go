@@ -3,7 +3,7 @@ $(document).ready(function(){
 
     var $activityList = $("#activityList");
     var params = _.parseUrlParams();
-    params.pageSize = params.pageSize || 10;
+    params.pageSize = params.pageSize || 5;
 
     mininet.ajax("get", "/activity/list", params, function(rsp){
         debugger

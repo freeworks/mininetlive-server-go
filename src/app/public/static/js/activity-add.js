@@ -36,11 +36,13 @@ $(document).ready(function(){
         params = _.parseParams($("#activityForm").serialize());
         params.activityType = $(this).data("activitytype");
         params.frontCover = $("#frontCoverString").val();
+        // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
+        params.date = params.date.replace("+", " ");
         
         $(".field-box").removeClass('error');
         mininet.ajax("post", "/activity/new", params, function(rsp){
             if (rsp.ret == 0){
-                // window.location.href = "/activity-detail.html?aid=" + rsp.data.id;
+                window.location.href = "/activity-detail.html?aid=" + rsp.data.id;
             } else {
                 debugger
                 // TODO 非正常处理
@@ -57,7 +59,7 @@ $(document).ready(function(){
 })
 
 function initPriceTypeChange(){
-    var $radio = $("input[name=payState]");
+    var $radio = $("input[name=activityType]");
     var $priceContainer = $("#priceContainer");
     $radio.on('change', function(){
        $priceContainer.toggle();

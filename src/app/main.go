@@ -104,7 +104,7 @@ func main() {
 		m.Get("/login", admin.GetLogin)
 		m.Post("/getVCode", admin.GetVCode)
 		m.Post("/password/update", admin.UpdatePassword)
-		m.Get("/logout", sessionauth.LoginRequired, admin.Logout)
+		m.Post("/logout", sessionauth.LoginRequired, admin.Logout)
 
 		m.Post("/upload", admin.Upload)
 

@@ -44,6 +44,8 @@ $(document).ready(function(){
         params = _.parseParams($("#activityForm").serialize());
         params.activityType = $(this).data("activitytype");
         params.frontCover = $("#frontCoverString").val();
+        // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
+        params.date = params.date.replace("+", " ");
 
         debugger
         mininet.ajax("put", "/activity/update/" + id, params, function(rsp){
@@ -71,15 +73,16 @@ function renderHtmlActivityForm(activity){
     $("#title").val(activity.title);
     $("#desc").val(activity.desc);
     $("#price").val(activity.price);
-    if (activity.payState == 1){
+    if (activity.activityType == 1){
         $("#priceContainer").show();
     }
     initDateTimePicker(activity.date);
     $("#date").val(activity.date);
+    $("input[value=" + activity.activityType + "]").prop("checked", true);
 }
 
 function initPriceTypeChange(){
-    var $radio = $("input[name=payState]");
+    var $radio = $("input[name=activityType]");
     var $priceContainer = $("#priceContainer");
     $radio.on('change', function(){
        $priceContainer.toggle();

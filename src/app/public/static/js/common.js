@@ -13,7 +13,8 @@ function ajax(method, path, data, success, error){
         success: function(rsp){
             if (rsp.ret == -1){
                 var next = rsp.data.redirectPath;
-                window.location.href = "/login.html?next=" + next;
+                window.location.href = "/login.html";
+                // window.location.href = "/login.html?next=" + next;
             } else {
                 success(rsp);
             }
@@ -132,12 +133,16 @@ function renderHtmlNavbar(route){
     }
 
     // 退出
-    $siderbar.on('click', '.logout', function(){
-        ajax("get", "/logout", {}, function(rsp){
+    $siderbar.on('click', '.logout', function(e){
+        debugger
+        // e.preventDefault();
+        ajax("post", "/logout", {}, function(rsp){
             debugger
             if (rsp.ret == 0){
                 window.location.href = "/login.html";
             }
+        }, function(){
+            debugger
         })
     })
 }

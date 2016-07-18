@@ -72,8 +72,7 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 }
 
 func Logout(session sessions.Session, user sessionauth.User, r render.Render) {
-	sessionauth.Logout(session, user)
-	r.Redirect("/")
+	r.JSON(200, Resp{0, "退出成功", nil})
 }
 
 func GetLogin(r render.Render) {

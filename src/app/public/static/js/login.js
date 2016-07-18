@@ -16,7 +16,8 @@ $(document).ready(function(){
 
         mininet.ajax("post", "/login", data, function(rsp){
             if (rsp.ret == 0){
-                window.location.href = params.next || "/index.html";
+                window.location.href = "/"
+                // window.location.href = params.next || "/index.html";
             } else {
                 // TODO 错误提示
             }
