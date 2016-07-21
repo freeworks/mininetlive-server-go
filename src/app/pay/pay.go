@@ -202,7 +202,14 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 		//data := `{"id":"evt_eYa58Wd44Glerl8AgfYfd1sL","created":1434368075,"livemode":true,"type":"charge.succeeded","data":{"object":{"id":"ch_bq9IHKnn6GnLzsS0swOujr4x","object":"charge","created":1434368069,"livemode":true,"paid":true,"refunded":false,"app":"app_vcPcqDeS88ixrPlu","channel":"wx","order_no":"2015d019f7cf6c0d","client_ip":"140.227.22.72","amount":100,"amount_settle":0,"currency":"cny","subject":"An Apple","body":"A Big Red Apple","extra":{},"time_paid":1434368074,"time_expire":1434455469,"time_settle":null,"transaction_no":"1014400031201506150354653857","refunds":{"object":"list","url":"/v1/charges/ch_bq9IHKnn6GnLzsS0swOujr4x/refunds","has_more":false,"data":[]},"amount_refunded":0,"failure_code":null,"failure_msg":null,"metadata":{},"credential":{},"description":null}},"object":"event","pending_webhooks":0,"request":"iar_Xc2SGjrbdmT0eeKWeCsvLhbL"}`
 		data := buf.String()
 		// 请从 https://dashboard.pingxx.com 获取「Ping++ 公钥」
-		publicKey, err := ioutil.ReadFile("pingpp_rsa_public_key.pem")
+		//		publicKey, err := ioutil.ReadFile("pingpp_rsa_public_key.pem")
+		publicKey := []byte(`MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwuhYARahNpY8q18Bhwzj
+TQlFueV7SOeTnJZ4ppGqmkE0TAA0hqvlX+cIcKaq3lCcJAoXNXCjXOrgZ0rJ4Muj
+IXyiQ0Z6IlMbG8wS6va0nY8ox5Fwn+tnEEEBy+YWg0lzOIui9nowSdc8SlAxrZSR
+oUTUXiRNu4B8YmyRoiXdWYMc1bZ5rD78kwBAMtH4/Y4gntbDtipEfBfx1EZ3Aeog
+ozzrpEn/OZ7WE5GT7y5ISvvth9FrMjLAvKnXnF6v1zOWq/NG+E49OacrvLB3kO34
+R9uBXEhQB9k0UL+SX6JHRgQzDN5HnS5rnu7wB5dvtpn+IBkwERuKCMeSAzJoWiJ6
+TQIDAQAB`)
 		if err != nil {
 			fmt.Errorf("read failure: %v", err)
 		}
