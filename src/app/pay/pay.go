@@ -3,6 +3,7 @@ package pay
 import (
 	. "app/common"
 	logger "app/logger"
+	config "app/config"
 	. "app/models"
 	"bytes"
 	"encoding/base64"
@@ -189,7 +190,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	logger.Info(string(fr))
 }
 
-func Webhook(w http.ResponseWriter, r *http.Request) {
+func Webhook(w http.ResponseWriter, r *http.Request,dbmap *gorp.DbMap) {
 	if strings.ToUpper(r.Method) == "POST" {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(r.Body)
@@ -224,13 +225,109 @@ func Webhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if webhook.Type == "charge.succeeded" {
-			// TODO your code for charge
+			//orderno -> uid -> invited1 -> invite2->invited3
+			orderNo := webhook.Data.Object["order_no"].(string)
+			amount := webhook.Data.Object["amount"].(int)
+			//TODO 更新DB,
+			var uid string
+			err = dbmap.SelectOne(&uid, "SELECT uid FROM t_order WHERE no=?",orderNo)
+			if uid == "" {
+				logger.Info("Webhook ","order err")
+			}else{
+				// https://www.zhihu.com/question/29083902
+				user1,user2,user3 := getDistributionUsers(uid,dbmap)
+				user1.Balance = user1.Balance + int(float64(amount)*config.DeductPercent1)
+				_, err := dbmap.Update(user1)
+				if err != nil {
+					logger.Info("update user1 amount ",err)
+				}
+				user2.Balance = user2.Balance + int(float64(amount)*config.DeductPercent2)
+				_, err = dbmap.Update(user2)
+				if err != nil {
+					logger.Info("update user2 amount ",err)
+				}
+				user3.Balance = user3.Balance + int(float64(amount)*config.DeductPercent3)
+				_, err = dbmap.Update(user3)
+				if err != nil {
+					logger.Info("update user3 amount ",err)
+				}
+			}
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "refund.succeeded" {
-			// TODO your code for refund
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 }
+
+func getDistributionUsers(uid string ,dbmap *gorp.DbMap) (User,User,User){
+	var user1 ,user2,user3 User
+	err := dbmap.SelectOne(&user1, `SELECT * FROM t_user 
+									WHERE invite_code = 
+									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `,uid)
+	logger.Info("query user1  ",err)
+
+	err = dbmap.SelectOne(&user2, `SELECT * FROM t_user 
+									WHERE invite_code = 
+									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `,user1.Uid)
+
+	logger.Info("query user2  ",err)
+
+
+	err = dbmap.SelectOne(&user3, `SELECT * FROM t_user 
+									WHERE invite_code = 
+									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `,user2.Uid)
+
+	logger.Info("query user3  ",err)
+
+	return user1,user2,user3
+
+}
+
+
+// {
+//     "id": "evt_eYa58Wd44Glerl8AgfYfd1sL", 
+//     "created": 1434368075, 
+//     "livemode": true, 
+//     "type": "charge.succeeded", 
+//     "data": {
+//         "object": {
+//             "id": "ch_bq9IHKnn6GnLzsS0swOujr4x", 
+//             "object": "charge", 
+//             "created": 1434368069, 
+//             "livemode": true, 
+//             "paid": true, 
+//             "refunded": false, 
+//             "app": "app_vcPcqDeS88ixrPlu", 
+//             "channel": "wx", 
+//             "order_no": "2015d019f7cf6c0d", 
+//             "client_ip": "140.227.22.72", 
+//             "amount": 100, 
+//             "amount_settle": 0, 
+//             "currency": "cny", 
+//             "subject": "An Apple", 
+//             "body": "A Big Red Apple", 
+//             "extra": { }, 
+//             "time_paid": 1434368074, 
+//             "time_expire": 1434455469, 
+//             "time_settle": null, 
+//             "transaction_no": "1014400031201506150354653857", 
+//             "refunds": {
+//                 "object": "list", 
+//                 "url": "/v1/charges/ch_bq9IHKnn6GnLzsS0swOujr4x/refunds", 
+//                 "has_more": false, 
+//                 "data": [ ]
+//             }, 
+//             "amount_refunded": 0, 
+//             "failure_code": null, 
+//             "failure_msg": null, 
+//             "metadata": { }, 
+//             "credential": { }, 
+//             "description": null
+//         }
+//     }, 
+//     "object": "event", 
+//     "pending_webhooks": 0, 
+//     "request": "iar_Xc2SGjrbdmT0eeKWeCsvLhbL"
+// }

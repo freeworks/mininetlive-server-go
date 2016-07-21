@@ -9,4 +9,7 @@ const (
 	VedioBucket string = "mininetlive123.ufile.ucloud.com.cn"
 	ImgDir      string = "/tmp/mininetlive/img/"
 	LogDir      string = "/tmp/mininetlive/log/"
+	DeductPercent1  float64 = 0.1;
+	DeductPercent2  float64 = 0.07;
+	DeductPercent3  float64 = 0.03;
 )

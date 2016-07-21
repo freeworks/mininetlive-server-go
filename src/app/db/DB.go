@@ -31,5 +31,6 @@ func InitDb() *gorp.DbMap {
 	dbmap.AddTableWithName(AdminModel{}, "t_admin").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.NActivity{}, "t_activity").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.QActivity{}, "t_activity").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.InviteRelationship{}, "t_invite_relation").SetKeys(true, "Id")
 	return dbmap
 }

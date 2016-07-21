@@ -21,10 +21,9 @@ type User struct {
 	Avatar       string    `form:"avatar" json:"avatar"  db:"avatar"`
 	Gender       int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
 	Balance      int       `form:"balance" json:"balance" db:"balance"`
-	InviteCode   string    `form:"inviteCode" json:"inviteCode" db:"invite_code"`
+	InviteCode   string    `form:"-" json:"inviteCode" db:"invite_code"`
 	Qrcode       string    `form:"qrcode" json:"qrcode" db:"qrcode"`
 	Phone        string    `form:"phone" json:"phone" db:"phone"`
-	BeInvitedUid string    `json:"-" db:"be_invited_uid"`
 	Updated      time.Time `json:"-" db:"update_time"`
 	Created      time.Time `json:"-" db:"create_time"`
 }
@@ -90,6 +89,15 @@ type OAuthUser struct {
 type LocalAuthUser struct {
 	User      User
 	LocalAuth LocalAuth
+	BeInviteCode   string    `form:"inviteCode" json:"-" db:"-"`
+}
+
+
+type InviteRelationship struct {
+	Id            int     `db:"id" json:"-"`
+	Uid            string     `db:"uid" json:"uid"`
+	BeInvitedCode    string    `db:"be_invited_code" json:"-"`
+	Created   		JsonTime `db:"create_time" json:"createTime"`
 }
 
 type Record struct {

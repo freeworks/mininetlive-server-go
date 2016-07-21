@@ -28,7 +28,8 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 		if err != nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
 		} else {
-			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": user.BeInvitedUid == "", "user": user}})
+			count,_ := dbmap.SelectInt("select count(*) from t_invite_relation where uid = ?",user.Uid)
+			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": count == int64(0), "user": user}})
 		}
 	}
 }
@@ -59,7 +60,8 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 		err = trans.Commit()
 		CheckErr(err, "RegisterOAuth trans commit ")
 		if err == nil {
-			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": true, "user": register.User}})
+			logger.Info("------",register.OAuth.AccessToken)
+			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": register.OAuth.AccessToken, "showInvited": true, "user": register.User}})
 		} else {
 			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
 		}
@@ -118,6 +120,15 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		CheckErr(err, "Register insert LocalAuth failed")
 		err = trans.Commit()
 		CheckErr(err, "Register commit failed")
+
+		if authUser.BeInviteCode != "" {
+			err = dbmap.Insert(&InviteRelationship{
+				        Uid: uid,
+				        BeInvitedCode:  authUser.BeInviteCode,
+				        Created:   JsonTime{time.Now(), true},
+				    })
+			CheckErr(err, "Insert invited relationship ")
+		}
 		if err == nil {
 			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": authUser.LocalAuth.Token, "showInvited": false, "user": authUser.User}})
 		} else {
@@ -173,3 +184,20 @@ func Logout(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	logger.Info("logout:", uid)
 	r.JSON(200, Resp{0, "退出成功", nil})
 }
+
+func PostInviteCode(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	inviteCode := req.PostFormValue("inviteCode")
+	logger.Info("inviteCode:",inviteCode)
+	if inviteCode != "" {
+		err := dbmap.Insert(&InviteRelationship{ 
+						Uid: uid,
+				        BeInvitedCode:  inviteCode,
+				        Created:   JsonTime{time.Now(), true},
+		})
+		CheckErr(err, "Insert invited relationship ")
+	}
+	r.JSON(200, Resp{0, "提交成功", nil})
+}
+

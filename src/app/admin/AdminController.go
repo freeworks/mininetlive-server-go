@@ -30,7 +30,6 @@ func Index(r render.Render, dbmap *gorp.DbMap) {
 	newUserCount, err := dbmap.SelectInt("SELECT count(*) FROM t_user Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
 	CheckErr(err, "index ")
 	newmap := map[string]interface{}{"newAmount": newAmount, "newOrderCount": newOrderCount, "newUserCount": newUserCount}
-	//	r.HTML(200, "index", newmap)
 	r.JSON(200, Resp{0, "首页获取成功", newmap})
 }
 
@@ -249,20 +248,16 @@ func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
 
 func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
-	sql := `SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone  
+	sql := `SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone,
+			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
 			FROM t_user u JOIN t_oauth auth ON u.uid = auth.uid
 			UNION ALL 
-			SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone  
+			SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone,
+			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
 			FROM t_user u JOIN t_local_auth auth ON u.uid = auth.uid 
-			LIMIT ?,? `
+			LIMIT ?,?`
 	var userList []QUserModel
 	_, err := dbmap.Select(&userList, sql, start, size)
-	//	if err == nil {
-	//		r.HTML(200, "userlist", userList)
-	//	} else {
-	//		logger.Info(err)
-	//		r.HTML(500, "服务器异常", nil)
-	//	}
 	totalCount, err := dbmap.SelectInt("select count(*) from t_user")
 	m := int(totalCount) % size
 	totalPageCount := int(totalCount) / size
@@ -317,10 +312,6 @@ func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	} else {
 		r.JSON(200, Resp{1006, "获取活动失败", nil})
 	}
-
-	//	newmap := map[string]interface{}{"activity": activity}
-	//	r.HTML(200, "activitylist", newmap)
-
 }
 
 func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
