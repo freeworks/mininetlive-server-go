@@ -79,6 +79,7 @@ func main() {
 	m.Get("/live/CallbackRecordFinish", CallbackRecordFinish)
 	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
 	m.Get("/live/CallbackLiveEnd", CallbackLiveEnd)
+	m.Get("/share/:platform/activity/:id", GetSharePage)
 	m.Get("/test/push/:type", push.TestPush)
 
 	m.NotFound(func(r render.Render) {

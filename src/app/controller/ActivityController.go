@@ -218,3 +218,16 @@ func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cach
 		r.JSON(200, Resp{1402, "获取在线成员信息失败", nil})
 	}
 }
+
+func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
+	platform := params["platform"]
+	logger.Info("platform", platform)
+	var activity QActivity
+	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", params["id"])
+	CheckErr(err, "GetActivity select failed")
+	if err == nil {
+		r.JSON(200, Resp{0, "获取成功", activity})
+	} else {
+		r.JSON(200, Resp{1103, "获取在线成员信息失败", nil})
+	}
+}
