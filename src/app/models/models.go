@@ -212,6 +212,7 @@ type Recomend struct {
 
 type Order struct {
 	Id       int      `json:"-" db:"id"`
+	Uid      string   `json:"uid" db:"uid"`
 	OrderNo  string   `json:"no" db:"no"`
 	Amount   uint64   `json:"amount" db:"amount"`
 	Channel  string   `json:"channel" db:"channel"`
