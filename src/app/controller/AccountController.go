@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	//	"strings"
+	"strconv"
 	"time"
 
 	"github.com/coopernurse/gorp"
@@ -68,6 +69,7 @@ func GetVCodeForUpdatePhone(req *http.Request, c *cache.Cache, r render.Render) 
 	}
 }
 
+//废弃了
 func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
@@ -98,27 +100,32 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	}
 }
 
-//Fixme 注册上传头像的时候还没有Uid
-func UploadAccountAvatar(req *http.Request, r render.Render) {
-	err := req.ParseMultipartForm(100000)
-	CheckErr(err, "upload ParseMultipartForm")
-	if err != nil {
-		r.JSON(500, "server err")
-		return
-	}
+func UpdateAccountAvatar(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	req.ParseMultipartForm(32 << 20)
+	logger.Info(req.Header)
 	file, head, err := req.FormFile("file")
 	CheckErr(err, "upload Fromfile")
 	logger.Info(head.Filename)
 	defer file.Close()
-	//TODO bug
-	fileName := GeneraToken16() + "_avatar.png"
+	fileName := uid + "_" + strconv.FormatInt(time.Now().Unix(), 10) + "_avatar.png"
 	filepath := config.ImgDir + fileName
+	os.Remove(filepath)
 	fW, err := os.Create(filepath)
 	CheckErr(err, "create file error")
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
 	CheckErr(err, "create file error")
-	url, err := upload.UploadToUCloudCND(filepath, fileName, r)
+	fileInfo, err := os.Stat(filepath)
+	if err != nil {
+		CheckErr(err, "os.Stat(filepath)")
+	}
+	fileSize := fileInfo.Size()
+	logger.Info("fileSize:", fileSize)
+	url, err := upload.UploadToUCloudCND(filepath, "avatar/"+fileName)
+	if err == nil {
+		_, err = dbmap.Exec("UPDATE t_user SET avatar = ? WHERE uid = ?", url, uid)
+	}
 	if err == nil {
 		r.JSON(200, Resp{0, "头像上传成功", map[string]string{"url": url}})
 	} else {

@@ -28,7 +28,7 @@ func LoginOAuth(oauth OAuth, r render.Render, dbmap *gorp.DbMap) {
 		if err != nil {
 			r.JSON(200, Resp{1002, "用户资料信息不存在", nil})
 		} else {
-			count,_ := dbmap.SelectInt("select count(*) from t_invite_relation where uid = ?",user.Uid)
+			count, _ := dbmap.SelectInt("select count(*) from t_invite_relation where uid = ?", user.Uid)
 			r.JSON(200, Resp{0, "登陆成功", map[string]interface{}{"token": oauth.AccessToken, "showInvited": count == int64(0), "user": user}})
 		}
 	}
@@ -60,7 +60,7 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 		err = trans.Commit()
 		CheckErr(err, "RegisterOAuth trans commit ")
 		if err == nil {
-			logger.Info("------",register.OAuth.AccessToken)
+			logger.Info("------", register.OAuth.AccessToken)
 			r.JSON(200, Resp{0, "注册成功", map[string]interface{}{"token": register.OAuth.AccessToken, "showInvited": true, "user": register.User}})
 		} else {
 			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
@@ -123,10 +123,10 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 
 		if authUser.BeInviteCode != "" {
 			err = dbmap.Insert(&InviteRelationship{
-				        Uid: uid,
-				        BeInvitedCode:  authUser.BeInviteCode,
-				        Created:   JsonTime{time.Now(), true},
-				    })
+				Uid:           uid,
+				BeInvitedCode: authUser.BeInviteCode,
+				Created:       JsonTime{time.Now(), true},
+			})
 			CheckErr(err, "Insert invited relationship ")
 		}
 		if err == nil {
@@ -189,15 +189,83 @@ func PostInviteCode(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
 	inviteCode := req.PostFormValue("inviteCode")
-	logger.Info("inviteCode:",inviteCode)
+	logger.Info("inviteCode:", inviteCode)
 	if inviteCode != "" {
-		err := dbmap.Insert(&InviteRelationship{ 
-						Uid: uid,
-				        BeInvitedCode:  inviteCode,
-				        Created:   JsonTime{time.Now(), true},
+		err := dbmap.Insert(&InviteRelationship{
+			Uid:           uid,
+			BeInvitedCode: inviteCode,
+			Created:       JsonTime{time.Now(), true},
 		})
 		CheckErr(err, "Insert invited relationship ")
 	}
 	r.JSON(200, Resp{0, "提交成功", nil})
 }
 
+func RestPassword(req *http.Request, r render.Render, dbmap *gorp.DbMap, c *cache.Cache) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	phone := req.PostFormValue("phone")
+	vCode := req.PostFormValue("vcode")
+	password := req.PostFormValue("password")
+	if cacheVCode, found := c.Get(phone); found {
+		if cacheVCode.(string) == vCode {
+			_, err := dbmap.Exec("UPDATE t_local_auth SET password = ? WHERE phone = ? AND uid = ?", password, phone, uid)
+			CheckErr(err, "Update password ")
+			if err != nil {
+				r.JSON(200, Resp{1015, "重置密码失败，服务器异常", nil})
+				return
+			} else {
+				r.JSON(200, Resp{0, "重置密码成功", nil})
+				return
+			}
+		} else {
+			r.JSON(200, Resp{1010, "输入验证码有误,请重新输入", nil})
+		}
+	} else {
+		r.JSON(200, Resp{1011, "输入验证码无效,请重新获取验证码", nil})
+	}
+}
+
+func BindPhone(req *http.Request, r render.Render, dbmap *gorp.DbMap, c *cache.Cache) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	phone := req.PostFormValue("phone")
+	vCode := req.PostFormValue("vcode")
+	if cacheVCode, found := c.Get(phone); found {
+		if cacheVCode.(string) == vCode {
+			_, err := dbmap.SelectInt("select count(*) from t_oauth")
+			if err == nil {
+				trans, err := dbmap.Begin()
+				if err != nil {
+					CheckErr(err, "dbmap begin trans")
+					r.JSON(200, Resp{1016, "服务器异常！", nil})
+					return
+				}
+				trans.Exec("UPDATE t_local_auth SET phone = ? WHERE uid = ?", phone, uid)
+				trans.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
+				err = trans.Commit()
+				CheckErr(err, "update phone ")
+				if err == nil {
+					r.JSON(200, Resp{0, "绑定成功", nil})
+				} else {
+					r.JSON(200, Resp{1016, "服务器异常！", nil})
+				}
+				return
+			} else {
+				_, err := dbmap.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
+				CheckErr(err, "update phone ")
+				if err == nil {
+					r.JSON(200, Resp{0, "绑定成功", nil})
+				} else {
+					r.JSON(200, Resp{1016, "服务器异常！", nil})
+
+				}
+				return
+			}
+		} else {
+			r.JSON(200, Resp{1010, "输入验证码有误,请重新输入", nil})
+		}
+	} else {
+		r.JSON(200, Resp{1011, "输入验证码无效,请重新获取验证码", nil})
+	}
+}

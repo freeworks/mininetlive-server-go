@@ -17,8 +17,6 @@ import (
 	//	"os"
 	//	"strconv"
 	"time"
-
-	"github.com/martini-contrib/render"
 )
 
 //func Upload(r *http.Request, render render.Render) {
@@ -47,7 +45,7 @@ import (
 //	}
 //}
 
-func UploadToUCloudCND(path string, fileName string, render render.Render) (string, error) {
+func UploadToUCloudCND(path string, fileName string) (string, error) {
 	u := NewUcloudApiClient(
 		config.PublicKey,
 		config.PrivateKey,

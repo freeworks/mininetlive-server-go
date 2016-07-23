@@ -14,10 +14,11 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
- 	"reflect"
+
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -33,9 +34,9 @@ const (
 	WX_OPEN_ID string = `wx36d2981a085f6370`
 )
 
-func newOrder(uid string ,orderno, channel, clientIP, subject, aid string, amount uint64, payType int) Order {
+func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amount uint64, payType int) Order {
 	return Order{
-		Uid :uid,
+		Uid:      uid,
 		OrderNo:  orderno,
 		Amount:   amount,
 		Channel:  channel,
@@ -124,7 +125,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		chs, _ := json.Marshal(ch)
 		logger.Info(string(chs))
 		//TODO 创建订单
-		order := newOrder(uid,strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
+		order := newOrder(uid, strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
 		CheckErr(err, "create order")
 		var chsObj interface{}
@@ -191,7 +192,6 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	logger.Info(string(fr))
 }
 
-
 func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 	if strings.ToUpper(r.Method) == "POST" {
 		buf := new(bytes.Buffer)
@@ -233,9 +233,9 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 			logger.Info(reflect.TypeOf(webhook.Data.Object))
 			logger.Info(reflect.TypeOf(webhook.Data.Object["order_no"]))
 			logger.Info(reflect.TypeOf(webhook.Data.Object["amount"]))
-			
+
 			orderNo := webhook.Data.Object["order_no"].(string)
-			amount,_:= webhook.Data.Object["amount"].(json.Number).Int64()
+			amount, _ := webhook.Data.Object["amount"].(json.Number).Int64()
 			var uid string
 			err = dbmap.SelectOne(&uid, "SELECT uid FROM t_order WHERE no=?", orderNo)
 			if uid == "" {
@@ -249,28 +249,28 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 					_, err := dbmap.Update(user1)
 					if err != nil {
 						logger.Info("update user1 amount ", err)
-					}	
+					}
 				}
-				if obj2 != nil  {
+				if obj2 != nil {
 					user2 := obj2.(User)
 					user2.Balance = user2.Balance + int(float64(amount)*config.DeductPercent2)
 					_, err = dbmap.Update(user2)
 					if err != nil {
 						logger.Info("update user2 amount ", err)
-					}		
+					}
 				}
-				
+
 				if obj3 != nil {
 					user3 := obj3.(User)
 					user3.Balance = user3.Balance + int(float64(amount)*config.DeductPercent3)
 					_, err = dbmap.Update(user3)
 					if err != nil {
 						logger.Info("update user3 amount ", err)
-					}	
+					}
 				}
 			}
 			w.WriteHeader(http.StatusOK)
-		} else if webhook.Type == "refund.succeeded" {
+		} else if webhook.Type == "transfer.succeeded" {
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -285,8 +285,8 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, uid)
 	logger.Info("query user1  ", err)
 
-	if(err != nil){
-		return nil,nil,nil
+	if err != nil {
+		return nil, nil, nil
 	}
 	err = dbmap.SelectOne(&user2, `SELECT * FROM t_user 
 									WHERE invite_code = 
@@ -294,8 +294,8 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 
 	logger.Info("query user2  ", err)
 
-	if(err != nil){
-		return user1,nil,nil
+	if err != nil {
+		return user1, nil, nil
 	}
 
 	err = dbmap.SelectOne(&user3, `SELECT * FROM t_user 
@@ -304,9 +304,9 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 
 	logger.Info("query user3  ", err)
 
-	if(err != nil){
-		return user1,user2,user3
-	}else{
+	if err != nil {
+		return user1, user2, user3
+	} else {
 		return user1, user2, nil
 	}
 }

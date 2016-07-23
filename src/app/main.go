@@ -38,9 +38,12 @@ func main() {
 	m.Post("/auth/register", binding.Bind(LocalAuthUser{}), Register)
 	m.Post("/auth/logout", Logout)
 	m.Post("/auth/vcode", GetVCode)
+	m.Post("/auth/password/reset", RestPassword)
+	m.Post("/auth/phone/bind", BindPhone)
 	m.Post("/auth/verify/phone", VerifyPhone)
 	m.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
+
 	m.Group("/common", func(r martini.Router) {
 		r.Post("/inviteCode", PostInviteCode)
 	})
@@ -53,7 +56,7 @@ func main() {
 		r.Post("/nickname", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Post("/phone", UpdateAccountPhone)
-		r.Post("/avatar", UploadAccountAvatar)
+		r.Post("/avatar", UpdateAccountAvatar)
 	})
 	m.Group("/user", func(r martini.Router) {
 		r.Get("/info/:uid", GetUser)
