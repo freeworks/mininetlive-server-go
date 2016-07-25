@@ -1,12 +1,9 @@
 package intervaler
 
 import (
-	easemob "app/easemob"
 	logger "app/logger"
 	"time"
-
 	"github.com/coopernurse/gorp"
-	cache "github.com/patrickmn/go-cache"
 )
 
 // Intervaler 是个接口用来让调用者自定义poller轮询时间间隔
@@ -59,16 +56,17 @@ func NewPoller(intervaler Intervaler, do func() error) *Poller {
 	return &Poller{do: do, cancle: make(chan int), nextInterval: intervaler}
 }
 
-func PollGroupOnlineUser(c *cache.Cache, dbmap *gorp.DbMap) {
+
+func PollSyncPingxx(dbmap *gorp.DbMap) {
 	base := time.Second * 0
 	interval := IntervalerFunc(func() time.Duration {
 		next := base
-		base += time.Second * 30
+		base += time.Second * 300
 		return next
 	})
 	poller := NewPoller(interval,
 		func() error {
-			easemob.GetGroupOnlineUserCount(c, dbmap)
+			logger.Info("sync ping++ order，but not implement")
 			return nil
 		})
 	poller.Poll()

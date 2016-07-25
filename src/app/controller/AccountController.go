@@ -183,7 +183,7 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	//	uid := req.Header.Get("uid")
+	// uid := req.Header.Get("uid")
 	withdrawRecords := [2]QueryWithdrawRecord{
 		QueryWithdrawRecord{100, JsonTime{time.Now(), true}},
 		QueryWithdrawRecord{100, JsonTime{time.Now(), true}}}

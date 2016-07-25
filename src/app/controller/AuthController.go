@@ -2,7 +2,6 @@ package controller
 
 import (
 	. "app/common"
-	easemob "app/easemob"
 	logger "app/logger"
 	. "app/models"
 	"net/http"
@@ -41,15 +40,8 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 	if err != nil && oauth.OpenId != register.OAuth.OpenId {
 		//name
 		uid := UID()
-		uuid, err := easemob.RegisterUser(uid, c)
-		CheckErr(err, "easemob create user")
-		if err != nil {
-			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
-			return
-		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "RegisterOAuth begin trans"+register.User.String())
-		register.User.EasemobUuid = uuid
 		register.User.InviteCode = GeneraVCode6()
 		register.User.Uid = uid
 		register.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
@@ -99,15 +91,8 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 	CheckErr(err, "Register selectOne failed")
 	if err != nil && auth.Phone == "" {
 		uid := UID()
-		uuid, err := easemob.RegisterUser(uid, c)
-		CheckErr(err, "easemob create user")
-		if err != nil {
-			r.JSON(200, Resp{1003, "注册失败，服务器异常", nil})
-			return
-		}
 		trans, err := dbmap.Begin()
 		CheckErr(err, "Register begin trans failed")
-		authUser.User.EasemobUuid = uuid
 		authUser.User.Uid = uid
 		authUser.User.InviteCode = GeneraVCode6()
 		authUser.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"

@@ -16,7 +16,6 @@ var Dbmap *gorp.DbMap
 type User struct {
 	Id           int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
 	Uid          string    `form:"uid"  json:"uid" db:"uid"`
-	EasemobUuid  string    `json:"easemobUuid" db:"easemob_uuid"`
 	NickName     string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
 	Avatar       string    `form:"avatar" json:"avatar"  db:"avatar"`
 	Gender       int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
@@ -168,7 +167,6 @@ type Activity struct {
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	PayState         int       `json:"payState" db:"-"`
 	AppointState     int       `json:"appoinState" db:"-"`
-	GroupId          string    `json:"groupId" db:"group_id"`
 	OnlineCount      int       `json:"onlineCount" db:"online_count"`
 	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`

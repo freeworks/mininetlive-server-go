@@ -3,7 +3,6 @@ package admin
 import (
 	. "app/common"
 	config "app/config"
-	easemob "app/easemob"
 	logger "app/logger"
 	. "app/models"
 	"app/sessionauth"
@@ -248,11 +247,11 @@ func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
 
 func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
-	sql := `SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone,
+	sql := `SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone,
 			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
 			FROM t_user u JOIN t_oauth auth ON u.uid = auth.uid
 			UNION ALL 
-			SELECT u.uid,u.easemob_uuid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone,
+			SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone,
 			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
 			FROM t_user u JOIN t_local_auth auth ON u.uid = auth.uid 
 			LIMIT ?,?`
@@ -352,19 +351,11 @@ func Upload(r *http.Request, render render.Render) {
 
 func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	logger.Info("NewActivity ")
-	// uid := user.UniqueId().(string)
-	uid := "1e046709049d59b5"
-	groupId, err := easemob.CreateGroup(uid, activity.Title, c)
-	if err != nil {
-		CheckErr(err, "easemob create group error")
-		r.JSON(200, Resp{1001, "创建活动失败", nil})
-		return
-	}
+	uid := user.UniqueId().(string)
 	activity.Aid = AID()
 	activity.Uid = uid
 	t, err := time.Parse("2006-01-02 15:04", activity.DateString)
 	activity.Date = JsonTime{t, true}
-	activity.GroupId = groupId
 	activity.StreamId = GeneraToken8()
 	activity.LivePushPath = generatePushPath(activity.StreamId, activity.IsRecord, "")
 	activity.LivePullPath = generatePullPath(activity.StreamId)

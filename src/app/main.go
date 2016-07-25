@@ -88,7 +88,8 @@ func main() {
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
-	go intervaler.PollGroupOnlineUser(c, dbmap)
+
+	go intervaler.PollSyncPingxx(dbmap)
 
 	go func() {
 		m := martini.Classic() // 默认配置静态目录public
