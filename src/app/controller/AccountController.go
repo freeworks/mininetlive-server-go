@@ -182,6 +182,18 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
+func GetBalance(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	balance, err := dbmap.SelectInt("select balance from t_user where uid = ?", uid)
+	CheckErr(err, "GetBalance")
+	if err != nil {
+		r.JSON(200, Resp{1303, "获取余额失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "获取余额失败成功", map[string]int64{"balance": balance}})
+	}
+
+}
+
 func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	// uid := req.Header.Get("uid")
 	withdrawRecords := [2]QueryWithdrawRecord{

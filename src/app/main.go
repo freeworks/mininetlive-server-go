@@ -49,6 +49,8 @@ func main() {
 	})
 	m.Group("/account", func(r martini.Router) {
 		r.Post("/info", GetAccountInfo)
+
+		r.Get("/balance", GetBalance)
 		r.Get("/record/play/list", GetPlayRecordList)
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
