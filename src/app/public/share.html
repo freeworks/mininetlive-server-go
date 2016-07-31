@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>微网</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="static/css/share.css">
+    <script type="text/javascript" src="js/jquery-latest.js" defer></script>
+    <script type="text/javascript" src="static/js/browser.js"></script>
+    <script type="text/javascript" src="static/js/common.js" defer></script>
+    <script type="text/javascript" src="static/js/share.js" defer></script>
+</head>
+<body>
+<div class="loading"><div class="loader"></div></div>
+<div class="container">
+    <div id="frontCover" class="frontCover"></div>
+
+    <div class="section infoContainer">
+        <h1 id="title"></h1>
+        <div class="small line">时间：<span id="date"></span></div>
+
+        <div style="display:none;" class="state1">
+            <div class="small line">播放<span id="playCount"></span>次</div>
+            <div class="small line line3">
+                <img src="" id="owner_avatar" class="avatar">
+                <div>微商公开课</div>
+            </div>
+        </div>
+
+
+        <div style="display:none;" class="state2">
+            <div class="small line line3">
+                <img src="" id="owner_avatar" class="avatar">
+                <div>微商公开课</div>
+                <div class="appointmentCountConatiner">已有<span id="appointmentCount"></span>人预约</div>
+            </div>
+        </div>
+
+        <div style="display:none;" class="state3">
+            <div class="small line"><span id="onlineCount"></span>在看</div>
+            <div class="small line line3">
+                <img src="" id="owner_avatar" class="avatar">
+                <div>微商公开课</div>
+                <div class="price">￥666.00</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="section activieContainer">
+        <h2>活动介绍</h2>
+        <p id="desc"></p>
+    </div>
+
+    <div class="section qcodeContainer">
+        <h2>扫一扫下载APP，观看更多精彩内容</h2>
+        <div class="qcodeDiv"><img src="" class="qcode" id="qrcode"></div>
+        <div class="qcodeDesc">长按二维码下载APP</div>
+    </div>
+
+    <div class="bottom">
+        <div class="shareConatiner">
+            <div><img src="static/img/share.png" class="shareIcon"></div>
+            <div class="shareText">分享</div>
+        </div>
+        <div class="button state1" style="display:none;background-color: rgba(246, 124, 21, 1);">打赏红包</div>
+        <div class="button state2" style="display:none;background-color: rgba(74, 144, 226, 1);">立即预约</div>
+        <div class="button state3" style="display:none;background-color: rgba(10, 198, 83, 1);">购买观看</div>
+    </div>
+</div>
+</body>
+</html>

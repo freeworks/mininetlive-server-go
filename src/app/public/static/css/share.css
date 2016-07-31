@@ -1,0 +1,205 @@
+* {
+    box-sizing: content-box;
+    line-height: 1;
+}
+html, body{
+    margin: 0;
+    background-color: rgba(238, 238, 238, 1);
+    font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6, p{
+    margin: 0;
+}
+
+
+.loading{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top:0;
+    left: 0;
+    background-color: white;
+    z-index: -1;
+}
+.loader{
+    background-repeat: no-repeat;
+    background-image: url("../img/spinner.png");
+    width: 25px;
+    height: 25px;
+    background-size: cover;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    margin-top: -12.5px;
+    margin-left: -12.5px;
+    animation: load 1.2s infinite linear;
+}
+
+@keyframes load{
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.container{
+    display: none;
+}
+
+.frontCover{
+    width: 100%;
+    background-position: center;
+    background-size: cover;
+}
+
+.section {
+    padding: 20px;
+    background-color: white;
+    margin-bottom: 8px;
+}
+
+.section h2{
+    font-size: 14px;
+    color: rgba(74, 74, 74, 1);
+    margin-bottom: 10px;
+}
+
+.infoContainer{
+    background-color: white;
+    margin-bottom: 8px;
+}
+
+.infoContainer h1 {
+    color: rgba(74, 74, 74, 1);
+    font-size: 17px;
+}
+
+.small {
+    font-size: 14px;
+    color: rgba(160, 160, 160, 1);
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    position: relative;
+    top: 2px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.line {
+    margin-top: 10px;
+}
+
+.line3 {
+    line-height: 30px;
+    vertical-align: middle;
+    margin-top: 8px;
+}
+
+.line3 div{
+    display: inline-block;
+    line-height: 30px;
+    vertical-align: middle;
+    height: 30px;
+    vertical-align: top;
+    position: relative;
+}
+
+.price{
+    float: right;
+    font-size: 20px;
+    color: rgba(10, 198, 83, 1);
+    position: relative;
+    top: 8px;
+    position: absolute;
+    top: 0;
+}
+
+.activieContainer{
+    background-color: white;
+}
+
+.activieContainer p {
+    font-size: 14px;
+    color: rgba(160, 160, 160, 1);
+    line-height: 1.5;
+}
+
+.qcodeContainer{
+    margin-bottom: 0px;
+}
+
+.qcode{
+    width: 150px;
+    height: 150px;
+    margin: 0;
+}
+
+.qcodeDiv{
+    width: 150px;
+    height: 150px;
+    text-align: center;
+    margin: 30px auto 10px;
+}
+
+.qcodeDesc{
+    font-size: 14px;
+    color: rgba(74, 144, 226, 1);
+    text-align: center;
+}
+
+.bottom{
+    height: 49px;
+    position: relative;
+}
+
+.bottom .button {
+    width: 130px;
+    height: 49px;
+    float: right;
+    background-color: rgba(10, 198, 83, 1);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    line-height: 49px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+.shareConatiner{
+    display: inline-block;
+    margin-left: 10px;
+    padding: 5px 20px 0px;
+}
+.shareIcon{
+    width: 24px;
+    height: 24px;
+}
+
+.shareText{
+    margin-top: 2px;
+    font-size: 10px;
+    color: rgba(146, 146, 146, 1);
+    width: 24px;
+    text-align: center;
+}
+
+.appointmentCountConatiner{
+    float: right;
+    font-size: 12px;
+    position: relative;
+    top: 8px;
+    position: absolute;
+    top: 0;
+}
+
+#appointmentCount{
+    color:rgba(74, 144, 226, 1);
+    font-size: 18px;
+}
