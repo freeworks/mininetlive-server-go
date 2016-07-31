@@ -5,6 +5,7 @@ import (
 	logger "app/logger"
 	. "app/models"
 	"net/http"
+
 	"github.com/coopernurse/gorp"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -160,8 +161,8 @@ func JoinGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	if uid == "" || aid == "" {
 		logger.Info("JoinGroup", "uid or aid is ''")
 	} else {
-		_,err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(NULL,?,?,now())`, aid,uid)
-		logger.Info("JoinGroup ",err)
+		_, err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(NULL,?,?,now())`, aid, uid)
+		logger.Info("JoinGroup ", err)
 	}
 	r.JSON(200, Resp{0, "成功", nil})
 }
@@ -173,8 +174,8 @@ func LeaveGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	if uid == "" || aid == "" {
 		logger.Info("LeaveGroup", "uid or aid is ''")
 	} else {
-		_,err := dbmap.Exec(`DELETE * FROM t_activity_user_online WHERE aid = ? AND uid = ?`, aid,uid)
-		logger.Info("LeaveGroup ",err)
+		_, err := dbmap.Exec(`DELETE * FROM t_activity_user_online WHERE aid = ? AND uid = ?`, aid, uid)
+		logger.Info("LeaveGroup ", err)
 	}
 	r.JSON(200, Resp{0, "成功", nil})
 }
@@ -187,7 +188,7 @@ func GetLiveActivityMemberCount(req *http.Request, r render.Render, c *cache.Cac
 		logger.Info("LeaveGroup", "uid or aid is ''")
 		r.JSON(200, Resp{0, "缺少参数", nil})
 	} else {
-		count, err := dbmap.SelectInt("SELECT COUNT(*) FROM t_activity_user_online WHERE aid = ?",aid)
+		count, err := dbmap.SelectInt("SELECT COUNT(*) FROM t_activity_user_online WHERE aid = ?", aid)
 		if err == nil {
 			r.JSON(200, Resp{0, "获取在线成员信息成功", map[string]int{"count": int(count)}})
 		} else {
@@ -204,11 +205,11 @@ func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cach
 		logger.Info("LeaveGroup", "uid or aid is ''")
 		r.JSON(200, Resp{0, "缺少参数", nil})
 	} else {
-		var users []User
-		_, err := dbmap.Select(&users,`SELECT * FROM t_activity_user_online o LEFT JOIN  t_user u ON o.uid = u.uid WHERE aid = ?`,aid)
+		var uids []string
+		_, err := dbmap.Select(&uids, `SELECT uid FROM t_activity_user_online WHERE aid = ?`, aid)
 		if err == nil {
-			r.JSON(200, Resp{0, "获取在线成员信息成功", users})
-		}else{
+			r.JSON(200, Resp{0, "获取在线成员信息成功", uids})
+		} else {
 			r.JSON(200, Resp{1402, "获取在线成员信息失败", nil})
 		}
 	}
