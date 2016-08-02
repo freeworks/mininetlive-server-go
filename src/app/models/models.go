@@ -191,7 +191,7 @@ func (a Activity) String() string {
 type QActivity struct {
 	Activity
 	Owner        User   `json:"owner" db:"uid"`
-	LivePushPath string `json:"-" db:"live_push_path"`
+	LivePushPath string `json:"livePushPath" db:"live_push_path"`
 }
 
 type NActivity struct {
