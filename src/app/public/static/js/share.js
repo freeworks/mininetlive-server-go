@@ -32,7 +32,7 @@ function renderHtml(activity){
     img.src = activity.owner.avatar;
     img.onload = function(){
         debugger
-        $("#owner_avatar").attr("src", activity.owner.avatar);
+        $("#owner_avatar").attr("src", activity.owner.avatar + "?iopcmd=thumbnail&type=8&width=64&height=64");
     }
     
     $("#desc").text(activity.desc);
