@@ -314,7 +314,7 @@ func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	_, err := dbmap.Exec("DELETE from t_activity WHERE id=?", params["id"])
+	_, err := dbmap.Exec("DELETE from t_activity WHERE aid=?", params["id"])
 	CheckErr(err, "DeleteActivity delete failed")
 	if err == nil {
 		r.JSON(200, Resp{0, "删除活动成功", nil})
