@@ -3,7 +3,7 @@ $(document).ready(function(){
 
     var $userList = $("#userList");
     var params = _.parseUrlParams();
-    params.pageSize = params.pageSize || 10;
+    params.pageSize = params.pageSize || 5;
 
     mininet.ajax("get", "/user/list", params, function(rsp){
         debugger
@@ -28,7 +28,7 @@ function renderHtmlUserRow(user){
         '</td>' +
         '<td>' + mininet.formatGender(user.gender) + '</td>' + 
         '<td>' + user.phone +'</td>' +
-        '<td>￥ ' + user.balance + '</td>' +
+        '<td>￥ ' + (user.balance / 100).toFixed(2) + '元</td>' +
         '<td>' + mininet.formatPlat(user.plat) + '</td>' +
         '<td class="align-right">' + user.createTime + '</td>' +
     '</tr>'
