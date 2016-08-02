@@ -19,7 +19,7 @@ $(document).ready(function(){
                 window.location.href = "/"
                 // window.location.href = params.next || "/index.html";
             } else {
-                // TODO 错误提示
+                alert("登陆失败，用户名或者密码错误")
             }
         })
     });

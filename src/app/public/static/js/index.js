@@ -3,11 +3,11 @@ $(document).ready(function() {
 
     
     mininet.ajax("post", "/", {}, function(rsp) {
+        debugger
         if (rsp.ret == 0) {
-            var key;
-            for (key in rsp.data) {
-                $("#" + key).text(rsp.data[key]);
-            }
+            $("#newUserCount").text(rsp.data["newUserCount"]);
+            $("#newOrderCount").text(rsp.data["newOrderCount"]);
+            $("#newAmount").text((rsp.data["newAmount"] / 100.0).toFixed(2));
         } else {
             // TODO 非正常处理
         }
@@ -38,6 +38,7 @@ $(document).ready(function() {
         debugger
         if (rsp.ret == 0){
             for (var i = 0; i < rsp.data.length; i++){
+                rsp.data[i].count = (rsp.data[i].count / 100.0).toFixed(2);
                 incomeData.push([i+1, rsp.data[i].count])   
                 incomeTicks.push([i+1, rsp.data[i].date])   
             }
