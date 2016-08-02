@@ -139,7 +139,7 @@ func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.front_cover,a.date,a.play_count,u.nickname 
 		FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
 		WHERE r.type = 1 AND r.uid=? 
-		ORDER BY create_time `
+		ORDER BY create_time DESC `
 	_, err := dbmap.Select(&playRecords, sql, uid)
 	CheckErr(err, "GetPlayRecords failed")
 	if err != nil {
@@ -156,7 +156,7 @@ func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.Db
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.activity_state,a.front_cover,a.date,u.nickname
 	        FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
 		    WHERE r.type = 0 AND r.uid=?
-	        ORDER BY create_time`
+	        ORDER BY create_time DESC`
 	_, err := dbmap.Select(&appointmentRecords, sql, uid)
 	CheckErr(err, "GetPlayRecords failed")
 	if err != nil {
@@ -172,7 +172,7 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.front_cover,a.title,a.date,a.activity_type,a.activity_state,u.nickname,o.channel,o.amount 
 		    FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid LEFT JOIN t_order o ON r.orderno=o.no
 		    WHERE r.type = 2 AND r.uid=? AND o.type = 1
-		    ORDER BY create_time`
+		    ORDER BY create_time DESC`
 	_, err := dbmap.Select(&payRecords, sql, uid)
 	CheckErr(err, "GetPayRecords failed")
 	if err != nil {
