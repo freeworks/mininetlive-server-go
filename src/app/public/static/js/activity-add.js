@@ -38,7 +38,7 @@ $(document).ready(function(){
         params.frontCover = $("#frontCoverString").val();
         // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
         params.date = params.date.replace("+", " ");
-        
+        params.price = params.price * 100;
         $(".field-box").removeClass('error');
         mininet.ajax("post", "/activity/new", params, function(rsp){
             if (rsp.ret == 0){

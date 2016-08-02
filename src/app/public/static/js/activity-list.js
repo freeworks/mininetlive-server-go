@@ -18,6 +18,17 @@ $(document).ready(function(){
         } else {
             // TODO 非正常处理
         }
+    });
+
+    $("body").on('click', '.delete', function(){
+        var $this = $(this);
+        mininet.ajax("delete", "/activity/delete/" + $(this).data("aid"), {}, function(rsp){
+            if (rsp.ret == 0){
+               $this.parent().parent().hide();
+            } else {
+                alert("删除失败");
+            }
+        });
     })
 })
 
@@ -27,11 +38,12 @@ function renderHtmlActivityRow(activity){
         '<td><img src="' + activity.frontCover + '" style="width: 150px;height:75px;" class="avatar hidden-phone" />' + '</td>' +
         '<td>' + mininet.formatActivityState(activity.activityState) +'</td>' +
         '<td>' + mininet.formateActivityType(activity.activityType) +'</td>' +
-        '<td>' + mininet.formateAppoinState(activity.appoinState) +'</td>' +
+        // '<td>' + mininet.formateAppoinState(activity.appoinState) +'</td>' +
         '<td>' + activity.appointmentCount +'</td>' +
-        '<td>' + activity.price +'</td>' +
-        '<td>' + mininet.formatePayState(activity.payState) +'</td>' +
+        '<td>￥' + (activity.price / 100).toFixed(2) +'元</td>' +
+        // '<td>' + mininet.formatePayState(activity.payState) +'</td>' +
         '<td>' + activity.owner.nickname +'</td>' +
-        '<td class="align-right">' + activity.createTime + '</td>' +
+        '<td>' + activity.createTime + '</td>' +
+        '<td class="align-right"><a class="btn-flat warning delete" data-aid="' + activity.aid + '">删除</a></tr>' + 
     '</tr>'
 }

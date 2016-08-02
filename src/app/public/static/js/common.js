@@ -234,6 +234,18 @@ function formatePayState(state){
     }
 }
 
+function formateOrderState(state){
+    switch(state){
+        case 0:
+            return "未支付"
+        case 1:
+            return "已支付"
+        default:
+            return state;
+    }
+}
+
+
 mininet.ajax = ajax;
 mininet.ajaxFile = ajaxFile;
 mininet.formatGender = formatGender;
@@ -247,3 +259,4 @@ mininet.formatActivityState = formatActivityState;
 mininet.formateActivityType = formateActivityType;
 mininet.formateAppoinState = formateAppoinState;
 mininet.formatePayState = formatePayState;
+mininet.formateOrderState = formateOrderState;

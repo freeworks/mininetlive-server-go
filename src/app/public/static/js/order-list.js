@@ -26,8 +26,8 @@ function renderHtmlOrderRow(order){
         '<td>' + order.no + '</td>' + 
         '<td>' + order.subject + '</td>' + 
         '<td>' + mininet.formatChannel(order.channel) + '</td>' + 
-        '<td>￥ ' + order.amount + '</td>' + 
-        '<td>' + order.type + '</td>' + 
+        '<td>￥ ' + (order.amount / 100.0).toFixed(2)+ '元</td>' + 
+        '<td>' + mininet.formateOrderState(order.type) + '</td>' + 
         '<td class="align-right">' + order.createTime + '</td>' + 
     '</tr>'
 }
