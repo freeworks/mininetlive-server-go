@@ -15,7 +15,16 @@ $(document).ready(function(){
 
 
 function renderHtml(activity){
-    $("#frontCover").css("height", window.innerWidth * 100 / 187.5).css("background-image", "url(" + activity.frontCover + ")");
+    if (activity.videoPath){
+        $("#video").css("width", "100%")
+        .css("height", window.innerWidth * 100 / 187.5)
+        .css("background-image", activity.frontCover)
+        .attr("poster", activity.frontCover)
+        .attr("src", activity.videoPath).show();
+    } else {
+        $("#frontCover").css("height", window.innerWidth * 100 / 187.5).css("background-image", "url(" + activity.frontCover + ")").show();
+    }
+    
     $("#title").text(activity.title); document.title = activity.title;
     $("#date").text(formateDate(activity.date));
     $("#owner_avatar").attr("src", activity.owner.avatar);

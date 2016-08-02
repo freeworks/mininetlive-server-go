@@ -203,3 +203,9 @@ h1, h2, h3, h4, h5, h6, p{
     color:rgba(74, 144, 226, 1);
     font-size: 18px;
 }
+
+#video {
+    background-size:cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
