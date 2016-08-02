@@ -271,6 +271,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 			}
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "transfer.succeeded" {
+
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)

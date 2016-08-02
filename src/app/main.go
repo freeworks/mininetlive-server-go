@@ -72,8 +72,8 @@ func main() {
 		r.Post("/play", PlayActivity)
 		r.Post("/join", JoinGroup)
 		r.Post("/leave", LeaveGroup)
-		r.Post("/member/list", GetLiveActivityMemberList)
-		r.Post("/member/count", GetLiveActivityMemberCount)
+		r.Get("/member/list", GetLiveActivityMemberList)
+		r.Get("/member/count", GetLiveActivityMemberCount)
 
 	})
 	m.Group("/pay", func(r martini.Router) {

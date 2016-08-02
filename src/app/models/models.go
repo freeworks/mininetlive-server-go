@@ -14,17 +14,18 @@ import (
 var Dbmap *gorp.DbMap
 
 type User struct {
-	Id           int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
-	Uid          string    `form:"uid"  json:"uid" db:"uid"`
-	NickName     string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
-	Avatar       string    `form:"avatar" json:"avatar"  db:"avatar"`
-	Gender       int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
-	Balance      int       `form:"balance" json:"balance" db:"balance"`
-	InviteCode   string    `form:"-" json:"inviteCode" db:"invite_code"`
-	Qrcode       string    `form:"qrcode" json:"qrcode" db:"qrcode"`
-	Phone        string    `form:"phone" json:"phone" db:"phone"`
-	Updated      time.Time `json:"-" db:"update_time"`
-	Created      time.Time `json:"-" db:"create_time"`
+	Id          int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
+	Uid         string    `form:"uid"  json:"uid" db:"uid"`
+	EasemobUuid string    `json:"easemobUuid" db:"easemob_uuid"`
+	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
+	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
+	Gender      int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
+	Balance     int       `form:"balance" json:"balance" db:"balance"`
+	InviteCode  string    `form:"-" json:"inviteCode" db:"invite_code"`
+	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
+	Phone       string    `form:"phone" json:"phone" db:"phone"`
+	Updated     time.Time `json:"-" db:"update_time"`
+	Created     time.Time `json:"-" db:"create_time"`
 }
 
 func (u User) Value() (driver.Value, error) {
@@ -86,17 +87,16 @@ type OAuthUser struct {
 }
 
 type LocalAuthUser struct {
-	User      User
-	LocalAuth LocalAuth
-	BeInviteCode   string    `form:"inviteCode" json:"-" db:"-"`
+	User         User
+	LocalAuth    LocalAuth
+	BeInviteCode string `form:"inviteCode" json:"-" db:"-"`
 }
 
-
 type InviteRelationship struct {
-	Id            int     `db:"id" json:"-"`
-	Uid            string     `db:"uid" json:"uid"`
-	BeInvitedCode    string    `db:"be_invited_code" json:"-"`
-	Created   		JsonTime `db:"create_time" json:"createTime"`
+	Id            int      `db:"id" json:"-"`
+	Uid           string   `db:"uid" json:"uid"`
+	BeInvitedCode string   `db:"be_invited_code" json:"-"`
+	Created       JsonTime `db:"create_time" json:"createTime"`
 }
 
 type Record struct {
@@ -219,4 +219,10 @@ type Order struct {
 	Aid      string   `json:"aid" db:"aid"`
 	PayType  int      `json:"type" db:"type"`
 	Created  JsonTime `json:"createTime" db:"create_time"`
+}
+
+type OnlineUser struct {
+	Uid      string `json:"uid" db:"uid"`
+	Avatar   string `json:"avatar" db:"avatar"`
+	Nickname string `json:"nickname" db:"nickname"`
 }

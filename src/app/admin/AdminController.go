@@ -277,7 +277,7 @@ func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity LIMIT ?,?", start, size)
+	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity ORDER BY create_time DESC LIMIT ?,? ", start, size)
 	CheckErr(err, "GetActivityList")
 	logger.Info(activities)
 
