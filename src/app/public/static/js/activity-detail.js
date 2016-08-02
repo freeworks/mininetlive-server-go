@@ -30,7 +30,7 @@ function renderHtmlActivity(activity){
         html += '<tr><td>' + '路径' + '</td><td>' + activity.videoPath + '</td></tr>';
     }
     if (activity.streamType == 0){
-        html += '<tr><td>' + '路径' + '</td><td>' + activity.livePushPath + '</td></tr>';
+        html += '<tr><td>' + '推流地址' + '</td><td>' + activity.livePullPath + '</td></tr>';
         html += '<tr><td>' + '状态' + '</td><td>' + activity.activityState + '</td></tr>';
         html += '<tr><td>' + '当前观看时间' + '</td><td>' + activity.onlineCount + '</td></tr>';
     }

@@ -29,7 +29,7 @@ function renderHtml(activity){
     $("#date").text(formateDate(activity.date));
     $("#owner_avatar").attr("src", activity.owner.avatar);
     $("#desc").text(activity.desc);
-    $("#qrcode").attr("src", activity.owner.qrcode);
+    // $("#qrcode").attr("src", activity.owner.qrcode);
 
     if (activity.activityType == 0){
         $("#playCount").text(activity.playCount);
@@ -54,5 +54,8 @@ function formateTwo(string){
 
 function formateDate(date){
     date = new Date(date);
+    if (date == "Invalid Date"){
+        date = new Date();
+    }
     return formateTwo(date.getMonth() + 1) + "-" + formateTwo(date.getDate()) + " " + formateTwo(date.getHours()) + ":" + formateTwo(date.getMinutes());
 }

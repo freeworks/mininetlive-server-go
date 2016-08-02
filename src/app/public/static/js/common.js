@@ -188,6 +188,52 @@ function newLocationPath(params){
     return location.pathname + "?" + _.stringifyUrlParams(params);
 }
 
+function formatActivityState(state){
+    switch(state){
+        case 0:
+            return "未开播"
+        case 1:
+            return "直播中"
+        case 2:
+            return "直播结束"
+        default:
+            return state;
+    }
+}
+
+function formateActivityType(state){
+    switch(state){
+        case 0:
+            return "收费"
+        case 1:
+            return "免费"
+        default:
+            return state;
+    }
+}
+
+function formateAppoinState(state){
+    switch(state){
+        case 0:
+            return "未预约"
+        case 1:
+            return "已预约"
+        default:
+            return state;
+    }
+}
+
+function formatePayState(state){
+    switch(state){
+        case 0:
+            return "未支付"
+        case 1:
+            return "已支付"
+        default:
+            return state;
+    }
+}
+
 mininet.ajax = ajax;
 mininet.ajaxFile = ajaxFile;
 mininet.formatGender = formatGender;
@@ -197,5 +243,7 @@ mininet.renderHtmlNavbar = renderHtmlNavbar;
 mininet.renderHtmlPagination = renderHtmlPagination;
 mininet.formatStreamType = formatStreamType;
 mininet.formatDateTime = formatDateTime;
-
-
+mininet.formatActivityState = formatActivityState;
+mininet.formateActivityType = formateActivityType;
+mininet.formateAppoinState = formateAppoinState;
+mininet.formatePayState = formatePayState;

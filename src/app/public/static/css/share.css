@@ -47,6 +47,7 @@ h1, h2, h3, h4, h5, h6, p{
 
 .container{
     display: none;
+    margin-bottom: 49px;
 }
 
 .frontCover{
@@ -208,4 +209,22 @@ h1, h2, h3, h4, h5, h6, p{
     background-size:cover;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+.download {
+    position: fixed;
+    bottom: 0px;
+    height: 49px;
+    background-color: rgba(74, 144, 226, 1);
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    line-height: 49px;
+    left: 0;
+    right: 0;
+}
+
+.download > a{
+    color: white;
+    text-decoration: none;
 }
