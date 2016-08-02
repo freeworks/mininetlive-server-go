@@ -27,7 +27,14 @@ function renderHtml(activity){
     
     $("#title").text(activity.title); document.title = activity.title;
     $("#date").text(formateDate(activity.date));
-    $("#owner_avatar").attr("src", activity.owner.avatar);
+
+    var img = document.createElement('img');
+    img.src = activity.owner.avatar;
+    img.onload = function(){
+        debugger
+        $("#owner_avatar").attr("src", activity.owner.avatar);
+    }
+    
     $("#desc").text(activity.desc);
     // $("#qrcode").attr("src", activity.owner.qrcode);
 
