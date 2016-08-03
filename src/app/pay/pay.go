@@ -48,6 +48,15 @@ func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amoun
 	}
 }
 
+func newPayRecord(uid string, aid string, orderno string) Record {
+	return Record{
+		Uid:     uid,
+		OrderNo: orderno,
+		Aid:     aid,
+		Type:    2,
+	}
+}
+
 func init() {
 	pingpp.LogLevel = 2
 	pingpp.Key = API_KEY
@@ -124,9 +133,10 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 	} else {
 		chs, _ := json.Marshal(ch)
 		logger.Info(string(chs))
-		//TODO 创建订单
 		order := newOrder(uid, strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
+		record := newPayRecord(aid, uid, strconv.Itoa(orderno))
+		err = dbmap.Insert(&record)
 		CheckErr(err, "create order")
 		var chsObj interface{}
 		json.Unmarshal(chs, &chsObj)

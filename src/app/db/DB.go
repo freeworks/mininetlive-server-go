@@ -3,6 +3,7 @@ package db
 import (
 	. "app/admin"
 	. "app/common"
+	//	config "app/config"
 	models "app/models"
 	"database/sql"
 	"os"
@@ -32,5 +33,36 @@ func InitDb() *gorp.DbMap {
 	dbmap.AddTableWithName(models.NActivity{}, "t_activity").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.QActivity{}, "t_activity").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.InviteRelationship{}, "t_invite_relation").SetKeys(true, "Id")
+
+	//	Uid         string    `form:"uid"  json:"uid" db:"uid"`
+	//	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
+	//	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
+	//	Gender      int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
+	//	Balance     int       `form:"balance" json:"balance" db:"balance"`
+	//	InviteCode  string    `form:"-" json:"inviteCode" db:"invite_code"`
+	//	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
+	//	Phone       string    `form:"phone" json:"phone" db:"phone"`
+	//	user := user{
+	//		Uid:      UID(),
+	//		NickName:  config.NickName,
+	//		Avatar:   config.Avatar,
+	//		Gender:  1
+	//		Phone:  config.Phone,
+	//	}
+
+	//	LocalAuth
+
+	//	trans, err := dbmap.Begin()
+	//	authUser.User.Uid = UID()
+	//	authUser.User.InviteCode = GeneraVCode6()
+	//	authUser.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
+	//	err = trans.Insert(&authUser.User)
+	//	CheckErr(err, "Register insert user failed")
+	//	authUser.LocalAuth.Token = Token()
+	//	authUser.LocalAuth.Uid = authUser.User.Uid
+	//	authUser.LocalAuth.Expires = time.Now().Add(time.Hour * 24 * 30)
+	//	err = trans.Insert(&authUser.LocalAuth)
+	//	CheckErr(err, "Register insert LocalAuth failed")
+	//	err = trans.Commit()
 	return dbmap
 }

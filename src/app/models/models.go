@@ -104,6 +104,7 @@ type Record struct {
 	Aid     string    `db:"aid" json:"aid"`
 	Uid     string    `db:"uid" json:"-"`
 	Type    int       `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买
+	OrderNo string    `db:"orderno" json:"orderNo"`
 	Created JsonTime3 `db:"create_time" json:"createTime"`
 }
 
@@ -165,8 +166,6 @@ type Activity struct {
 	ActivityType     int       `form:"activityType" json:"activityType" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
-	PayState         int       `json:"payState" db:"-"`
-	AppointState     int       `json:"appoinState" db:"-"`
 	OnlineCount      int       `json:"onlineCount" db:"online_count"`
 	IsRecommend      int       `json:"-" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
@@ -190,6 +189,8 @@ func (a Activity) String() string {
 
 type QActivity struct {
 	Activity
+	PayState     int    `json:"payState" db:"pay_state"`
+	AppointState int    `json:"appoinState" db:"appoint_state"`
 	Owner        User   `json:"owner" db:"uid"`
 	LivePushPath string `json:"livePushPath" db:"live_push_path"`
 }

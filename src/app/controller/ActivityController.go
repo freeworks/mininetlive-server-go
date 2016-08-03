@@ -52,20 +52,14 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var recomendActivities []QActivity
 	var activities []QActivity
-	_, err := dbmap.Select(&recomendActivities, "SELECT * FROM t_activity WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC")
+	_, err := dbmap.Select(&recomendActivities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
+	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
+	WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC`, uid, uid)
 	CheckErr(err, "get recomend list")
-	if err == nil {
-		for _, activity := range recomendActivities {
-			queryState(activity, uid, dbmap)
-		}
-	}
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ? ", PageSize+1)
+	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
+	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
+	WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ?`, uid, uid, PageSize+1)
 	CheckErr(err, "get Activity List")
-	if err == nil {
-		for _, activity := range activities {
-			queryState(activity, uid, dbmap)
-		}
-	}
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
@@ -89,14 +83,14 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	logger.Info("GetMoreActivityList..", activity.Created)
 	var activities []QActivity
-	_, err = dbmap.Select(&activities, "SELECT * FROM t_activity WHERE create_time < ? AND activity_state >= ? AND is_recommend = 0 ORDER BY activity_state ASC, create_time DESC  LIMIT ?", activity.Created, activity.ActivityState, PageSize+1)
+	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state,
+	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
+	FROM t_activity t 
+	WHERE t.create_time < ? AND t.activity_state >= ? AND t.is_recommend = 0 ORDER BY t.activity_state ASC, t.create_time DESC  LIMIT ?`, uid, uid, activity.Created, activity.ActivityState, PageSize+1)
 	CheckErr(err, "GetActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
-		for _, activity := range activities {
-			queryState(activity, uid, dbmap)
-		}
 		var hasmore bool
 		if len(activities) > PageSize {
 			hasmore = true
@@ -111,35 +105,14 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity WHERE activity_state = 1 AND stream_type = 0 ORDER BY create_time DESC")
+	_, err := dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
+	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
+	FROM t_activity t WHERE t.activity_state = 1 AND t.stream_type = 0 ORDER BY t.create_time DESC`, uid, uid)
 	CheckErr(err, "GetLiveActivityList select failed")
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
-		for _, activity := range activities {
-			queryState(activity, uid, dbmap)
-		}
 		r.JSON(200, Resp{0, "查询活动成功", activities})
-	}
-}
-
-func queryState(activity QActivity, uid string, dbmap *gorp.DbMap) {
-	if uid != "" {
-		count, err := dbmap.SelectInt("select count(*) from t_record where type = 2 and aid = ? and uid = ?", activity.Aid, uid)
-		CheckErr(err, "get appointment count")
-		if count == 0 {
-			activity.PayState = 0
-		} else {
-			activity.PayState = 1
-		}
-
-		count, err = dbmap.SelectInt("select count(*) from t_record where  type = 0 && aid = ? and uid = ?", activity.Aid, uid)
-		CheckErr(err, "get appointment count")
-		if count == 0 {
-			activity.AppointState = 0
-		} else {
-			activity.AppointState = 1
-		}
 	}
 }
 
