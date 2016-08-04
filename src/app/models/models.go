@@ -11,7 +11,11 @@ import (
 	"github.com/coopernurse/gorp"
 )
 
-var Dbmap *gorp.DbMap
+var mDbmap *gorp.DbMap
+
+func SetDbmap(dbmap *gorp.DbMap) {
+	mDbmap = dbmap
+}
 
 type User struct {
 	Id          int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
@@ -36,10 +40,10 @@ func (u *User) Scan(value interface{}) (err error) {
 	switch src := value.(type) {
 	case []byte:
 		u.Uid = string(src)
-		Dbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
+		mDbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
 	case int:
 		u.Uid = strconv.Itoa(src)
-		Dbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
+		mDbmap.SelectOne(u, "SELECT * FROM t_user WHERE uid  = ?", u.Uid)
 	default:
 		typ := reflect.TypeOf(value)
 		return fmt.Errorf("Expected person value to be convertible to int64, got %v (type %s)", value, typ)
@@ -109,6 +113,11 @@ type Record struct {
 }
 
 func (pl *Record) PreInsert(s gorp.SqlExecutor) error {
+	if pl.Type == 0 {
+		mDbmap.Exec("UPDATE t_activity SET appointment_count = appointment_count+1 WHERE aid = ?", pl.Aid)
+	} else if pl.Type == 1 {
+		mDbmap.Exec("UPDATE t_activity SET play_count = play_count+1 WHERE aid = ?", pl.Aid)
+	}
 	pl.Created = JsonTime3{JsonTime{time.Now(), true}}
 	return nil
 }

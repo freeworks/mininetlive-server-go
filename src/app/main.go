@@ -9,7 +9,6 @@ import (
 	logger "app/logger"
 	. "app/models"
 	pay "app/pay"
-	push "app/push"
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	"time"
@@ -85,7 +84,6 @@ func main() {
 	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
 	m.Get("/live/CallbackLiveEnd", CallbackLiveEnd)
 	m.Get("/share/:platform/activity/:id", GetSharePage)
-	m.Get("/test/push/:type", push.TestPush)
 
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
@@ -133,5 +131,4 @@ func main() {
 	}()
 
 	m.RunOnAddr(":8080")
-
 }

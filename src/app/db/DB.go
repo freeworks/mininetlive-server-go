@@ -21,7 +21,7 @@ func InitDb() *gorp.DbMap {
 	CheckErr(err, "sql.Open failed")
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}
-	models.Dbmap = dbmap
+	models.SetDbmap(dbmap)
 	dbmap.AddTableWithName(models.User{}, "t_user").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.OAuth{}, "t_oauth").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.LocalAuth{}, "t_local_auth").SetKeys(true, "Id")

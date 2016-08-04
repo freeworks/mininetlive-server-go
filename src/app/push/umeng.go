@@ -1,7 +1,6 @@
 package push
 
 import (
-	. "app/common"
 	logger "app/logger"
 	"bytes"
 	"crypto/md5"
@@ -14,8 +13,6 @@ import (
 	"time"
 
 	. "github.com/bitly/go-simplejson"
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
 )
 
 const (
@@ -56,16 +53,6 @@ func push(payload []byte) (*Json, error) {
 	}
 }
 
-func TestPush(params martini.Params, r render.Render) {
-	mType := params["type"]
-	if mType == "part" {
-		PushAppointment("test", "test1")
-	} else if mType == "all" {
-		PushNewActivity("test2")
-	}
-	r.JSON(200, Resp{0, "test成功", nil})
-}
-
 func PushAppointment(title, aid string) {
 	payload := []byte(`{
 			"appkey": "` + APP_KEY + `",
@@ -102,7 +89,7 @@ func PushAppointment(title, aid string) {
 	push(payload)
 }
 
-func PushNewActivity(title string) {
+func PushNewActivity(title, img string) {
 	//android
 	payload := []byte(`{
 			"appkey": "` + APP_KEY + `",
@@ -111,9 +98,12 @@ func PushNewActivity(title string) {
 			"payload":{
 				"display_type":"notification",
 				"body":{
-					"ticker":"新活动上线",
+					"ticker":"【新活动上线】",
 					"title":"有新的活动即将上线!",
 					"text":"` + title + `",
+					"icon":"R.drawable.ic_small",
+					"largeIcon":"R.drawable.ic_large",		
+					"img":"` + img + `",
 					"after_open":"go_app",
 				}
 			}

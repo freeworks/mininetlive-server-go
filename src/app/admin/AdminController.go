@@ -5,6 +5,7 @@ import (
 	config "app/config"
 	logger "app/logger"
 	. "app/models"
+	. "app/push"
 	"app/sessionauth"
 	"app/sessions"
 	//	"fmt"
@@ -364,9 +365,9 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
 		newmap := map[string]interface{}{"id": activity.Aid, "livePushPath": activity.LivePushPath}
+		go PushNewActivity(activity.Title, activity.FrontCover)
 		r.JSON(200, Resp{0, "创建活动成功!", newmap})
 	} else {
-		//TODO 删除环信id
 		r.JSON(200, Resp{1002, "创建活动失败", nil})
 	}
 }
