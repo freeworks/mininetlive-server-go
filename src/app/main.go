@@ -80,9 +80,10 @@ func main() {
 		r.Post("/webhook", pay.Webhook)
 		r.Post("/withdraw", pay.Transfer)
 	})
-	m.Get("/live/CallbackRecordFinish", CallbackRecordFinish)
-	m.Get("/live/CallbackLiveBegin", CallbackLiveBegin)
-	m.Get("/live/CallbackLiveEnd", CallbackLiveEnd)
+
+	m.Get("/callback/record/finish", CallbackRecordFinish)
+	m.Get("/callback/live/begin", CallbackLiveBegin)
+	m.Get("/callback/live/end", CallbackLiveEnd)
 	m.Get("/share/:platform/activity/:id", GetSharePage)
 
 	m.NotFound(func(r render.Render) {
