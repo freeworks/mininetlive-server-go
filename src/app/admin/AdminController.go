@@ -365,7 +365,7 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	CheckErr(err, "NewActivity insert failed")
 	if err == nil {
 		newmap := map[string]interface{}{"id": activity.Aid, "livePushPath": activity.LivePushPath}
-		go PushNewActivity(activity.Title, activity.FrontCover)
+		go PushNewActivity(activity.Title)
 		r.JSON(200, Resp{0, "创建活动成功!", newmap})
 	} else {
 		r.JSON(200, Resp{1002, "创建活动失败", nil})

@@ -3,12 +3,17 @@ package controller
 import (
 	. "app/common"
 	logger "app/logger"
+	. "app/models"
+	. "app/push"
 	"net/http"
 	"strconv"
+
+	"github.com/coopernurse/gorp"
 )
 
 // http://cgi.ucloud.com.cn/record_callback?filename=300000039_1462860643.m3u8&filesize=13719488&spacename=record&duration=163
 func CallbackRecordFinish(r *http.Request) {
+	//TODO
 	qs := r.URL.Query()
 	logger.Info(qs)
 	filename, filesize, spacename, duration := qs.Get("filename"), qs.Get("filesize"), qs.Get("spacename"), qs.Get("duration")
@@ -18,33 +23,32 @@ func CallbackRecordFinish(r *http.Request) {
 	CheckErr(err, "CallbackRecordFinish : parse duration ")
 	url := "http://" + spacename + ".ufile.ucloud.com.cn/" + filename
 	logger.Info("live record ", url, " size:", filesizeInt, " duration:", durationInt)
-	//TODO 更新状态 直播结束，变成点播
+
 }
 
-// http://127.0.0.1/publish_start?ip=推流端IP&id=流名&node=节点IP&app=推流域名&appname=发布点
-func CallbackLiveBegin(r *http.Request) {
+//[info [map[ip:[116.204.87.129] node:[211.162.55.57] id:[7RUTrhBiMwY=] app:[publish.weiwanglive.com] appname:[mininetlive]]]]
+func CallbackLiveBegin(r *http.Request, dbmap *gorp.DbMap) {
 	qs := r.URL.Query()
 	logger.Info(qs)
-	filename, filesize, spacename, duration := qs.Get("filename"), qs.Get("filesize"), qs.Get("spacename"), qs.Get("duration")
-	filesizeInt, err := strconv.Atoi(filesize)
-	CheckErr(err, "CallbackRecordFinish : parse filesize ")
-	durationInt, err := strconv.Atoi(duration)
-	CheckErr(err, "CallbackRecordFinish : parse duration ")
-	url := "http://" + spacename + ".ufile.ucloud.com.cn/" + filename
-	logger.Info("live record ", url, " size:", filesizeInt, " duration:", durationInt)
-	//TODO 更新状态 直播结束，变成点播
+	aid := qs.Get("id")
+	var activity QActivity
+	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", aid)
+	CheckErr(err, "CallbackLiveBegin - GetActivity select failed")
+	if err == nil {
+		dbmap.Exec("UPDATE t_activity SET activity_state = 1 WHERE aid = ?", aid)
+		PushLiveBegin(activity.Title)
+	}
 }
 
-// http://127.0.0.1/publish_stop?ip=推流端IP&id=流名&node=节点IP&app=推流域名&appname=发布点 其中，publish_start和publish_stop为客户提供的回调cgi。
-func CallbackLiveEnd(r *http.Request) {
+func CallbackLiveEnd(r *http.Request, dbmap *gorp.DbMap) {
 	qs := r.URL.Query()
 	logger.Info(qs)
-	filename, filesize, spacename, duration := qs.Get("filename"), qs.Get("filesize"), qs.Get("spacename"), qs.Get("duration")
-	filesizeInt, err := strconv.Atoi(filesize)
-	CheckErr(err, "CallbackRecordFinish : parse filesize ")
-	durationInt, err := strconv.Atoi(duration)
-	CheckErr(err, "CallbackRecordFinish : parse duration ")
-	url := "http://" + spacename + ".ufile.ucloud.com.cn/" + filename
-	logger.Info("live record ", url, " size:", filesizeInt, " duration:", durationInt)
-	//TODO 更新状态 直播结束，变成点播
+	aid := qs.Get("id")
+	var activity QActivity
+	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", aid)
+	CheckErr(err, "CallbackLiveEnd - GetActivity select failed")
+	if err == nil {
+		dbmap.Exec("UPDATE t_activity SET activity_state = 2 WHERE aid = ?", aid)
+		PushLiveEnd(activity.Title)
+	}
 }

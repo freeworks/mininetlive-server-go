@@ -53,43 +53,71 @@ func push(payload []byte) (*Json, error) {
 	}
 }
 
-func PushAppointment(title, aid string) {
-	payload := []byte(`{
-			"appkey": "` + APP_KEY + `",
-			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-			"type": "groupcast",
-			"payload":{
-				"display_type":"notification",
-				"body":{
-					"ticker":"新活动上线",
-					"title":"有新的活动即将上线!",
-					"text":"` + title + `",
-					"after_open":"go_app",
-				}
-			},
-			"filter":{
-				"where": {
-					    "and": 
-					    [
-					      {"tag":"` + aid + `"}
-					    ]
-				}
-			}
-	}`)
-	push(payload)
-	//IOS
-	payload = []byte(`{
-			"appkey": "` + APP_KEY + `",
-			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-			"type": "broadcast",
-			"payload":{
-				  "aps":{ "alert":"【新活动上线】` + title + `"}
-			}
-	}`)
-	push(payload)
+//func PushAppointment(title, aid string) {
+//	payload := []byte(`{
+//			"appkey": "` + APP_KEY + `",
+//			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
+//			"type": "groupcast",
+//			"payload":{
+//				"display_type":"notification",
+//				"body":{
+//					"ticker":"开始直播啦...",
+//					"title":"直播提醒",
+//					"text":"` + title + `正在直播中...",
+//					"icon": "ic_small",
+//					"largeIcon":"ic_large",
+//					"img":"` + img + `",
+//					"after_open": "go_app",
+//		            "play_vibrate": "true",
+//		            "play_sound": "true",
+//		            "play_lights": "true"
+//				}
+//			},
+//			"filter":{
+//				"where": {
+//					    "and":
+//					    [
+//					      {"tag":"` + aid + `"}
+//					    ]
+//				}
+//			}
+//	}`)
+//	push(payload)
+//	//IOS
+//	payload = []byte(`{
+//			"appkey": "` + APP_KEY + `",
+//			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
+//			"type": "broadcast",
+//			"payload":{
+//				  "aps":{ "alert":"【新活动上线】` + title + `"}
+//			}
+//	}`)
+//	push(payload)
+//}
+
+func PushNewActivity(title string) {
+	PushAll("新的活动上线", title, "新活动上线")
 }
 
-func PushNewActivity(title, img string) {
+func PushLiveBegin(title string) {
+	PushAll("正在直播中", title, "直播开始啦")
+}
+
+func PushLiveEnd(title string) {
+
+}
+
+//分红
+func PushRebates() {
+
+}
+
+//邀请人加入
+func PushInvited() {
+
+}
+
+func PushAll(title, text, ticker string) {
 	//android
 	payload := []byte(`{
 			"appkey": "` + APP_KEY + `",
@@ -98,13 +126,15 @@ func PushNewActivity(title, img string) {
 			"payload":{
 				"display_type":"notification",
 				"body":{
-					"ticker":"【新活动上线】",
-					"title":"有新的活动即将上线!",
-					"text":"` + title + `",
-					"icon":"R.drawable.ic_small",
-					"largeIcon":"R.drawable.ic_large",		
-					"img":"` + img + `",
-					"after_open":"go_app",
+					"ticker":"` + ticker + `",
+					"title":"` + title + `",
+					"text":"` + text + `",
+					"icon": "ic_small",
+					"largeIcon":"ic_large",
+					"after_open": "go_app",
+		            "play_vibrate": "true",
+		            "play_sound": "true",
+		            "play_lights": "true"
 				}
 			}
 	}`)
