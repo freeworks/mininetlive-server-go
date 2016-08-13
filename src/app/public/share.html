@@ -12,8 +12,31 @@
 <body>
 <div class="loading"><div class="loader"></div></div>
 <div class="container">
-    <video id="video" preload="load" controls style="display: none;background-color: black;"></video>
-    <div id="frontCover" class="frontCover" style="display: none;"></div>
+    <div class="header">
+        <div class="logo">
+            <img src="/static/img/ic_logo_start@2x.png">
+        </div>
+        <div class="h_center h_title">
+            <div style="font-size: 16px; color: rgba(74, 74, 74, 1);">微网直播</div>
+            <div style="font-size: 9px; color: rgba(176, 176, 176, 1);">一起看大咖现场</div>
+        </div>
+        <div class="h_center invite_code">
+            <div style="font-size: 16px; color: rgba(246, 124, 21, 1);">0988</div>
+            <div style="font-size: 9px; color: rgba(176, 176, 176, 1);">邀请码</div>
+        </div>
+        <div class="download">
+            下载APP
+        </div>
+    </div>
+    <div style="position: relative;">
+        <video id="video" preload="load" controls style="display: none;background-color: black;">
+        </video>
+         <div id="frontCover" class="frontCover" style="display: none;"></div>
+        <div class="live live1">正在直播中...</div>
+        <div class="live live2">下载APP观看</div>
+    </div>
+    
+   
 
     <div class="section infoContainer">
         <h1 id="title"></h1>
@@ -24,24 +47,26 @@
             <div class="small line line3">
                 <img src="/static/img/defaultavatar.png" id="owner_avatar" class="avatar">
                 <div>微商公开课</div>
+                <div id="price" class="price"></div>
             </div>
         </div>
 
 
         <div style="display:none;" class="state2">
+            <div class="small line ">已有<span id="appointmentCount"></span>人预约</div>
             <div class="small line line3">
                 <img src="" id="owner_avatar" class="avatar">
                 <div>微商公开课</div>
-                <div class="appointmentCountConatiner">已有<span id="appointmentCount"></span>人预约</div>
+                <div id="price" class="price"></div>
             </div>
         </div>
 
         <div style="display:none;" class="state3">
-            <div class="small line"><span id="onlineCount"></span>在看</div>
+            <div class="small line"><span id="onlineCount"></span>人在看</div>
             <div class="small line line3">
                 <img src="" id="owner_avatar" class="avatar">
                 <div>微商公开课</div>
-                <div class="price">￥666.00</div>
+                <div id="price" class="price"></div>
             </div>
         </div>
         
@@ -70,7 +95,5 @@
         <div class="button state3" style="display:none;background-color: rgba(10, 198, 83, 1);">购买观看</div>
     </div>
 </div>
-
-<div class="download"><a href="http://android.myapp.com/">去应用商城下载</a></div>
 </body>
 </html>

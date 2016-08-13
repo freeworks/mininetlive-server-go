@@ -2,8 +2,8 @@ $(document).ready(function(){
     var params = _.parseUrlParams();
 
     mininet.ajax("get", "/share/wx/activity/" + params.aid, {}, function(rsp){
+        debugger
         if (rsp.ret == 0){
-            debugger
             var activity =rsp.data;
             renderHtml(activity);
             $(".container").show();
@@ -31,23 +31,41 @@ function renderHtml(activity){
     var img = document.createElement('img');
     img.src = activity.owner.avatar;
     img.onload = function(){
-        debugger
+        // debugg
         $("#owner_avatar").attr("src", activity.owner.avatar + "?iopcmd=thumbnail&type=8&width=64&height=64");
     }
     
     $("#desc").text(activity.desc);
     // $("#qrcode").attr("src", activity.owner.qrcode);
+    
+    if (activity.streamType == 0){
+        // 直播
+        if (activity.activityState == 0){
+        // 未开播
+            $("#appointmentCount").text(activity.appointmentCount);
+            $(".state2").show();
+        }
+        if (activity.activityState == 1){
+            // 直播中
+            $(".live").show();
+            $("#onlineCount").text(activity.onlineCount);
+            $(".state3").show();
+        }
 
-    if (activity.activityType == 0){
+        if (activity.activityState == 2) {
+        // 直播结束
+        
+        }
+    } else {
         $("#playCount").text(activity.playCount);
         $(".state1").show();
-    } else if (activity.appoinState == 0){
-        
-        $("#appointmentCount").text(activity.appointmentCount);
-        $(".state2").show();
+        // 点播
+    }
+
+    if (activity.activityType == 0){
+        // 免费
     } else {
-        $("#onlineCount").text(activity.onlineCount);
-        $(".state3").show();
+        $(".price").text("￥" + (activity.price / 100.0).toFixed(2)).show();
     }
 }
 
