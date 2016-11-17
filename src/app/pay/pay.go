@@ -29,9 +29,8 @@ import (
 
 const (
 	//	API_KEY string = `sk_test_GaLOuHePyX1KjnjzbDW5m9KG`
-	APP_ID     string = `app_m5y1CSzTGCi5zjjj`
-	API_KEY    string = `sk_live_SOmLyDHanHSGe5irXPWfnvj5`
-	WX_OPEN_ID string = `wx36d2981a085f6370`
+	APP_ID  string = `app_m5y1CSzTGCi5zjjj`
+	API_KEY string = `sk_live_SOmLyDHanHSGe5irXPWfnvj5`
 )
 
 func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amount uint64, payType int) Order {
@@ -192,11 +191,19 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	transfer, err := transfer.New(transferParams)
 	if err != nil {
 		log.Fatal(err)
+		render.JSON(200, Resp{2006, "提现失败", nil})
+		return
 	}
 	logger.Info(transfer)
 	fr, _ := json.Marshal(transfer)
 	logger.Info(string(fr))
-
+	var dat map[string]interface{}
+	json.Unmarshal(fr, &dat)
+	failure_msg := dat["failure_msg"].(string)
+	if failure_msg != `` {
+		render.JSON(200, Resp{2007, "未绑定公众号", nil})
+		return
+	}
 	render.JSON(200, Resp{0, "提现成功", nil})
 	return
 }

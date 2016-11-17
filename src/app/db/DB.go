@@ -5,6 +5,7 @@ import (
 	. "app/common"
 	//	config "app/config"
 	models "app/models"
+	wxpub "app/wxpub"
 	"database/sql"
 	"os"
 
@@ -33,7 +34,7 @@ func InitDb() *gorp.DbMap {
 	dbmap.AddTableWithName(models.NActivity{}, "t_activity").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.QActivity{}, "t_activity").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.InviteRelationship{}, "t_invite_relation").SetKeys(true, "Id")
-
+	dbmap.AddTableWithName(wxpub.WXPub{}, "t_wxpub").SetKeys(true, "Id")
 	//	Uid         string    `form:"uid"  json:"uid" db:"uid"`
 	//	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
 	//	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`

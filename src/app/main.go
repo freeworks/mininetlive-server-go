@@ -4,6 +4,7 @@ import (
 	admin "app/admin"
 	config "app/config"
 	. "app/controller"
+	. "app/wxpub"
 	db "app/db"
 	intervaler "app/intervaler"
 	logger "app/logger"
@@ -53,7 +54,7 @@ func main() {
 		r.Get("/record/play/list", GetPlayRecordList)
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
-		r.Get("/record/withdraw/list", GetWithdrawRecordList)
+		r.Get("/record/transfer/list", GetWithdrawRecordList)
 		r.Post("/nickname", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Post("/phone", UpdateAccountPhone)
@@ -78,14 +79,17 @@ func main() {
 	m.Group("/pay", func(r martini.Router) {
 		r.Post("/charge", pay.GetCharge)
 		r.Post("/webhook", pay.Webhook)
-		r.Post("/withdraw", pay.Transfer)
+		r.Post("/transfer", pay.Transfer)
 	})
 
 	m.Get("/callback/record/finish", CallbackRecordFinish)
 	m.Get("/callback/live/begin", CallbackLiveBegin)
 	m.Get("/callback/live/end", CallbackLiveEnd)
 	m.Get("/share/:platform/activity/:id", GetSharePage)
-
+	m.Get("/wxpub/recv",RecvWXPubMsg)
+	m.Post("/wxpub/recv",RecvWXPubMsg)
+        m.Post("/wxpub/vcode", GetVCodeForWxPub)
+	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
@@ -131,5 +135,5 @@ func main() {
 		m.RunOnAddr(":8081")
 	}()
 
-	m.RunOnAddr(":8080")
+	m.RunOnAddr(":80")
 }

@@ -1,0 +1,40 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telephone=no">
+<title>微网直播-绑定手机号</title>
+  <!-- libraries -->
+    <link href="css/lib/jquery-ui-1.10.2.custom.css" rel="stylesheet" type="text/css" />
+    <link href="css/lib/font-awesome.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/bootstrap-wysihtml5.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/uniform.default.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/select2.css" type="text/css" rel="stylesheet" />
+    <link href="css/lib/bootstrap.datepicker.css" type="text/css" rel="stylesheet" />
+</head>
+<body>
+<form style="margin:8px" action="#" method="post">
+<h3 class="demos-title" style="margin-bottom:50px; margin-top:50px">手机号绑定</h3>
+<label >手机号：</label>
+<input type="tel" placeholder="请输入手机号" id="phone">
+<input style="width:117px;" type="button" value="获取验证码" onclick="clickButton()">
+<br/>
+<br/>
+<br/>
+<label >验证码：</label>
+<input  type="certifycode" id="certifycode" name="certifycode" placeholder="请输入验证码">
+<br/>
+<br/>
+<br/>
+<input style="width:117px;" type="submit" value="提交">
+</form>
+<script type="text/javascript">
+function clickButton(){
+    	alert($("#phone"));
+}
+</script></body>
+</html>
