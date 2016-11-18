@@ -227,7 +227,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 		}
 		//base64解码再验证
 		decodeStr, _ := base64.StdEncoding.DecodeString(signed)
-		logger.Info(decodeStr)
+		//		logger.Info(decodeStr)
 		err = pingpp.Verify([]byte(data), publicKey, decodeStr)
 		CheckErr(err, "webhook pingpp.Verify")
 		if err != nil {
@@ -263,9 +263,11 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 				if err == nil {
 					// https://www.zhihu.com/question/29083902
 					obj1, obj2, obj3 := getDistributionUsers(user.Uid, dbmap)
+					logger.Info("webhook getDistributionUsers ", obj1, obj2, obj3)
 					if obj1 != nil {
 						user1 := obj1.(User)
 						dividend := int(float64(amount) * config.DeductPercent1)
+						logger.Info("webhook user1 dividend->", dividend)
 						user1.Balance = user1.Balance + dividend
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user1.Balance, user1.Uid)
 						CheckErr(err, "update user1 dividend")
@@ -275,6 +277,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user2 := obj2.(User)
 						dividend := int(float64(amount) * config.DeductPercent2)
 						user2.Balance = user2.Balance + dividend
+						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user2.Balance, user2.Uid)
 						CheckErr(err, "update user2 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user2.Uid)
@@ -284,6 +287,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user3 := obj3.(User)
 						dividend := int(float64(amount) * config.DeductPercent3)
 						user3.Balance = user3.Balance + dividend
+						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user3.Balance, user3.Uid)
 						CheckErr(err, "update user3 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user3.Uid)
@@ -323,14 +327,14 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, uid)
 	CheckErr(err, "webhook getDistributionUsers query user1")
-	if err != nil {
+	if err != nil || isEmptyUser(user1) {
 		return nil, nil, nil
 	}
 	err = dbmap.SelectOne(&user2, `SELECT * FROM t_user 
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, user1.Uid)
 	CheckErr(err, "webhook getDistributionUsers query user2")
-	if err != nil {
+	if err != nil || isEmptyUser(user2) {
 		return user1, nil, nil
 	}
 
@@ -338,11 +342,17 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, user2.Uid)
 	CheckErr(err, "webhook getDistributionUsers query user3")
-	if err != nil {
-		return user1, user2, user3
-	} else {
+	if err != nil || isEmptyUser(user3) {
+		logger.Info("webhook,二级关系")
 		return user1, user2, nil
+	} else {
+		logger.Info("webhook,三级关系")
+		return user1, user2, user3
 	}
+}
+
+func isEmptyUser(user User) bool {
+	return user.Uid == ""
 }
 
 // {
