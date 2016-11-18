@@ -14,7 +14,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"reflect"
+	//	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -225,18 +225,17 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 		if err != nil {
 			return
 		}
-		logger.Info("Webhook", publicKey)
 		//base64解码再验证
 		decodeStr, _ := base64.StdEncoding.DecodeString(signed)
 		logger.Info(decodeStr)
 		err = pingpp.Verify([]byte(data), publicKey, decodeStr)
-		CheckErr(err, "pingpp.Verify")
+		CheckErr(err, "webhook pingpp.Verify")
 		if err != nil {
 			return
 		}
-		logger.Info("ping++ verify hook success")
+		logger.Info("webhook ping++ verify hook success")
 		webhook, err := pingpp.ParseWebhooks(buf.Bytes())
-		logger.Info("webhook.Type:" + webhook.Type)
+		logger.Info("webhook webhook.Type:" + webhook.Type)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "fail")
@@ -245,21 +244,22 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 
 		if webhook.Type == "charge.succeeded" {
 			//orderno -> uid -> invited1 -> invite2->invited3
-			logger.Info(reflect.TypeOf(webhook.Data.Object))
-			logger.Info(reflect.TypeOf(webhook.Data.Object["order_no"]))
-			logger.Info(reflect.TypeOf(webhook.Data.Object["amount"]))
-
+			logger.Info("webhook ", webhook.Type, "id:", webhook.Data.Object["id"],
+				"transaction_no:", webhook.Data.Object["transaction_no"],
+				"order_no:", webhook.Data.Object["order_no"],
+				"amount:", webhook.Data.Object["amount"])
 			orderNo := webhook.Data.Object["order_no"].(string)
 			amount, _ := webhook.Data.Object["amount"].(json.Number).Int64()
 			var order Order
-			err = dbmap.SelectOne(&order, "SELECT * FROM t_order WHERE no=?", orderNo)
-			if err != nil {
-				logger.Info("Webhook ", "order err")
-			} else {
+			err = dbmap.SelectOne(&order, "SELECT * FROM t_order t WHERE t.no=?", orderNo)
+			CheckErr(err, "webhook select order by no ")
+			if err == nil {
 				var user User
 				err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", order.Uid)
+				CheckErr(err, "webhook select user")
 				var title string
 				err = dbmap.SelectOne(&user, "SELECT title FROM t_activity WHERE aid=?", order.Aid)
+				CheckErr(err, "webhook select activity")
 				if err == nil {
 					// https://www.zhihu.com/question/29083902
 					obj1, obj2, obj3 := getDistributionUsers(user.Uid, dbmap)
@@ -317,18 +317,19 @@ func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title stri
 }
 
 func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface{}, interface{}) {
+	logger.Info("getDistributionUsers...")
 	var user1, user2, user3 User
 	err := dbmap.SelectOne(&user1, `SELECT * FROM t_user 
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, uid)
-	CheckErr(err, "query user1")
+	CheckErr(err, "webhook getDistributionUsers query user1")
 	if err != nil {
 		return nil, nil, nil
 	}
 	err = dbmap.SelectOne(&user2, `SELECT * FROM t_user 
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, user1.Uid)
-	CheckErr(err, "query user2")
+	CheckErr(err, "webhook getDistributionUsers query user2")
 	if err != nil {
 		return user1, nil, nil
 	}
@@ -336,7 +337,7 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 	err = dbmap.SelectOne(&user3, `SELECT * FROM t_user 
 									WHERE invite_code = 
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, user2.Uid)
-	CheckErr(err, "query user3")
+	CheckErr(err, "webhook getDistributionUsers query user3")
 	if err != nil {
 		return user1, user2, user3
 	} else {

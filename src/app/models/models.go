@@ -228,6 +228,7 @@ type Order struct {
 	Subject  string   `json:"subject" db:"subject"`
 	Aid      string   `json:"aid" db:"aid"`
 	PayType  int      `json:"type" db:"type"`
+	State    int      `json:"state" db:"state"`
 	Created  JsonTime `json:"createTime" db:"create_time"`
 }
 
