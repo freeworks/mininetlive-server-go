@@ -197,6 +197,8 @@ func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap 
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", params["id"])
 	CheckErr(err, "GetActivity select failed")
+	///apple 下载地址 https://itunes.apple.com/cn/app/qq/id444934666
+	//应用宝下载地址
 	if err == nil {
 		r.JSON(200, Resp{0, "获取成功", activity})
 	} else {

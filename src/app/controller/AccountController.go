@@ -206,3 +206,15 @@ func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap
 	//		r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
 	//	}
 }
+
+func GetDividendRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	var dividendRecords []DividendRecord
+	_, err := dbmap.Select(&dividendRecords, "SElECT * FROM t_dividend_record WHERE owner_uid = ?", uid)
+	CheckErr(err, "GetDividendRecordList")
+	if err != nil {
+		r.JSON(200, Resp{1304, "获取奖励列表失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "获取奖励列表成功！", dividendRecords})
+	}
+}

@@ -236,3 +236,15 @@ type OnlineUser struct {
 	Avatar   string `json:"avatar" db:"avatar"`
 	Nickname string `json:"nickname" db:"nickname"`
 }
+
+type DividendRecord struct {
+	Id       int      `json:"-" `
+	Uid      string   `json:"uid" db:"uid"`
+	NickName string   `json:"nickname"  db:"nickname"`
+	Avatar   string   `json:"avatar"  db:"avatar"`
+	Aid      string   `json:"aid" db:"aid"`
+	Title    string   `json:"title"   db:"title"`
+	Amount   int      `json:"amount" db:"amount"`
+	OwnerUid string   `json:"-" db:"owner_uid"`
+	Created  JsonTime `json:"createTime" db:"create_time"`
+}

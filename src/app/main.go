@@ -4,7 +4,6 @@ import (
 	admin "app/admin"
 	config "app/config"
 	. "app/controller"
-	. "app/wxpub"
 	db "app/db"
 	intervaler "app/intervaler"
 	logger "app/logger"
@@ -12,6 +11,7 @@ import (
 	pay "app/pay"
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
+	. "app/wxpub"
 	"time"
 
 	"github.com/go-martini/martini"
@@ -86,9 +86,9 @@ func main() {
 	m.Get("/callback/live/begin", CallbackLiveBegin)
 	m.Get("/callback/live/end", CallbackLiveEnd)
 	m.Get("/share/:platform/activity/:id", GetSharePage)
-	m.Get("/wxpub/recv",RecvWXPubMsg)
-	m.Post("/wxpub/recv",RecvWXPubMsg)
-        m.Post("/wxpub/vcode", GetVCodeForWxPub)
+	m.Get("/wxpub/recv", RecvWXPubMsg)
+	m.Post("/wxpub/recv", RecvWXPubMsg)
+	m.Post("/wxpub/vcode", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
@@ -135,5 +135,5 @@ func main() {
 		m.RunOnAddr(":8081")
 	}()
 
-	m.RunOnAddr(":80")
+	m.RunOnAddr(":8080")
 }
