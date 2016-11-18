@@ -147,32 +147,51 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 func Transfer(req *http.Request, parms martini.Params, render render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	if uid == "" {
-		render.JSON(200, Resp{1013, "uidb不正确", nil})
+		render.JSON(200, Resp{1013, "uid不正确", nil})
 		return
 	}
 	var oauth OAuth
 	err := dbmap.SelectOne(&oauth, "SELECT * FROM t_oauth WHERE uid=?", uid)
 	if err != nil {
-		render.JSON(200, Resp{1013, "服务器异常，查询用户信息失败", nil})
+		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
 		return
 	}
 	if oauth.Plat != "Wechat" {
-		render.JSON(200, Resp{2005, "用户还没有开通微信", nil})
+		render.JSON(200, Resp{2005, "还没有开通微信", nil})
 		return
 	}
-	amount, err := strconv.ParseInt(req.PostFormValue("amount"), 10, 64)
-	amount2 := uint64(amount)
+
+	var user User
+	err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
 	if err != nil {
-		logger.Info(err)
-		render.JSON(200, Resp{2005, "金额不正确", nil})
+		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
+		return
+	}
+	if user.Phone == "" {
+		render.JSON(200, Resp{2006, "还没有绑定手机", nil})
 		return
 	}
 
-	//TODO 校验金额类型，以及用户余额是否可以提现
+	var wxpubOpenId string
+	err = dbmap.SelectOne(&wxpubOpenId, "SELECT openid FROM t_wxpub WHERE phone=?", user.Phone)
+	if err != nil {
+		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
+		return
+	}
+	if wxpubOpenId == "" {
+		render.JSON(200, Resp{2007, "还没有绑定公众账号，请关注微网直播公众账号！", nil})
+		return
+	}
 
-	openId := oauth.OpenId
+	amount, err := strconv.ParseInt(req.PostFormValue("amount"), 10, 64)
+	realAmount := uint64(amount)
+	CheckErr(err, "parse amount")
+	if err != nil || realAmount >= uint64(user.Balance) || realAmount == 0 {
+		render.JSON(200, Resp{1013, "金额错误，输入金额不正确！", nil})
+		return
+	}
 	extra := make(map[string]interface{})
-	extra["user_name"] = "user name"
+	extra["user_name"] = user.NickName
 	extra["force_check"] = false
 	//这里是随便设置的随机数作为订单号，仅作示例，该方法可能产生相同订单号，商户请自行生成订单号，不要纠结该方法。
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -181,17 +200,17 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		App:         pingpp.App{Id: APP_ID},
 		Channel:     "wx_pub",
 		Order_no:    strconv.Itoa(orderno),
-		Amount:      amount2,
+		Amount:      realAmount,
 		Currency:    "cny",
 		Type:        "b2c",
-		Recipient:   openId,
-		Description: "Your Description",
+		Recipient:   wxpubOpenId,
+		Description: "提现",
 		Extra:       extra,
 	}
 	transfer, err := transfer.New(transferParams)
 	if err != nil {
 		log.Fatal(err)
-		render.JSON(200, Resp{2006, "提现失败", nil})
+		render.JSON(200, Resp{2006, "服务器异常，请稍后再试", nil})
 		return
 	}
 	logger.Info(transfer)
@@ -200,8 +219,8 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	var dat map[string]interface{}
 	json.Unmarshal(fr, &dat)
 	failure_msg := dat["failure_msg"].(string)
-	if failure_msg != `` {
-		render.JSON(200, Resp{2007, "未绑定公众号", nil})
+	if failure_msg != "" {
+		render.JSON(200, Resp{2009, "服务器异常，请稍后再试", nil})
 		return
 	}
 	render.JSON(200, Resp{0, "提现成功", nil})

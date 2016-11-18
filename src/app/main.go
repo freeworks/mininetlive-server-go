@@ -55,6 +55,7 @@ func main() {
 		r.Get("/record/pay/list", GetPayRecordList)
 		r.Get("/record/appointment/list", GetAppointmentRecordList)
 		r.Get("/record/transfer/list", GetWithdrawRecordList)
+		r.Get("/record/dividend/list", GetDividendRecordList)
 		r.Post("/nickname", UpdateAccountNickName)
 		r.Post("/vcode", GetVCodeForUpdatePhone)
 		r.Post("/phone", UpdateAccountPhone)
