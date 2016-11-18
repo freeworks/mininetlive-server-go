@@ -258,7 +258,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 				err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", order.Uid)
 				CheckErr(err, "webhook select user")
 				var title string
-				err = dbmap.SelectOne(&user, "SELECT title FROM t_activity WHERE aid=?", order.Aid)
+				err = dbmap.SelectOne(&title, "SELECT title FROM t_activity WHERE aid=?", order.Aid)
 				CheckErr(err, "webhook select activity")
 				if err == nil {
 					// https://www.zhihu.com/question/29083902
@@ -267,7 +267,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user1 := obj1.(User)
 						dividend := int(float64(amount) * config.DeductPercent1)
 						user1.Balance = user1.Balance + dividend
-						_, err := dbmap.Update(user1)
+						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user1.Balance, user1.Uid)
 						CheckErr(err, "update user1 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user1.Uid)
 					}
@@ -275,7 +275,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user2 := obj2.(User)
 						dividend := int(float64(amount) * config.DeductPercent2)
 						user2.Balance = user2.Balance + dividend
-						_, err = dbmap.Update(user2)
+						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user2.Balance, user2.Uid)
 						CheckErr(err, "update user2 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user2.Uid)
 					}
@@ -284,7 +284,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user3 := obj3.(User)
 						dividend := int(float64(amount) * config.DeductPercent3)
 						user3.Balance = user3.Balance + dividend
-						_, err = dbmap.Update(user3)
+						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user3.Balance, user3.Uid)
 						CheckErr(err, "update user3 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user3.Uid)
 					}
