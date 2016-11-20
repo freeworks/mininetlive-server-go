@@ -36,7 +36,7 @@ func CallbackLiveBegin(r *http.Request, dbmap *gorp.DbMap) {
 	CheckErr(err, "CallbackLiveBegin - GetActivity select failed")
 	if err == nil {
 		dbmap.Exec("UPDATE t_activity SET activity_state = 1 WHERE aid = ?", aid)
-		PushLiveBegin(activity.Title)
+		PushLiveBegin(activity.Aid, activity.Title)
 	}
 }
 
@@ -49,6 +49,6 @@ func CallbackLiveEnd(r *http.Request, dbmap *gorp.DbMap) {
 	CheckErr(err, "CallbackLiveEnd - GetActivity select failed")
 	if err == nil {
 		dbmap.Exec("UPDATE t_activity SET activity_state = 2 WHERE aid = ?", aid)
-		PushLiveEnd(activity.Title)
+		PushLiveEnd(activity.Aid, activity.Title)
 	}
 }

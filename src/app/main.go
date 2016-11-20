@@ -9,6 +9,7 @@ import (
 	logger "app/logger"
 	. "app/models"
 	pay "app/pay"
+	. "app/push"
 	sessionauth "app/sessionauth"
 	sessions "app/sessions"
 	. "app/wxpub"
@@ -93,6 +94,10 @@ func main() {
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
+	})
+
+	m.Group("/debug", func(r martini.Router) {
+		r.Post("/push", TestPush)
 	})
 
 	go intervaler.PollSyncPingxx(dbmap)

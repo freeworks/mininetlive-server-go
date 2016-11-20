@@ -1,9 +1,11 @@
 package push
 
 import (
+	. "app/common"
 	logger "app/logger"
 	"bytes"
 	"crypto/md5"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	. "github.com/bitly/go-simplejson"
+	"github.com/martini-contrib/render"
 )
 
 const (
@@ -26,11 +29,11 @@ func getSign(method, url, body string) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func push(payload []byte) (*Json, error) {
-	logger.Info("push", "PushAppointment", string(payload))
-	sign := getSign("POST", "http://msg.umeng.com/api/send", string(payload))
+func push(data []byte) (*Json, error) {
+	logger.Info("push", string(data))
+	sign := getSign("POST", "http://msg.umeng.com/api/send", string(data))
 	logger.Info("sign", sign)
-	req, err := http.NewRequest("POST", "http://msg.umeng.com/api/send?sign="+sign, bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "http://msg.umeng.com/api/send?sign="+sign, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	client := &http.Client{}
@@ -53,100 +56,99 @@ func push(payload []byte) (*Json, error) {
 	}
 }
 
-//func PushAppointment(title, aid string) {
-//	payload := []byte(`{
-//			"appkey": "` + APP_KEY + `",
-//			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-//			"type": "groupcast",
-//			"payload":{
-//				"display_type":"notification",
-//				"body":{
-//					"ticker":"开始直播啦...",
-//					"title":"直播提醒",
-//					"text":"` + title + `正在直播中...",
-//					"icon": "ic_small",
-//					"largeIcon":"ic_large",
-//					"img":"` + img + `",
-//					"after_open": "go_app",
-//		            "play_vibrate": "true",
-//		            "play_sound": "true",
-//		            "play_lights": "true"
-//				}
-//			},
-//			"filter":{
-//				"where": {
-//					    "and":
-//					    [
-//					      {"tag":"` + aid + `"}
-//					    ]
-//				}
-//			}
-//	}`)
-//	push(payload)
-//	//IOS
-//	payload = []byte(`{
-//			"appkey": "` + APP_KEY + `",
-//			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-//			"type": "broadcast",
-//			"payload":{
-//				  "aps":{ "alert":"【新活动上线】` + title + `"}
-//			}
-//	}`)
-//	push(payload)
-//}
-
-func PushNewActivity(title string) {
-	PushAll("新的活动上线", title, "新活动上线")
+func PushNewActivity(aid, title string) {
+	PushAll(
+		newPayload("notification",
+			newPushBody("新的活动上线", title, "新活动上线", "go_activity", "com.kouchen.mininetlive.ui.ActivityDetailActivity"),
+			map[string]string{"aid": aid}))
 }
 
-func PushLiveBegin(title string) {
-	PushAll("正在直播中", title, "直播开始啦")
+func PushLiveBegin(aid, title string) {
+	PushAll(
+		newPayload("notification",
+			newPushBody("正在直播中", title, "直播开始啦", "go_activity", "com.kouchen.mininetlive.ui.ActivityDetailActivity"),
+			map[string]string{"aid": aid}))
 }
 
-func PushLiveEnd(title string) {
-
+func PushLiveEnd(aid, title string) {
+	PushAll(
+		newPayload("notification",
+			newPushBody("已经结束", title, "直播结束了", "go_activity", "com.kouchen.mininetlive.ui.ActivityDetailActivity"),
+			map[string]string{"aid": aid}))
 }
 
-//分红
-func PushRebates() {
-
+type PushBody struct {
+	Ticker      string            `json:"ticker"`
+	Title       string            `json:"title"`
+	Text        string            `json:"text"`
+	Icon        string            `json:"icon"`
+	LargeIcon   string            `json:"large_icon"`
+	AfterOpen   string            `json:"after_open"`
+	PlayVibrate string            `json:"play_vibrate"`
+	PlaySound   string            `json:"play_sound"`
+	PlayLights  string            `json:"play_lights"`
+	Activity    string            `json:"activity"`
+	Extra       map[string]string `json:"extra"`
 }
 
-//邀请人加入
-func PushInvited() {
-
+type Payload struct {
+	DisplayType string            `json:"display_type"`
+	Body        PushBody          `json:"body"`
+	Extra       map[string]string `json:"extra"`
 }
 
-func PushAll(title, text, ticker string) {
+func newPushBody(ticker, title, text, after_open, activity string) PushBody {
+	return PushBody{
+		Ticker:      ticker,
+		Title:       title,
+		Text:        text,
+		AfterOpen:   after_open,
+		Activity:    activity,
+		Icon:        "ic_small",
+		LargeIcon:   "ic_large",
+		PlayVibrate: "true",
+		PlaySound:   "true",
+		PlayLights:  "true",
+	}
+}
+
+func newPayload(displayType string, body PushBody, extra map[string]string) Payload {
+	return Payload{
+		DisplayType: displayType,
+		Body:        body,
+		Extra:       extra,
+	}
+}
+
+func PushAll(payload Payload) {
+	p, err := json.Marshal(payload)
+	CheckErr(err, "PushAll Marshal ")
+	if err != nil {
+		return
+	}
+	ploadString := string(p)
+	logger.Info("PushAll ", ploadString)
 	//android
-	payload := []byte(`{
-			"appkey": "` + APP_KEY + `",
-			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-			"type": "broadcast",
-			"payload":{
-				"display_type":"notification",
-				"body":{
-					"ticker":"` + ticker + `",
-					"title":"` + title + `",
-					"text":"` + text + `",
-					"icon": "ic_small",
-					"largeIcon":"ic_large",
-					"after_open": "go_app",
-		            "play_vibrate": "true",
-		            "play_sound": "true",
-		            "play_lights": "true"
-				}
-			}
-	}`)
-	push(payload)
-	//IOS
-	payload = []byte(`{
-			"appkey": "` + APP_KEY + `",
-			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
-			"type": "broadcast",
-			"payload":{
-				  "aps":{ "alert":"【新活动上线】` + title + `"}
-			}
-	}`)
-	push(payload)
+	data := []byte(`{
+					"appkey": "` + APP_KEY + `",
+					"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
+					"type": "broadcast",
+					"payload":
+					` + ploadString + `
+			}`)
+	push(data)
+	//	//IOS
+	//	payload = []byte(`{
+	//			"appkey": "` + APP_KEY + `",
+	//			"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
+	//			"type": "broadcast",
+	//			"payload":{
+	//				  "aps":{ "alert":"【新活动上线】` + pushBody.Title + `"}
+	//			}
+	//	}`)
+	//	push(payload)
+}
+
+func TestPush(req *http.Request, r render.Render) {
+	PushLiveEnd("f4bee67fad5d95ff", "test")
 }
