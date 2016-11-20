@@ -5,6 +5,7 @@ import (
 	config "app/config"
 	logger "app/logger"
 	. "app/models"
+	. "app/push"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -290,7 +291,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user1.Balance = user1.Balance + dividend
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user1.Balance, user1.Uid)
 						CheckErr(err, "update user1 dividend")
-						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user1.Uid)
+						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user1.Uid, user1.DeviceId)
 					}
 					if obj2 != nil {
 						user2 := obj2.(User)
@@ -299,7 +300,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user2.Balance, user2.Uid)
 						CheckErr(err, "update user2 dividend")
-						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user2.Uid)
+						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user2.Uid, user2.DeviceId)
 					}
 
 					if obj3 != nil {
@@ -309,7 +310,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user3.Balance, user3.Uid)
 						CheckErr(err, "update user3 dividend")
-						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user3.Uid)
+						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user3.Uid, user3.DeviceId)
 					}
 				}
 			}
@@ -323,7 +324,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 	}
 }
 
-func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title string, amount int, ownerUid string) {
+func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title string, amount int, ownerUid string, deviceId string) {
 	r := DividendRecord{
 		Uid:      uid,
 		NickName: nickname,
@@ -336,6 +337,9 @@ func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title stri
 	}
 	err := dbmap.Insert(&r)
 	CheckErr(err, "newDividendRecord")
+	if err != nil {
+		PushDividend(deviceId)
+	}
 	return
 }
 

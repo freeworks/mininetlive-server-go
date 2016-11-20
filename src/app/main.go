@@ -42,6 +42,7 @@ func main() {
 	m.Post("/auth/password/reset", RestPassword)
 	m.Post("/auth/phone/bind", BindPhone)
 	m.Post("/auth/verify/phone", VerifyPhone)
+	m.Post("/auth/bindPush", BindPush)
 	m.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
 
@@ -50,7 +51,6 @@ func main() {
 	})
 	m.Group("/account", func(r martini.Router) {
 		r.Post("/info", GetAccountInfo)
-
 		r.Get("/balance", GetBalance)
 		r.Get("/record/play/list", GetPlayRecordList)
 		r.Get("/record/pay/list", GetPayRecordList)

@@ -77,6 +77,12 @@ func PushLiveEnd(aid, title string) {
 			map[string]string{"aid": aid}))
 }
 
+func PushDividend(deviceId string) {
+	PushOne(
+		newPayload("notification",
+			newPushBody("有一笔分红奖励", "有一笔分红奖励", "有一笔分红奖励", "go_activity", "com.kouchen.mininetlive.ui.DividendListActivity"), nil), deviceId)
+}
+
 type PushBody struct {
 	Ticker      string            `json:"ticker"`
 	Title       string            `json:"title"`
@@ -118,6 +124,25 @@ func newPayload(displayType string, body PushBody, extra map[string]string) Payl
 		Body:        body,
 		Extra:       extra,
 	}
+}
+
+func PushOne(payload Payload, deviceToken string) {
+	p, err := json.Marshal(payload)
+	CheckErr(err, "PushAll Marshal ")
+	if err != nil {
+		return
+	}
+	ploadString := string(p)
+	logger.Info("PushAll ", ploadString)
+	//android
+	data := []byte(`{
+					"appkey": "` + APP_KEY + `",
+					"timestamp": ` + strconv.FormatInt(time.Now().Unix(), 10) + `,
+					"type": "unicast",
+					"payload":` + ploadString + `,
+					"device_tokens":` + deviceToken + `
+                    }`)
+	push(data)
 }
 
 func PushAll(payload Payload) {

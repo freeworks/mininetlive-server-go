@@ -254,3 +254,20 @@ func BindPhone(req *http.Request, r render.Render, dbmap *gorp.DbMap, c *cache.C
 		r.JSON(200, Resp{1011, "输入验证码无效,请重新获取验证码", nil})
 	}
 }
+
+func BindPush(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	uid := req.Header.Get("uid")
+	req.ParseForm()
+	deviceId := req.PostFormValue("deviceId")
+	if deviceId == "" {
+		r.JSON(200, Resp{1017, "deviceId 为空", nil})
+		return
+	}
+	_, err := dbmap.Exec("UPDATE t_user SET device_id= ? WHERE uid = ?", deviceId, uid)
+	CheckErr(err, "BindPush")
+	if err != nil {
+		r.JSON(200, Resp{1018, "绑定Push失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "绑定Push成功", nil})
+	}
+}
