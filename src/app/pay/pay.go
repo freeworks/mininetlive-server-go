@@ -274,6 +274,14 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 			err = dbmap.SelectOne(&order, "SELECT * FROM t_order t WHERE t.no=?", orderNo)
 			CheckErr(err, "webhook select order by no ")
 			if err == nil {
+				//pay record
+				var record Record
+				record.Aid = order.Aid
+				record.Uid = order.Uid
+				record.Type = 2
+				err := dbmap.Insert(&record)
+				CheckErr(err, "Webhook Pay insert failed")
+
 				var user User
 				err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", order.Uid)
 				CheckErr(err, "webhook select user")
