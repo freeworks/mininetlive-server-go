@@ -116,9 +116,17 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	}
 }
 
-func GetActivityDetail(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+func GetActivityDetail(req *http.Request, params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	var activity QActivity
-	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", args["id"])
+	uid := req.Header.Get("uid")
+	logger.Info(params)
+	aid := params["aid"]
+	//TODO check
+	err := dbmap.SelectOne(&activity, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= ?)  AS pay_state, 
+	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= ?)  AS appoint_state  
+	FROM t_activity t WHERE t.aid = ?`, uid, aid, uid, aid, aid)
+	CheckErr(err, "GetActivityDetail select failed")
+
 	CheckErr(err, "GetActivity select failed")
 	if err != nil {
 		r.JSON(200, Resp{1103, "活动不存在", nil})

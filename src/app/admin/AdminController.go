@@ -388,12 +388,12 @@ func generatePullPath(streamId string) string {
 }
 
 func UpdateActivity(params martini.Params, activity NActivity, r render.Render, dbmap *gorp.DbMap) {
-	obj, err := dbmap.Get(Activity{}, params["id"])
+	var orgActivity NActivity
+	err := dbmap.SelectOne(&orgActivity, "SELECT * FROM t_activity WHERE id = ?", params["id"])
 	CheckErr(err, "UpdateActivity get Activity err ")
 	if err != nil {
 		r.JSON(200, Resp{1003, "更新活动失败", nil})
 	} else {
-		orgActivity := obj.(*Activity)
 		orgActivity.Title = activity.Title
 		t, err := time.Parse("2006-01-02 15:04", activity.DateString)
 		activity.Date = JsonTime{t, true}
@@ -402,12 +402,14 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 		orgActivity.ActivityType = activity.ActivityType
 		orgActivity.StreamType = activity.StreamType
 		orgActivity.FrontCover = activity.FrontCover
-		_, err = dbmap.Update(orgActivity)
+		orgActivity.Price = activity.Price
+		logger.Info(orgActivity)
+		_, err = dbmap.Update(&orgActivity)
 		CheckErr(err, "UpdateActivity  update failed")
 		if err != nil {
 			r.JSON(200, Resp{1004, "更新活动失败", nil})
 		} else {
-			r.JSON(200, Resp{0, "更新活动成功", activity})
+			r.JSON(200, Resp{0, "更新活动成功", orgActivity})
 		}
 	}
 }

@@ -69,7 +69,7 @@ func main() {
 		r.Get("/list", GetHomeList)
 		r.Get("/list/more/:lastAid", GetMoreActivityList)
 		r.Get("/live/list", GetLiveActivityList)
-		r.Get("/detail/:id", GetActivityDetail)
+		r.Get("/detail/:aid", GetActivityDetail)
 		r.Post("/appointment", AppointmentActivity)
 		r.Post("/play", PlayActivity)
 		r.Post("/join", JoinGroup)
