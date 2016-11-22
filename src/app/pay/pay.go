@@ -157,10 +157,10 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
 		return
 	}
-	if oauth.Plat != "Wechat" {
-		render.JSON(200, Resp{2005, "还没有开通微信", nil})
-		return
-	}
+	//	if oauth.Plat != "Wechat" {
+	//		render.JSON(200, Resp{2005, "还没有开通微信", nil})
+	//		return
+	//	}
 
 	var user User
 	err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)

@@ -28,7 +28,7 @@ type User struct {
 	InviteCode  string    `form:"-" json:"inviteCode" db:"invite_code"`
 	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
 	Phone       string    `form:"phone" json:"phone" db:"phone"`
-	DeviceId    string    `form:"-" json:"deviceId" db:"device_d"`
+	DeviceId    string    `form:"-" json:"deviceId" db:"device_id"`
 	Updated     time.Time `json:"-" db:"update_time"`
 	Created     time.Time `json:"-" db:"create_time"`
 }
