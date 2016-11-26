@@ -68,9 +68,16 @@ func init() {
 func GetCharge(req *http.Request, parms martini.Params, render render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	logger.Info("uid:", uid)
+	aid := req.PostFormValue("aid")
+	if aid == "" {
+		render.JSON(200, Resp{1003, "aid不能为空", nil})
+		return
+	}
+
 	amount, err := strconv.Atoi(req.PostFormValue("amount"))
 	CheckErr(err, "get amount")
 	if err != nil {
+		CheckErr(err, "cover amount")
 		render.JSON(200, Resp{2001, "金额不正确", nil})
 		return
 	}
@@ -83,9 +90,8 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		render.JSON(200, Resp{2003, "订单类型不正确，支付类型不正确", nil})
 		return
 	}
-	aid := req.PostFormValue("aid")
-	//TODO
 	title, err := dbmap.SelectStr("SELECT title FROM t_activity WHERE aid=?", aid)
+	CheckErr(err, "select title")
 	if err != nil {
 		render.JSON(200, Resp{2003, "订单类型不正确,活动不存在", nil})
 		return
@@ -102,18 +108,18 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	log.Print()
 	if err != nil {
-		log.Print("userIP: [", req.RemoteAddr, "] is not IP:port")
+		logger.Info("userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 	userIP := net.ParseIP(ip)
 	if userIP == nil {
-		log.Print("userIP: [", req.RemoteAddr, "] is not IP:port")
+		logger.Info("userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 
 	subject := title
 	if payType == 0 {
 		subject = title + "(奖赏)"
 	}
-	body := "sjfdlfjlsdjflsdfjdslf"
+	body := ""
 	params := &pingpp.ChargeParams{
 		Order_no:  orderno,
 		App:       pingpp.App{Id: APP_ID},
@@ -126,17 +132,18 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		Extra:     extra,
 	}
 	ch, err := charge.New(params)
+	CheckErr(err, "charge.New")
 	if err != nil {
-		logger.Info(err)
 		render.JSON(200, Resp{2000, "获取支付信息失败", nil})
 	} else {
 		chs, _ := json.Marshal(ch)
 		logger.Info(string(chs))
 		order := newOrder(uid, orderno, channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
+		CheckErr(err, "create order")
 		record := newPayRecord(aid, uid, orderno)
 		err = dbmap.Insert(&record)
-		CheckErr(err, "create order")
+		CheckErr(err, "create record")
 		var chsObj interface{}
 		json.Unmarshal(chs, &chsObj)
 		render.JSON(200, Resp{0, "获取charge成功", chsObj})
@@ -150,35 +157,39 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{1013, "uid不正确", nil})
 		return
 	}
-	var oauth OAuth
-	err := dbmap.SelectOne(&oauth, "SELECT * FROM t_oauth WHERE uid=?", uid)
-	if err != nil {
-		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
-		return
-	}
+	//	var oauth OAuth
+	//	err := dbmap.SelectOne(&oauth, "SELECT * FROM t_oauth WHERE uid=?", uid)
+	//	if err != nil {
+	//		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
+	//		return
+	//	}
 	//	if oauth.Plat != "Wechat" {
 	//		render.JSON(200, Resp{2005, "还没有开通微信", nil})
 	//		return
 	//	}
 
 	var user User
-	err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
+	err := dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
 	if err != nil {
+		CheckErr(err, "select user")
 		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
 		return
 	}
 	if user.Phone == "" {
+		logger.Info("还没有绑定手机")
 		render.JSON(200, Resp{2006, "还没有绑定手机", nil})
 		return
 	}
 
-	var wxpubOpenId string
-	err = dbmap.SelectOne(&wxpubOpenId, "SELECT openid FROM t_wxpub WHERE phone=?", user.Phone)
+	wxpubOpenId, err := dbmap.SelectStr("SELECT openid FROM t_wxpub WHERE phone=?", user.Phone)
 	if err != nil {
+		CheckErr(err, "select openid")
 		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
 		return
 	}
+	logger.Info("wxpubOpenId ", wxpubOpenId)
 	if wxpubOpenId == "" {
+		logger.Info("还没有绑定公众账号")
 		render.JSON(200, Resp{2007, "还没有绑定公众账号，请关注微网直播公众账号！", nil})
 		return
 	}
@@ -186,8 +197,18 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	amount, err := strconv.ParseInt(req.PostFormValue("amount"), 10, 64)
 	realAmount := uint64(amount)
 	CheckErr(err, "parse amount")
-	if err != nil || realAmount >= uint64(user.Balance) || realAmount == 0 {
+	// 1.00 和 20000.00
+	if err != nil {
+		logger.Info("金额错误,", realAmount, "账户余额：", user.Balance)
 		render.JSON(200, Resp{2008, "金额错误，输入金额不正确！", nil})
+		return
+	}
+	if realAmount >= uint64(user.Balance) {
+		render.JSON(200, Resp{2008, "金额错误，账户余额不足！", nil})
+		return
+	}
+	if realAmount < 100 || realAmount > 20000 {
+		render.JSON(200, Resp{2008, "金额错误，必须大于1块钱，小于2万块钱", nil})
 		return
 	}
 	extra := make(map[string]interface{})
@@ -208,7 +229,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	}
 	transfer, err := transfer.New(transferParams)
 	if err != nil {
-		log.Fatal(err)
+		CheckErr(err, "transfer.New")
 		render.JSON(200, Resp{2006, "服务器异常，请稍后再试", nil})
 		return
 	}
