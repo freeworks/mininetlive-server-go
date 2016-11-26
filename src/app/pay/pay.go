@@ -85,6 +85,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		return
 	}
 	aid := req.PostFormValue("aid")
+	//TODO
 	title, err := dbmap.SelectStr("SELECT title FROM t_activity WHERE aid=?", aid)
 	if err != nil {
 		render.JSON(200, Resp{2003, "订单类型不正确,活动不存在", nil})

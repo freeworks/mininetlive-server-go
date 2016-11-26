@@ -111,7 +111,7 @@ func pushCustomMsg(accessToken, toUser, msg string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(body))
+	logger.Info(string(body))
 	postReq, err := http.NewRequest("POST",
 		"https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token="+accessToken,
 		bytes.NewReader(body))
@@ -143,7 +143,7 @@ func getShorturl(accessToken, longurl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(string(body))
+	logger.Info(string(body))
 	postReq, err := http.NewRequest("POST",
 		"https://api.weixin.qq.com/cgi-bin/shorturl?access_token="+accessToken,
 		bytes.NewReader(body))
@@ -186,7 +186,7 @@ func parseTextRequestBody(r *http.Request) *TextRequestBody {
 		log.Fatal(err)
 		return nil
 	}
-	fmt.Println(string(body))
+	logger.Info(string(body))
 	requestBody := &TextRequestBody{}
 	xml.Unmarshal(body, requestBody)
 	return requestBody
@@ -207,11 +207,11 @@ func RecvWXPubMsg(render render.Render, c *cache.Cache, w http.ResponseWriter, r
 				var token string
 				wxPubAccessToken, err := fetchAccessToken(c)
 				if wxPubAccessToken != "" && err != nil {
-					shorturl, err := getShorturl(token, "http://106.75.19.205/bind-phone.html?id"+openId)
+					shorturl, err := getShorturl(token, "http://www.weiwanglive.com/bind-phone.html?id"+openId)
 					if err == nil {
 						err = pushCustomMsg(token, openId, shorturl)
 						if err != nil {
-							log.Println("Push custom service message err:", err)
+							logger.Info("Push custom service message err:", err)
 							return
 						}
 					}
@@ -310,8 +310,10 @@ type JSTokenResult struct {
 func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	url := req.PostFormValue("url")
+	logger.Info("GetConfig url:", url)
 	var ticketStr string
 	ticketStr, err := getJsToken(c)
+	logger.Info("GetConfig ticketStr:", ticketStr)
 	if err != nil {
 		CheckErr(err, "GetConfig  getJsToken")
 		r.JSON(200, Resp{-1, "fail", "GetConfig  getJsToken"})
@@ -319,12 +321,12 @@ func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.D
 	}
 	nonceStr := RandomStr(16)
 	timestamp := time.Now().Unix()
-
 	str := fmt.Sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s", ticketStr, nonceStr, timestamp, url)
 	sort.Strings([]string{str})
 	h := sha1.New()
 	io.WriteString(h, str)
 	sigStr := fmt.Sprintf("%x", h.Sum(nil))
+	logger.Info("sigStr ", str, "->", sigStr)
 	config := Config{
 		AppID:     appID,
 		NonceStr:  nonceStr,
