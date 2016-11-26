@@ -4,6 +4,7 @@ import (
 	. "app/common"
 	logger "app/logger"
 	"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -37,41 +39,43 @@ type AccessTokenErrorResponse struct {
 	Errmsg  string
 }
 
-func fetchAccessToken() (string, float64, error) {
-	requestLine := strings.Join([]string{accessTokenFetchUrl,
-		"?grant_type=client_credential&appid=",
-		appID,
-		"&secret=",
-		appSecret}, "")
+func fetchAccessToken(c *cache.Cache) (string, error) {
+	wxPubAccessToken, found := c.Get("wxPubAccessToken")
+	if !found {
+		requestLine := strings.Join([]string{accessTokenFetchUrl,
+			"?grant_type=client_credential&appid=",
+			appID,
+			"&secret=",
+			appSecret}, "")
 
-	resp, err := http.Get(requestLine)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return "", 0.0, err
-	}
+		resp, err := http.Get(requestLine)
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", 0.0, err
-	}
-
-	logger.Info(string(body))
-	//Json Decoding
-	if bytes.Contains(body, []byte("access_token")) {
-		atr := AccessTokenResponse{}
-		err = json.Unmarshal(body, &atr)
-		if err != nil {
-			return "", 0.0, err
+		if err != nil || resp.StatusCode != http.StatusOK {
+			return "", err
 		}
-		return atr.AccessToken, atr.ExpiresIn, nil
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+
+		if err != nil {
+			return "", err
+		}
+
+		logger.Info(string(body))
+
+		if bytes.Contains(body, []byte("access_token")) {
+			atr := AccessTokenResponse{}
+			err = json.Unmarshal(body, &atr)
+			if err != nil {
+				return "", err
+			}
+			c.Set("wxPubAccessToken", atr.AccessToken, time.Duration(int64(atr.ExpiresIn))*time.Second)
+			return atr.AccessToken, nil
+		} else {
+			return "", errors.New("get access_token fail")
+		}
 	} else {
-		fmt.Println("return err")
-		ater := AccessTokenErrorResponse{}
-		err = json.Unmarshal(body, &ater)
-		if err != nil {
-			return "", 0.0, err
-		}
-		return "", 0.0, fmt.Errorf("%s", ater.Errmsg)
+		return wxPubAccessToken.(string), nil
 	}
 }
 
@@ -201,21 +205,8 @@ func RecvWXPubMsg(render render.Render, c *cache.Cache, w http.ResponseWriter, r
 			openId := textRequestBody.FromUserName
 			if "bd" == msg {
 				var token string
-				wxPubAccessToken, found := c.Get("wxPubAccessToken")
-				if !found {
-					// Fetch access_token
-					accessToken, expiresIn, err := fetchAccessToken()
-					token = accessToken
-					if err != nil {
-						log.Println("Get access_token error:", err)
-						return
-					}
-					c.Set("wxPubAccessToken", accessToken, time.Duration(int64(expiresIn))*time.Second)
-					fmt.Println(accessToken, expiresIn)
-				} else {
-					token = wxPubAccessToken.(string)
-				}
-				if wxPubAccessToken != "" {
+				wxPubAccessToken, err := fetchAccessToken(c)
+				if wxPubAccessToken != "" && err != nil {
 					shorturl, err := getShorturl(token, "http://106.75.19.205/bind-phone.html?id"+openId)
 					if err == nil {
 						err = pushCustomMsg(token, openId, shorturl)
@@ -264,7 +255,7 @@ func newWXPub(openId, phone string) WXPub {
 
 func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
-	openId := req.PostFormValue("vcode")
+	openId := req.PostFormValue("openId")
 	phone := req.PostFormValue("phone")
 	vCode := req.PostFormValue("vcode")
 	if openId == "" {
@@ -299,5 +290,82 @@ func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 	} else {
 		r.JSON(200, Resp{1011, "验证码过期,请重新获取验证码", nil})
 		return
+	}
+}
+
+type Config struct {
+	AppID     string
+	TimeStamp int64
+	NonceStr  string
+	Signature string
+}
+
+type JSTokenResult struct {
+	Errcode    int64
+	Errmsg     string
+	Ticket     string
+	Expires_in int64
+}
+
+func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+	req.ParseForm()
+	url := req.PostFormValue("url")
+	var ticketStr string
+	ticketStr, err := getJsToken(c)
+	if err != nil {
+		CheckErr(err, "GetConfig  getJsToken")
+		r.JSON(200, Resp{-1, "fail", "GetConfig  getJsToken"})
+		return
+	}
+	nonceStr := RandomStr(16)
+	timestamp := time.Now().Unix()
+
+	str := fmt.Sprintf("jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s", ticketStr, nonceStr, timestamp, url)
+	sort.Strings([]string{str})
+	h := sha1.New()
+	io.WriteString(h, str)
+	sigStr := fmt.Sprintf("%x", h.Sum(nil))
+	config := Config{
+		AppID:     appID,
+		NonceStr:  nonceStr,
+		TimeStamp: timestamp,
+		Signature: sigStr,
+	}
+	r.JSON(200, Resp{0, "success", config})
+	return
+}
+
+func getJsToken(c *cache.Cache) (string, error) {
+	accessToken, err := fetchAccessToken(c)
+	if err != nil && accessToken != "" {
+		if ticket, found := c.Get("jsticket"); !found {
+			resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi" + accessToken)
+			if err != nil {
+				// handle error
+			}
+			defer resp.Body.Close()
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			logger.Info(string(respBody))
+			if bytes.Contains(respBody, []byte("ticket")) {
+				result := JSTokenResult{}
+				err = json.Unmarshal(respBody, &result)
+				CheckErr(err, "getJsToken json.Unmarshal")
+				if err != nil {
+					return "", err
+				}
+				if result.Errcode == 0 {
+					c.Set("jsticket", result.Ticket, time.Duration(int64(result.Expires_in))*time.Second)
+					return result.Ticket, nil
+				} else {
+					return "", nil
+				}
+			} else {
+				return "", errors.New("result error not Contains ticket ")
+			}
+		} else {
+			return ticket.(string), nil
+		}
+	} else {
+		return "", err
 	}
 }

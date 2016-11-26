@@ -87,6 +87,17 @@ func GeneraVCode6() string {
 	return vcode
 }
 
+func RandomStr(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	bytes := []byte(str)
+	result := []byte{}
+	r := mathRand.New(mathRand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
+	}
+	return string(result)
+}
+
 func CheckErr(err error, msg string) {
 	if err != nil {
 		logger.Error(msg, err)

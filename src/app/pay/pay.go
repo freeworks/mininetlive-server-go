@@ -188,7 +188,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	realAmount := uint64(amount)
 	CheckErr(err, "parse amount")
 	if err != nil || realAmount >= uint64(user.Balance) || realAmount == 0 {
-		render.JSON(200, Resp{1013, "金额错误，输入金额不正确！", nil})
+		render.JSON(200, Resp{2008, "金额错误，输入金额不正确！", nil})
 		return
 	}
 	extra := make(map[string]interface{})

@@ -91,6 +91,7 @@ func main() {
 	m.Get("/wxpub/recv", RecvWXPubMsg)
 	m.Post("/wxpub/recv", RecvWXPubMsg)
 	m.Post("/wxpub/vcode", GetVCodeForWxPub)
+	m.Post("/wxpub/config", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
@@ -98,6 +99,7 @@ func main() {
 
 	m.Group("/debug", func(r martini.Router) {
 		r.Post("/push", TestPush)
+		r.Post("/testJSConfig", GetConfig)
 	})
 
 	go intervaler.PollSyncPingxx(dbmap)
