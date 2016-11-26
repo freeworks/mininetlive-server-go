@@ -101,6 +101,7 @@ type TextMsgContent struct {
 }
 
 func pushCustomMsg(accessToken, toUser, msg string) error {
+	logger.Info("pushCustomMsg ", accessToken, toUser, msg)
 	csMsg := &CustomServiceMsg{
 		ToUser:  toUser,
 		MsgType: "text",
@@ -109,6 +110,7 @@ func pushCustomMsg(accessToken, toUser, msg string) error {
 
 	body, err := json.MarshalIndent(csMsg, " ", "  ")
 	if err != nil {
+		CheckErr(err, "pushCustomMsg")
 		return err
 	}
 	logger.Info(string(body))
@@ -204,12 +206,11 @@ func RecvWXPubMsg(render render.Render, c *cache.Cache, w http.ResponseWriter, r
 			msg := strings.ToLower(textRequestBody.Content)
 			openId := textRequestBody.FromUserName
 			if "bd" == msg {
-				var token string
-				wxPubAccessToken, err := fetchAccessToken(c)
-				if wxPubAccessToken != "" && err != nil {
-					shorturl, err := getShorturl(token, "http://www.weiwanglive.com/bind-phone.html?id"+openId)
+				accessToken, err := fetchAccessToken(c)
+				if accessToken != "" && err == nil {
+					shorturl, err := getShorturl(accessToken, "http://www.weiwanglive.com/bind-phone.html?id"+openId)
 					if err == nil {
-						err = pushCustomMsg(token, openId, shorturl)
+						err = pushCustomMsg(accessToken, openId, "打开以下链接，绑定手机，才可以完成提现!"+shorturl)
 						if err != nil {
 							logger.Info("Push custom service message err:", err)
 							return
@@ -262,24 +263,37 @@ func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 		r.JSON(200, Resp{1013, "openId不能为空", nil})
 		return
 	}
+	if phone == "" {
+		r.JSON(200, Resp{1013, "手机号不能为空", nil})
+		return
+	}
+	if vCode == "" {
+		r.JSON(200, Resp{1013, "验证码不能为空", nil})
+		return
+	}
 	if cacheVCode, found := c.Get(phone); found {
 		if cacheVCode.(string) == vCode {
-			var wxPubs []WXPub
-			_, err := dbmap.Select(&wxPubs, "SELECT * FROM t_wxpub WHERE openid=?", openId)
-			if wxPubs == nil {
+			var wxPub WXPub
+			err := dbmap.SelectOne(&wxPub, "SELECT * FROM t_wxpub WHERE openid=?", openId)
+			if err != nil || wxPub.Phone == "" {
 				w := newWXPub(openId, phone)
 				err = dbmap.Insert(&w)
-
+				if err != nil {
+					r.JSON(200, Resp{1002, "手机号已绑定微信号,请检查", nil})
+					return
+				} else {
+					r.JSON(200, Resp{0, "绑定手机成功", nil})
+					return
+				}
 			} else {
-				wxPubs[0].Phone = phone
-				_, err = dbmap.Update(&wxPubs[0])
-
-			}
-			CheckErr(err, "BindWxPubPhone")
-			if err != nil {
-				r.JSON(200, Resp{1002, "绑定手机失败，服务器异常", nil})
-				return
-			} else {
+				if wxPub.Phone != phone {
+					_, err := dbmap.Exec("UPDATE t_wxpub SET phone = ? WHERE openid = ?", phone, openId)
+					CheckErr(err, "Update nickname get failed")
+					if err != nil {
+						r.JSON(200, Resp{1002, "手机号已绑定其他微信号，不能再绑定", nil})
+						return
+					}
+				}
 				r.JSON(200, Resp{0, "绑定手机成功", nil})
 				return
 			}
@@ -339,11 +353,14 @@ func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.D
 
 func getJsToken(c *cache.Cache) (string, error) {
 	accessToken, err := fetchAccessToken(c)
-	if err != nil && accessToken != "" {
+	logger.Info("getJsToken ", accessToken)
+	if err == nil && accessToken != "" {
 		if ticket, found := c.Get("jsticket"); !found {
-			resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi" + accessToken)
+			logger.Info("ticket not found and get ticket from wx")
+			resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=" + accessToken + "&type=jsapi")
 			if err != nil {
-				// handle error
+				CheckErr(err, "")
+				return "", err
 			}
 			defer resp.Body.Close()
 			respBody, _ := ioutil.ReadAll(resp.Body)
