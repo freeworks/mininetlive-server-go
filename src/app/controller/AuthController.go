@@ -94,6 +94,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		trans, err := dbmap.Begin()
 		CheckErr(err, "Register begin trans failed")
 		authUser.User.Uid = uid
+		authUser.User.Phone = authUser.LocalAuth.Phone
 		authUser.User.InviteCode = GeneraVCode6()
 		authUser.User.Qrcode = "http://h.hiphotos.baidu.com/image/pic/item/3bf33a87e950352a5936aa0a5543fbf2b2118b59.jpg"
 		err = trans.Insert(&authUser.User)
