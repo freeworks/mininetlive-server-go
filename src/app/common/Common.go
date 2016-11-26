@@ -83,7 +83,7 @@ func SendSMS(mobile string) (string, error) {
 }
 func GeneraVCode6() string {
 	rnd := mathRand.New(mathRand.NewSource(time.Now().UnixNano()))
-	vcode := fmt.Sprintf("%03v", rnd.Int31n(1000000))
+	vcode := fmt.Sprintf("%06v", rnd.Int31n(1000000))
 	return vcode
 }
 

@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net"
 	"net/http"
 	//	"reflect"
@@ -96,8 +95,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		render.JSON(200, Resp{2002, "支付渠道异常", nil})
 		return
 	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	orderno := r.Intn(999999999999999)
+	orderno := RandomStr(16)
 	logger.Info("ordderno :", orderno, ",channel:", channel, ",ammout:", amount)
 	extra := make(map[string]interface{})
 	log.Printf(req.RemoteAddr)
@@ -117,7 +115,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 	}
 	body := "sjfdlfjlsdjflsdfjdslf"
 	params := &pingpp.ChargeParams{
-		Order_no:  strconv.Itoa(orderno),
+		Order_no:  orderno,
 		App:       pingpp.App{Id: APP_ID},
 		Amount:    uint64(amount),
 		Channel:   channel,
@@ -134,9 +132,9 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 	} else {
 		chs, _ := json.Marshal(ch)
 		logger.Info(string(chs))
-		order := newOrder(uid, strconv.Itoa(orderno), channel, userIP.String(), subject, aid, uint64(amount), payType)
+		order := newOrder(uid, orderno, channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
-		record := newPayRecord(aid, uid, strconv.Itoa(orderno))
+		record := newPayRecord(aid, uid, orderno)
 		err = dbmap.Insert(&record)
 		CheckErr(err, "create order")
 		var chsObj interface{}
@@ -195,13 +193,12 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	extra := make(map[string]interface{})
 	extra["user_name"] = user.NickName
 	extra["force_check"] = false
-	//这里是随便设置的随机数作为订单号，仅作示例，该方法可能产生相同订单号，商户请自行生成订单号，不要纠结该方法。
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	orderno := r.Intn(999999999999999)
+	orderno := RandomStr(16)
+	logger.Info("Transfer orderno:", orderno, " amount:", realAmount)
 	transferParams := &pingpp.TransferParams{
 		App:         pingpp.App{Id: APP_ID},
 		Channel:     "wx_pub",
-		Order_no:    strconv.Itoa(orderno),
+		Order_no:    orderno,
 		Amount:      realAmount,
 		Currency:    "cny",
 		Type:        "b2c",
