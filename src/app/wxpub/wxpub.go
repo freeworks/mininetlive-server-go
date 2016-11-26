@@ -294,9 +294,9 @@ func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 }
 
 type Config struct {
-	AppID     string `json:"appid"`
-	TimeStamp int64  `json:"timeStamp"`
-	NonceStr  string `json:"noceStr"`
+	AppID     string `json:"appId"`
+	TimeStamp int64  `json:"timestamp"`
+	NonceStr  string `json:"nonceStr"`
 	Signature string `json:"signature"`
 }
 

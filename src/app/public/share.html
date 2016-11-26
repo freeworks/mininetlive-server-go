@@ -7,6 +7,8 @@
     <script type="text/javascript" src="js/jquery-latest.js" defer></script>
     <script type="text/javascript" src="static/js/browser.js"></script>
     <script type="text/javascript" src="static/js/common.js" defer></script>
+    <script type="text/javascript" src="static/js/jweixin-1.0.0.js"></script>
+    <!-- <script type="text/javascript" src="static/js/wx.js"></script> -->
     <script type="text/javascript" src="static/js/share.js?08020326" defer></script>
 </head>
 <body>
@@ -20,8 +22,8 @@
             <div style="font-size: 16px; color: rgba(74, 74, 74, 1);">微网直播</div>
             <div style="font-size: 9px; color: rgba(176, 176, 176, 1);">一起看大咖现场</div>
         </div>
-        <div class="h_center invite_code" style="display:none;">
-            <div style="font-size: 16px; color: rgba(246, 124, 21, 1);">0988</div>
+        <div class="h_center invite_code" id="invite_code" style="display:none;">
+            <div style="font-size: 16px; color: rgba(246, 124, 21, 1);" id="icode" ></div>
             <div style="font-size: 9px; color: rgba(176, 176, 176, 1);">邀请码</div>
         </div>
         <div class="download">
