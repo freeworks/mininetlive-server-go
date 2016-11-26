@@ -205,10 +205,10 @@ func RecvWXPubMsg(render render.Render, c *cache.Cache, w http.ResponseWriter, r
 		if textRequestBody != nil {
 			msg := strings.ToLower(textRequestBody.Content)
 			openId := textRequestBody.FromUserName
-			if "bd" == msg {
+			if "bd" == msg || "提现" == msg {
 				accessToken, err := fetchAccessToken(c)
 				if accessToken != "" && err == nil {
-					shorturl, err := getShorturl(accessToken, "http://www.weiwanglive.com/bind-phone.html?id"+openId)
+					shorturl, err := getShorturl(accessToken, "http://www.weiwanglive.com/bind-phone.html?id="+openId)
 					if err == nil {
 						err = pushCustomMsg(accessToken, openId, "打开以下链接，绑定手机，才可以完成提现!"+shorturl)
 						if err != nil {

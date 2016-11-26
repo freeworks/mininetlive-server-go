@@ -69,7 +69,6 @@ func GetVCodeForUpdatePhone(req *http.Request, c *cache.Cache, r render.Render) 
 	}
 }
 
-//废弃了
 func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
@@ -81,8 +80,13 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	}
 	if cacheVCode, found := c.Get(phone); found {
 		if cacheVCode.(string) == vCode {
-			_, err := dbmap.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
-			CheckErr(err, "Update phone get failed")
+			trans, err := dbmap.Begin()
+			_, err = dbmap.Exec("UPDATE t_user SET phone = ? WHERE uid = ?", phone, uid)
+			CheckErr(err, "Update phone t_user failed")
+			_, err = dbmap.Exec("UPDATE t_local_auth SET phone = ? WHERE uid = ? ", phone, uid)
+			CheckErr(err, "Update phone t_local_auth failed")
+			err = trans.Commit()
+			CheckErr(err, "update phone ")
 			if err != nil {
 				r.JSON(200, Resp{1002, "绑定手机失败，服务器异常", nil})
 				return

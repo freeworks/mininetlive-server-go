@@ -233,7 +233,6 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{2006, "服务器异常，请稍后再试", nil})
 		return
 	}
-	logger.Info(transfer)
 	fr, _ := json.Marshal(transfer)
 	logger.Info(string(fr))
 	var dat map[string]interface{}
