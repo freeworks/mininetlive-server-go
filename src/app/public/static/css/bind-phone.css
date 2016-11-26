@@ -1,0 +1,81 @@
+body, p {
+    margin: 0px;
+}
+
+input {
+    border: none;
+}
+
+h1 {
+    font-family:.PingFangSC-Regular;
+    font-size:24px;
+    color:#000000;
+    letter-spacing:-0.58px;
+    text-align: center;
+    margin-top: 38px;
+    margin-bottom: 50px;
+}
+
+.form {
+    margin: 20px 30px;
+}
+
+.form-line {
+    border-bottom: 1px solid #e7e7e7;
+    position: relative;
+    box-sizing: border-box;
+    height: 50px;
+    padding-top: 10px;
+}
+
+.form-line > div {
+    display: inline-block;
+}
+
+.form-line input {
+    height: 25px;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.form-line .icon{
+    position: absolute;
+    top: 15px;
+    margin-right: 15px;
+}
+
+.form-line .phone{
+    margin-left: 15px;
+}
+
+.form-line .send {
+    position: absolute;
+    right: 0px;
+    top: 17px;
+    font-family:.PingFangSC-Regular;
+    font-size:14px;
+    color:#7ed321;
+    letter-spacing:-0.34px;
+}
+
+.form-button {
+    background:#4a90e2;
+    border-radius:4px;
+    height:44px;
+    font-size:17px;
+    color:#ffffff;
+    letter-spacing:-0.41px;
+    text-align:center;
+    line-height: 44px;
+    margin-top: 23px;
+}
+
+p.error {
+    margin-top: 10px;
+    font-family:.PingFangSC-Regular;
+    font-size:14px;
+    color:#d0021b;
+    letter-spacing:-0.34px;
+    text-align:left;
+    height: 14px;
+}
