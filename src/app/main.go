@@ -93,6 +93,7 @@ func main() {
 	m.Post("/wxpub/vcode", GetVCodeForWxPub)
 	m.Post("/wxpub/config", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
+	m.Post("/wxpub/jsconfig",GetConfig)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
@@ -143,5 +144,5 @@ func main() {
 		m.RunOnAddr(":8081")
 	}()
 
-	m.RunOnAddr(":8080")
+	m.RunOnAddr(":80")
 }

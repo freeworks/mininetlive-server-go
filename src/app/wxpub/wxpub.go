@@ -294,10 +294,10 @@ func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 }
 
 type Config struct {
-	AppID     string
-	TimeStamp int64
-	NonceStr  string
-	Signature string
+	AppID     string `json:"appid"`
+	TimeStamp int64  `json:"timeStamp"`
+	NonceStr  string `json:"noceStr"`
+	Signature string `json:"signature"`
 }
 
 type JSTokenResult struct {
