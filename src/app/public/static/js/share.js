@@ -54,7 +54,7 @@ function renderHtml(activity){
     // img.src = activity.owner.avatar;
     // img.onload = function(){
         // debugg
-        $(".owner_avatar").attr("src", activity.owner.avatar + "?iopcmd=thumbnail&type=8&width=64&height=64");
+        $(".avatar").attr("src", activity.owner.avatar + "?iopcmd=thumbnail&type=8&width=64&height=64");
     // }
     
     $("#desc").text(activity.desc);
