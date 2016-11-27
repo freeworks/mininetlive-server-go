@@ -7,6 +7,7 @@ $(document).ready(function(){
             var activity =rsp.data;
             renderHtml(activity);
             $(".container").show();
+            share(rsp.data.title, location.href, rsp.data.title, rsp.data.frontCover+"?iopcmd=thumbnail&type=8&width=80&height=80");
         } else {
             // TODO 非正常处理
         }
@@ -49,12 +50,12 @@ function renderHtml(activity){
     $("#title").text(activity.title); document.title = activity.title;
     $("#date").text(formateDate(activity.date));
 
-    var img = document.createElement('img');
-    img.src = activity.owner.avatar;
-    img.onload = function(){
+    // var img = document.createElement('img');
+    // img.src = activity.owner.avatar;
+    // img.onload = function(){
         // debugg
         $("#owner_avatar").attr("src", activity.owner.avatar + "?iopcmd=thumbnail&type=8&width=64&height=64");
-    }
+    // }
     
     $("#desc").text(activity.desc);
     // $("#qrcode").attr("src", activity.owner.qrcode);
@@ -111,31 +112,33 @@ function formateDate(date){
     return formateTwo(date.getMonth() + 1) + "-" + formateTwo(date.getDate()) + " " + formateTwo(date.getHours()) + ":" + formateTwo(date.getMinutes());
 }
 
-wx.ready(function(){
-    wx.onMenuShareTimeline({
-        title: '', // 分享标题
-        link: '', // 分享链接
-        imgUrl: '', // 分享图标
-        success: function () { 
-            // 用户确认分享后执行的回调函数
-        },
-        cancel: function () { 
-            // 用户取消分享后执行的回调函数
-        }
-    });
+function share(title, link, desc, imgUrl){
+    wx.ready(function(){
+        wx.onMenuShareTimeline({
+            title: title, // 分享标题
+            link: link, // 分享链接
+            imgUrl: imgUrl // 分享图标
+            // success: function () { 
+            //     // 用户确认分享后执行的回调函数
+            // },
+            // cancel: function () { 
+            //     // 用户取消分享后执行的回调函数
+            // }
+        });
 
-    wx.onMenuShareAppMessage({
-        title: '', // 分享标题
-        desc: '', // 分享描述
-        link: '', // 分享链接
-        imgUrl: '', // 分享图标
-        type: '', // 分享类型,music、video或link，不填默认为link
-        dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
-        success: function () { 
-            // 用户确认分享后执行的回调函数
-        },
-        cancel: function () { 
-            // 用户取消分享后执行的回调函数
-        }
+        wx.onMenuShareAppMessage({
+            title: title, // 分享标题
+            desc: desc, // 分享描述
+            link: link, // 分享链接
+            imgUrl: imgUrl // 分享图标
+            // type: '', // 分享类型,music、video或link，不填默认为link
+            // dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            // success: function () { 
+            //     // 用户确认分享后执行的回调函数
+            // },
+            // cancel: function () { 
+            //     // 用户取消分享后执行的回调函数
+            // }
+        });
     });
-});
+}
