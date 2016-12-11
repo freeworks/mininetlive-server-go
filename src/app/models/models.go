@@ -18,19 +18,18 @@ func SetDbmap(dbmap *gorp.DbMap) {
 }
 
 type User struct {
-	Id          int       `form:"id" json:"-" ` //db:"id,primarykey, autoincrement"
-	Uid         string    `form:"uid"  json:"uid" db:"uid"`
-	EasemobUuid string    `json:"easemobUuid" db:"easemob_uuid"`
-	NickName    string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
-	Avatar      string    `form:"avatar" json:"avatar"  db:"avatar"`
-	Gender      int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
-	Balance     int       `form:"balance" json:"balance" db:"balance"`
-	InviteCode  string    `form:"-" json:"inviteCode" db:"invite_code"`
-	Qrcode      string    `form:"qrcode" json:"qrcode" db:"qrcode"`
-	Phone       string    `form:"phone" json:"phone" db:"phone"`
-	DeviceId    string    `form:"-" json:"deviceId" db:"device_id"`
-	Updated     time.Time `json:"-" db:"update_time"`
-	Created     time.Time `json:"-" db:"create_time"`
+	Id         int       `form:"id" json:"-" db:"id" ` //db:"id,primarykey, autoincrement"
+	Uid        string    `form:"uid"  json:"uid" db:"uid"`
+	NickName   string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
+	Avatar     string    `form:"avatar" json:"avatar"  db:"avatar"`
+	Gender     int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
+	Balance    int       `form:"balance" json:"balance" db:"balance"`
+	InviteCode string    `form:"-" json:"inviteCode" db:"invite_code"`
+	Qrcode     string    `form:"qrcode" json:"qrcode" db:"qrcode"`
+	Phone      string    `form:"phone" json:"phone" db:"phone"`
+	DeviceId   string    `form:"-" json:"deviceId" db:"device_id"`
+	Updated    time.Time `json:"-" db:"update_time"`
+	Created    time.Time `json:"-" db:"create_time"`
 }
 
 func (u User) Value() (driver.Value, error) {
@@ -77,6 +76,10 @@ type OAuth struct {
 	Expires     time.Time `db:"expires" json:"-" `
 }
 
+func (OAuth *OAuth) String() string {
+	return fmt.Sprintf("[%d, %s, %s, %s]", OAuth.Id, OAuth.Uid, OAuth.Plat, OAuth.OpenId)
+}
+
 type LocalAuth struct {
 	Id       int       `form:"id" json:"-"` //  `form:"id"  db:"id,primarykey, autoincrement"`
 	Uid      string    `form:"uid" json:"uid" db:"uid"`
@@ -84,6 +87,10 @@ type LocalAuth struct {
 	Password string    `form:"password" json:"password" binding:"required" db:"password"`
 	Token    string    `db:"token" json:"token"`
 	Expires  time.Time `db:"expires" json:"expires"`
+}
+
+func (lAuth *LocalAuth) String() string {
+	return fmt.Sprintf("[%d, %s, %s]", lAuth.Id, lAuth.Uid, lAuth.Phone)
 }
 
 type OAuthUser struct {

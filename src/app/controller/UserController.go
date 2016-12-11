@@ -2,6 +2,7 @@ package controller
 
 import (
 	. "app/common"
+	logger "app/logger"
 	. "app/models"
 
 	"github.com/coopernurse/gorp"
@@ -10,6 +11,7 @@ import (
 )
 
 func GetUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
+	logger.Info("GetUser....")
 	var user User
 	err := dbmap.SelectOne(&user, "select * from t_user where uid=?", args["uid"])
 	CheckErr(err, "GetUser selectOne failed")

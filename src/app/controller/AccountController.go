@@ -21,6 +21,7 @@ import (
 func GetAccountInfo(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	uid := req.Header.Get("uid")
+	logger.Info("GetAccountInfo  uid", uid)
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -39,6 +40,7 @@ func UpdateAccountNickName(req *http.Request, r render.Render, dbmap *gorp.DbMap
 	req.ParseForm()
 	name := req.PostFormValue("nickname")
 	uid := req.Header.Get("uid")
+	logger.Info("UpdateAccountNickName  uid->", uid, ",name->"+name)
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -59,8 +61,13 @@ func UpdateAccountNickName(req *http.Request, r render.Render, dbmap *gorp.DbMap
 func GetVCodeForUpdatePhone(req *http.Request, c *cache.Cache, r render.Render) {
 	req.ParseForm()
 	phone := req.PostFormValue("phone")
-	//TODO 校验
+	logger.Info("GetVCodeForUpdatePhone  phone->", phone)
+	if phone == "" {
+		r.JSON(200, Resp{1014, "手机号不能为空", nil})
+		return
+	}
 	vCode, err := SendSMS(phone)
+	logger.Info("GetVCodeForUpdatePhone  SendSMS vCode ->", vCode)
 	if err != nil {
 		r.JSON(200, Resp{1009, "获取验证码失败", nil})
 	} else {
@@ -74,8 +81,17 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 	req.ParseForm()
 	phone := req.PostFormValue("phone")
 	vCode := req.PostFormValue("vcode")
+	logger.Info("UpdateAccountPhone uid", uid, "phone ->", phone, "vCode", vCode)
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
+	if phone == "" {
+		r.JSON(200, Resp{1014, "手机号不能为空", nil})
+		return
+	}
+	if vCode == "" {
+		r.JSON(200, Resp{1014, "验证码不能为空", nil})
 		return
 	}
 	if cacheVCode, found := c.Get(phone); found {
@@ -106,6 +122,11 @@ func UpdateAccountPhone(req *http.Request, c *cache.Cache, r render.Render, dbma
 
 func UpdateAccountAvatar(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("UpdateAccountAvatar uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	req.ParseMultipartForm(32 << 20)
 	logger.Info(req.Header)
 	file, head, err := req.FormFile("file")
@@ -139,6 +160,11 @@ func UpdateAccountAvatar(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 
 func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("GetPlayRecordList uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	var playRecords []QueryPlayRecord
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.front_cover,a.date,a.play_count,u.nickname 
 		FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
@@ -156,6 +182,11 @@ func GetPlayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	uid := req.Header.Get("uid")
+	logger.Info("GetAppointmentRecordList uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	var appointmentRecords []QueryAppointmentRecord
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.title,a.activity_state,a.front_cover,a.date,u.nickname
 	        FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid 
@@ -172,6 +203,11 @@ func GetAppointmentRecordList(req *http.Request, r render.Render, dbmap *gorp.Db
 
 func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("GetPayRecordList uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	var payRecords []QueryPayRecord
 	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.front_cover,a.title,a.date,a.activity_type,a.activity_state,u.nickname,o.channel,o.amount 
 		    FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid LEFT JOIN t_order o ON r.orderno=o.no
@@ -188,6 +224,11 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 
 func GetBalance(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("GetBalance uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	balance, err := dbmap.SelectInt("select balance from t_user where uid = ?", uid)
 	CheckErr(err, "GetBalance")
 	if err != nil {
@@ -199,20 +240,27 @@ func GetBalance(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	// uid := req.Header.Get("uid")
+	uid := req.Header.Get("uid")
+	logger.Info("GetWithdrawRecordList uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
+	//TODO
 	withdrawRecords := [2]QueryWithdrawRecord{
 		QueryWithdrawRecord{100, JsonTime{time.Now(), true}},
 		QueryWithdrawRecord{100, JsonTime{time.Now(), true}}}
 	r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
-	//	if err != nil {
-	//		r.JSON(200, Resp{1302, "获取支付记录失败", nil})
-	//	} else {
-	//		r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
-	//	}
+
 }
 
 func GetDividendRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("GetDividendRecordList uid", uid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	var dividendRecords []DividendRecord
 	_, err := dbmap.Select(&dividendRecords, "SElECT * FROM t_dividend_record WHERE owner_uid = ?", uid)
 	CheckErr(err, "GetDividendRecordList")

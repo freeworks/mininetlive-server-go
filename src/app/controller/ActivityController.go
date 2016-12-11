@@ -20,8 +20,14 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	uid := req.Header.Get("uid")
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
+	logger.Info("AppointmentActivity  uid->", uid, "aid->", aid)
+	if uid == "" {
+		r.JSON(200, Resp{1013, "uid不能为空", nil})
+		return
+	}
 	if aid == "" {
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
+		return
 	}
 	var record Record
 	record.Aid = aid
@@ -39,8 +45,14 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
+	aid := req.PostFormValue("aid")
+	logger.Info("PlayActivity  uid->", uid, "aid->", aid)
+	if aid == "" {
+		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
+		return
+	}
 	var record Record
-	record.Aid = req.PostFormValue("aid")
+	record.Aid = aid
 	record.Uid = uid
 	record.Type = 1
 	err := dbmap.Insert(&record)
@@ -50,6 +62,7 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 
 func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
+	logger.Info("GetHomeList  uid->", uid)
 	var recomendActivities []QActivity
 	var activities []QActivity
 	_, err := dbmap.Select(&recomendActivities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
@@ -64,7 +77,7 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
 		var hasmore bool
-		logger.Info(len(activities))
+		logger.Info("GetHomeList activity count->", len(activities), " PageSize->", PageSize)
 		if len(activities) > PageSize {
 			hasmore = true
 			activities = activities[:PageSize]
@@ -79,6 +92,10 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 func GetMoreActivityList(req *http.Request, params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	lastAid := params["lastAid"]
+	if lastAid == "" {
+		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
+		return
+	}
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	logger.Info("GetMoreActivityList..", activity.Created)
@@ -121,13 +138,14 @@ func GetActivityDetail(req *http.Request, params martini.Params, r render.Render
 	uid := req.Header.Get("uid")
 	logger.Info(params)
 	aid := params["aid"]
-	//TODO check
+	if aid == "" {
+		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
+		return
+	}
 	err := dbmap.SelectOne(&activity, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= ?)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= ?)  AS appoint_state  
 	FROM t_activity t WHERE t.aid = ?`, uid, aid, uid, aid, aid)
 	CheckErr(err, "GetActivityDetail select failed")
-
-	CheckErr(err, "GetActivity select failed")
 	if err != nil {
 		r.JSON(200, Resp{1103, "活动不存在", nil})
 	} else {
@@ -141,11 +159,13 @@ func JoinGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
 		logger.Info("JoinGroup", "uid or aid is ''")
+		r.JSON(200, Resp{0, "加入失败！", nil})
+		return
 	} else {
 		_, err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(NULL,?,?,now())`, aid, uid)
-		logger.Info("JoinGroup ", err)
+		CheckErr(err, "JoinGroup")
 	}
-	r.JSON(200, Resp{0, "成功", nil})
+	r.JSON(200, Resp{0, "加入成功", nil})
 }
 
 func LeaveGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
@@ -154,11 +174,13 @@ func LeaveGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
 		logger.Info("LeaveGroup", "uid or aid is ''")
+		r.JSON(200, Resp{0, "离开失败！", nil})
+		return
 	} else {
 		_, err := dbmap.Exec(`DELETE FROM t_activity_user_online WHERE aid = ? AND uid = ?`, aid, uid)
-		logger.Info("LeaveGroup ", err)
+		CheckErr(err, "LeaveGroup")
 	}
-	r.JSON(200, Resp{0, "成功", nil})
+	r.JSON(200, Resp{0, "离开成功", nil})
 }
 
 func GetLiveActivityMemberCount(req *http.Request, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
@@ -166,10 +188,11 @@ func GetLiveActivityMemberCount(req *http.Request, r render.Render, c *cache.Cac
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
-		logger.Info("LeaveGroup", "uid or aid is ''")
-		r.JSON(200, Resp{0, "缺少参数", nil})
+		logger.Info("GetLiveActivityMemberCount", "uid or aid is ''")
+		r.JSON(200, Resp{0, "缺少参数uid和aid不能为空", nil})
 	} else {
 		count, err := dbmap.SelectInt("SELECT COUNT(*) FROM t_activity_user_online WHERE aid = ?", aid)
+		CheckErr(err, "GetLiveActivityMemberCount")
 		if err == nil {
 			r.JSON(200, Resp{0, "获取在线成员信息成功", map[string]int{"count": int(count)}})
 		} else {
@@ -186,11 +209,13 @@ func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cach
 		aid = query["aid"][0]
 	}
 	if uid == "" || aid == "" {
-		logger.Info("LeaveGroup", "uid or aid is ''")
-		r.JSON(200, Resp{0, "缺少参数", nil})
+		logger.Info("GetLiveActivityMemberList", "uid or aid is ''")
+		r.JSON(200, Resp{0, "缺少参数uid和aid不能为空", nil})
+		return
 	} else {
 		var users []OnlineUser
 		_, err := dbmap.Select(&users, `SELECT o.uid,u.avatar,u.nickname FROM t_activity_user_online o LEFT JOIN t_user u ON o.uid = u.uid WHERE o.aid = ?`, aid)
+		CheckErr(err, "GetLiveActivityMemberList")
 		if err == nil {
 			r.JSON(200, Resp{0, "获取在线成员信息成功", users})
 		} else {
@@ -204,9 +229,9 @@ func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap 
 	logger.Info("platform", platform)
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", params["id"])
-	CheckErr(err, "GetActivity select failed")
-	///apple 下载地址 https://itunes.apple.com/cn/app/qq/id444934666
-	//应用宝下载地址
+	CheckErr(err, "GetSharePage")
+	//TODO apple 下载地址 https://itunes.apple.com/cn/app/qq/id444934666
+	//TODO 应用宝下载地址
 	if err == nil {
 		r.JSON(200, Resp{0, "获取成功", activity})
 	} else {

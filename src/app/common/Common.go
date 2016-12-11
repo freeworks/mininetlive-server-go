@@ -100,7 +100,7 @@ func RandomStr(length int) string {
 
 func CheckErr(err error, msg string) {
 	if err != nil {
-		logger.Error(msg, err)
+		logger.Error("======error=====",msg, err)
 		// log.Fatalln(msg, err)
 	}
 }
