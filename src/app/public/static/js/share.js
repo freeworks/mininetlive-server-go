@@ -1,13 +1,19 @@
 $(document).ready(function(){
     var params = _.parseUrlParams();
-
-    mininet.ajax("get", "/share/wx/activity/" + params.aid, {}, function(rsp){
-        debugger
+	var path = "";
+	if (params.platform == "android"){
+		path = "/share/android/activity/" + params.aid
+	}else{
+		path = "/share/ios/activity/" + params.aid
+	}
+    mininet.ajax("get", path, {}, function(rsp){
+//        debugger
         if (rsp.ret == 0){
-            var activity =rsp.data;
-            renderHtml(activity);
+            var activity =rsp.data.activity;
+			var downloadUrl =rsp.data.downloadUrl;
+            renderHtml(downloadUrl,activity);
             $(".container").show();
-            share(rsp.data.title, location.href, rsp.data.title, rsp.data.frontCover+"?iopcmd=thumbnail&type=8&width=80&height=80");
+            share(activity.title, location.href, activity.title, activity.frontCover+"?iopcmd=thumbnail&type=8&width=80&height=80");
         } else {
             // TODO 非正常处理
         }
@@ -34,7 +40,7 @@ $(document).ready(function(){
 });
 
 
-function renderHtml(activity){
+function renderHtml(downloadUrl,activity){
     var params = _.parseUrlParams();
     
     if (activity.videoPath){
@@ -49,7 +55,9 @@ function renderHtml(activity){
     
     $("#title").text(activity.title); document.title = activity.title;
     $("#date").text(formateDate(activity.date));
-
+	$("#downloadUrl").click(function(){
+					window.location = downloadUrl;
+			});
     // var img = document.createElement('img');
     // img.src = activity.owner.avatar;
     // img.onload = function(){

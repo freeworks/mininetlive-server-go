@@ -5,6 +5,7 @@ var config = {
 var mininet = {};
 
 function ajax(method, path, data, success, error){
+    debugger
     $.ajax({
         url: path,
         method: method,

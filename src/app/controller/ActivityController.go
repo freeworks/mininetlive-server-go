@@ -231,9 +231,16 @@ func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap 
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", params["id"])
 	CheckErr(err, "GetSharePage")
 	//TODO apple 下载地址 https://itunes.apple.com/cn/app/qq/id444934666
-	//TODO 应用宝下载地址
+	url := "http://a.app.qq.com/o/simple.jsp?pkgname=com.kouchen.mininetlive"
 	if err == nil {
-		r.JSON(200, Resp{0, "获取成功", activity})
+		var result struct {
+			DownloadUrl string      `json:"downloadUrl"`
+			Activity    interface{} `json:"activity"`
+		}
+		result.DownloadUrl = url
+		result.Activity = activity
+		CheckErr(err, "GetSharePage")
+		r.JSON(200, Resp{0, "获取成功", result})
 	} else {
 		r.JSON(200, Resp{1103, "获取在线成员信息失败", nil})
 	}
