@@ -23,7 +23,7 @@ type User struct {
 	NickName   string    `form:"nickname" json:"nickname" binding:"required"  db:"nickname"`
 	Avatar     string    `form:"avatar" json:"avatar"  db:"avatar"`
 	Gender     int       `form:"gender" json:"gender" db:"gender"` //binding:"required"  TODO 0 default not bindle
-	Balance    int       `form:"balance" json:"balance" db:"balance"`
+	Balance    uint64    `form:"balance" json:"balance" db:"balance"`
 	InviteCode string    `form:"-" json:"inviteCode" db:"invite_code"`
 	Qrcode     string    `form:"qrcode" json:"qrcode" db:"qrcode"`
 	Phone      string    `form:"phone" json:"phone" db:"phone"`
@@ -253,7 +253,7 @@ type DividendRecord struct {
 	Avatar   string   `json:"-"  db:"avatar"`
 	Aid      string   `json:"-" db:"aid"`
 	Title    string   `json:"-"   db:"title"`
-	Amount   int      `json:"amount" db:"amount"`
+	Amount   uint64   `json:"amount" db:"amount"`
 	OwnerUid string   `json:"-" db:"owner_uid"`
 	Created  JsonTime `json:"createTime" db:"create_time"`
 }

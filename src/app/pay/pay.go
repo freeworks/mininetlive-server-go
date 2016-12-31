@@ -157,17 +157,6 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{1013, "uid不正确", nil})
 		return
 	}
-	//	var oauth OAuth
-	//	err := dbmap.SelectOne(&oauth, "SELECT * FROM t_oauth WHERE uid=?", uid)
-	//	if err != nil {
-	//		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
-	//		return
-	//	}
-	//	if oauth.Plat != "Wechat" {
-	//		render.JSON(200, Resp{2005, "还没有开通微信", nil})
-	//		return
-	//	}
-
 	var user User
 	err := dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", uid)
 	if err != nil {
@@ -242,6 +231,9 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{2009, "服务器异常，请稍后再试", nil})
 		return
 	}
+	_, err = dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?",
+		user.Balance-realAmount, user.Uid)
+	CheckErr(err, "update user Transfer")
 	render.JSON(200, Resp{0, "提现成功", nil})
 	return
 }
@@ -312,7 +304,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 					logger.Info("webhook getDistributionUsers ", obj1, obj2, obj3)
 					if obj1 != nil {
 						user1 := obj1.(User)
-						dividend := int(float64(amount) * config.DeductPercent1)
+						dividend := uint64(float64(amount) * config.DeductPercent1)
 						logger.Info("webhook user1 dividend->", dividend)
 						user1.Balance = user1.Balance + dividend
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user1.Balance, user1.Uid)
@@ -321,7 +313,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 					}
 					if obj2 != nil {
 						user2 := obj2.(User)
-						dividend := int(float64(amount) * config.DeductPercent2)
+						dividend := uint64(float64(amount) * config.DeductPercent2)
 						user2.Balance = user2.Balance + dividend
 						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user2.Balance, user2.Uid)
@@ -331,7 +323,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 
 					if obj3 != nil {
 						user3 := obj3.(User)
-						dividend := int(float64(amount) * config.DeductPercent3)
+						dividend := uint64(float64(amount) * config.DeductPercent3)
 						user3.Balance = user3.Balance + dividend
 						logger.Info("webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user3.Balance, user3.Uid)
@@ -350,7 +342,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 	}
 }
 
-func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title string, amount int, ownerUid string, deviceId string) {
+func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title string, amount uint64, ownerUid string, deviceId string) {
 	r := DividendRecord{
 		Uid:      uid,
 		NickName: nickname,
