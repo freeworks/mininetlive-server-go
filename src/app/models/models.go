@@ -115,7 +115,8 @@ type Record struct {
 	Id      int       `db:"id" json:"-"`
 	Aid     string    `db:"aid" json:"aid"`
 	Uid     string    `db:"uid" json:"-"`
-	Type    int       `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买
+	Type    int       `db:"type" json:"-"` //0 预约，1，观看，2 支付，购买 3.提现
+	Amount  uint64    `db:"amount" json:"amount"`
 	OrderNo string    `db:"orderno" json:"orderNo"`
 	Created JsonTime3 `db:"create_time" json:"createTime"`
 }

@@ -18,7 +18,7 @@ func InitDb() *gorp.DbMap {
 		os.Remove("martini-sessionauth.bin")
 	}
 
-	db, err := sql.Open("mysql", "root:weiwanglive@tcp(106.75.19.205:3306)/minnetlive?parseTime=true")
+	db, err := sql.Open("mysql", "root:weiwanglive@tcp(106.75.19.205:3306)/mininetlive_r?parseTime=true")
 	CheckErr(err, "sql.Open failed")
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.MySQLDialect{"InnoDB", "UTF8"}}

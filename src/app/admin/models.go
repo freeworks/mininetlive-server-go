@@ -14,7 +14,8 @@ type AdminModel struct {
 	Id            int64     `form:"id" db:"id"`
 	Uid           string    ` db:"uid"`
 	Phone         string    `form:"phone" db:"phone"`
-	NickName      string    `form:"nickName" db:"nickname"`
+	Nickname      string    `form:"nickname" db:"nickname"`
+	Username      string    `form:"username" db:"username"`
 	Password      string    `form:"password" db:"password"`
 	Avatar        string    `form:"avatar"  db:"avatar"`
 	EasemobUUID   string    `form:"-"  db:"easemob_uuid"`
@@ -24,7 +25,7 @@ type AdminModel struct {
 }
 
 func (admin *AdminModel) String() string {
-	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.NickName, admin.Password)
+	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Nickname, admin.Password)
 	logger.Info(adminString)
 	return adminString
 }

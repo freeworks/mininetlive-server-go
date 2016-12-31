@@ -41,9 +41,13 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 		logger.Info("admin-login:" + phone + " " + password)
 		var admin AdminModel
 		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE phone = ? AND password = ?", phone, password)
-		CheckErr(err, "Login select one")
+		CheckErr(err, "Login select one by phone ,password")
+		if err != nil{
+			err = dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", phone, password)
+			CheckErr(err, "Login select one by username ,password")
+		}
 		if err != nil {
-			r.JSON(200, Resp{1021, "用户名密码错误!", nil})
+			r.JSON(200, Resp{1021, "用户名或密码错误!", nil})
 			return
 		} else {
 			err := sessionauth.AuthenticateSession(session, &admin)

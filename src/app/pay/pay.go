@@ -47,12 +47,22 @@ func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amoun
 	}
 }
 
-func newPayRecord(uid string, aid string, orderno string) Record {
+func newPayRecord(uid string, aid string, orderno string, amount uint64) Record {
 	return Record{
 		Uid:     uid,
 		OrderNo: orderno,
 		Aid:     aid,
 		Type:    2,
+		Amount:  amount,
+	}
+}
+func newWithdrawRecord(uid string, orderno string, amount uint64) Record {
+	return Record{
+		Uid:     uid,
+		OrderNo: orderno,
+		Aid:     "",
+		Type:    3,
+		Amount:  amount,
 	}
 }
 
@@ -141,7 +151,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		order := newOrder(uid, orderno, channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
 		CheckErr(err, "create order")
-		record := newPayRecord(aid, uid, orderno)
+		record := newPayRecord(aid, uid, orderno, uint64(amount))
 		err = dbmap.Insert(&record)
 		CheckErr(err, "create record")
 		var chsObj interface{}
@@ -234,6 +244,9 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	_, err = dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?",
 		user.Balance-realAmount, user.Uid)
 	CheckErr(err, "update user Transfer")
+	record := newWithdrawRecord(user.Uid, orderno, realAmount)
+	err = dbmap.Insert(&record)
+	CheckErr(err, "save record Transfer")
 	render.JSON(200, Resp{0, "提现成功", nil})
 	return
 }
@@ -284,14 +297,10 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 			err = dbmap.SelectOne(&order, "SELECT * FROM t_order t WHERE t.no=?", orderNo)
 			CheckErr(err, "webhook select order by no ")
 			if err == nil {
-				//pay record
-				var record Record
-				record.Aid = order.Aid
-				record.Uid = order.Uid
-				record.Type = 2
-				err := dbmap.Insert(&record)
-				CheckErr(err, "Webhook Pay insert failed")
-
+				logger.Info("UPDATE t_record SET state = 1 WHERE orderno = " + orderNo + " AND type = 2")
+				//update pay record
+				_, err := dbmap.Exec("UPDATE t_record SET state = 1 WHERE orderno = ? AND type = 2", orderNo)
+				CheckErr(err, "update pay record")
 				var user User
 				err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", order.Uid)
 				CheckErr(err, "webhook select user")
@@ -334,7 +343,10 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 			}
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "transfer.succeeded" {
-			//TODO
+			orderNo := webhook.Data.Object["order_no"].(string)
+			logger.Info("UPDATE t_record SET state = 1 WHERE orderno = " + orderNo + " AND type = 3")
+			_, err := dbmap.Exec("UPDATE t_record SET state = 1 WHERE orderno = ? AND type = 3", orderNo)
+			CheckErr(err, "update transfer record")
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)

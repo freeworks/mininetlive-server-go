@@ -53,7 +53,7 @@ $(document).ready(function(){
             if (rsp.ret == 0){
                 window.location.href = "/activity-detail.html?aid=" + aid;
             } else {
-                // TODO 非正常处理
+				alert(rsp.msg)
             }
         }, function(rsp){
             if (rsp.status == 422){

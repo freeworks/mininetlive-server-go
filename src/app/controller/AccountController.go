@@ -209,7 +209,7 @@ func GetPayRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		return
 	}
 	var payRecords []QueryPayRecord
-	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.front_cover,a.title,a.date,a.activity_type,a.activity_state,u.nickname,o.channel,o.amount 
+	sql := `SELECT r.id,r.aid,r.uid,r.create_time,a.front_cover,a.title,a.date,a.activity_type,a.activity_state,u.nickname,o.channel,r.amount 
 		    FROM t_record  r LEFT JOIN t_activity  a  ON r.aid = a.aid  LEFT JOIN t_user u ON a.uid=u.uid LEFT JOIN t_order o ON r.orderno=o.no
 		    WHERE r.type = 2 AND r.uid=? AND o.type = 1
 		    ORDER BY create_time DESC`
@@ -246,11 +246,16 @@ func GetWithdrawRecordList(req *http.Request, r render.Render, dbmap *gorp.DbMap
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
 	}
-	//TODO
-	withdrawRecords := [2]QueryWithdrawRecord{
-		QueryWithdrawRecord{100, JsonTime{time.Now(), true}},
-		QueryWithdrawRecord{100, JsonTime{time.Now(), true}}}
-	r.JSON(200, Resp{0, "获取支付记录成功", withdrawRecords})
+
+	var withdrawRecords []QueryWithdrawRecord
+	sql := `SELECT amount, create_time FROM t_record WHERE type = 3 AND uid = ? ORDER BY create_time DESC`
+	_, err := dbmap.Select(&withdrawRecords, sql, uid)
+	CheckErr(err, "GetPayRecords failed")
+	if err != nil {
+		r.JSON(200, Resp{1302, "获取提现记录失败", nil})
+	} else {
+		r.JSON(200, Resp{0, "获取提现记录成功", withdrawRecords})
+	}
 
 }
 
