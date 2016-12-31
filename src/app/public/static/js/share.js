@@ -15,7 +15,7 @@ $(document).ready(function(){
             $(".container").show();
             share(activity.title, location.href, activity.title, activity.frontCover+"?iopcmd=thumbnail&type=8&width=80&height=80");
         } else {
-            // TODO 非正常处理
+			alert(rsp.msg);
         }
     })
 

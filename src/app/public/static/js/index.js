@@ -1,7 +1,6 @@
 $(document).ready(function() {
     mininet.renderHtmlNavbar('index');
 
-    
     mininet.ajax("post", "/", {}, function(rsp) {
         debugger
         if (rsp.ret == 0) {
@@ -9,7 +8,7 @@ $(document).ready(function() {
             $("#newOrderCount").text(rsp.data["newOrderCount"]);
             $("#newAmount").text((rsp.data["newAmount"] / 100.0).toFixed(2));
         } else {
-            // TODO 非正常处理
+			alert(rsp.mg);
         }
     })
 
@@ -46,7 +45,9 @@ $(document).ready(function() {
                 title: "收入趋势图"
             }
            showChat($incomeChat, incomeData, incomeTicks, options)
-        } 
+        }else{
+			alert(rsp.msg);
+		}
     })
 
 })

@@ -9,6 +9,10 @@ $(document).ready(function(){
         debugger
         if (rsp.ret == 0){
             var orderList = rsp.data.orderList;
+			if(orderList == null){
+				alert("订单数据异常！")
+				return;
+			}
             orderList.forEach(function(order){
                 $userList.append(renderHtmlOrderRow(order));
             })
@@ -16,7 +20,7 @@ $(document).ready(function(){
             var $pagination = $("#pagination");
             $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex, params.pageSize));
         } else {
-            // TODO 非正常处理
+			alert(rsp.msg);
         }
     })
 })

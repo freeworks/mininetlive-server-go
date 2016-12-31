@@ -9,6 +9,10 @@ $(document).ready(function(){
         debugger
         if (rsp.ret == 0){
             var userList = rsp.data.userList;
+			if(userList == null){
+				alert("没有用户数据");
+				return;
+			}
             userList.forEach(function(user){
                 $userList.append(renderHtmlUserRow(user));
             })
@@ -16,7 +20,7 @@ $(document).ready(function(){
             var $pagination = $("#pagination");
             $pagination.append(mininet.renderHtmlPagination(rsp.data.totalPageCount, params.pageIndex, params.pageSize));
         } else {
-            // TODO 非正常处理
+            alert(rsp.msg);
         }
     })
 })

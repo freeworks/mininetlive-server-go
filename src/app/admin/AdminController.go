@@ -136,7 +136,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		var mErr error
 		var mTotalCount, mTotalPageCount int
 		if beginDate == "" && endDate == "" {
-			_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,? ORDER BY create_time DESC", start, size)
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order ORDER BY create_time DESC LIMIT ?,? ", start, size)
 			totalCount, err := dbmap.SelectInt("select count(*) from t_order")
 			CheckErr(err, "GetOrderList")
 			m := int(totalCount) % size
@@ -148,7 +148,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			mTotalPageCount = totalPageCount
 			mErr = err
 		} else if beginDate != "" && endDate != "" {
-			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE create_time >= ? AND create_time <= ? LIMIT ?,? ORDER BY create_time DESC",
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE create_time >= ? AND create_time <= ? ORDER BY create_time DESC LIMIT ?,? ",
 				beginDate,
 				endDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE create_time >= ? AND create_time <= ? ORDER BY create_time DESC", beginDate,
@@ -163,7 +163,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			mTotalPageCount = totalPageCount
 			mErr = err
 		} else if beginDate == "" {
-			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ? LIMIT ?,? ORDER BY create_time DESC",
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ? ORDER BY create_time DESC LIMIT ?,? ",
 				endDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time <= ? ORDER BY create_time DESC", endDate)
 			CheckErr(err, "GetOrderList")
@@ -176,7 +176,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			mTotalPageCount = totalPageCount
 			mErr = err
 		} else if endDate == "" {
-			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ? LIMIT ?,? ORDER BY create_time DESC",
+			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ? ORDER BY create_time DESC LIMIT ?,? ",
 				beginDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time >= ? ORDER BY create_time DESC", beginDate)
 			CheckErr(err, "GetOrderList")
@@ -201,7 +201,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		}
 	} else {
 		var orders []Order
-		_, err := dbmap.Select(&orders, "SELECT * FROM t_order LIMIT ?,? ORDER BY create_time DESC", start, size)
+		_, err := dbmap.Select(&orders, "SELECT * FROM t_order ORDER BY create_time DESC LIMIT ?,?", start, size)
 		CheckErr(err, "GetOrderList")
 		totalCount, err := dbmap.SelectInt("select count(*) from t_order")
 		CheckErr(err, "GetOrderList")
@@ -248,13 +248,13 @@ func GetIncomChart(r render.Render, dbmap *gorp.DbMap) {
 
 func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
-	sql := `SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone,
+	sql := `(SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,auth.plat,"" as phone,
 			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
-			FROM t_user u JOIN t_oauth auth ON u.uid = auth.uid
+			FROM t_user u JOIN t_oauth auth ON u.uid = auth.uid ORDER BY u.create_time DESC) 
 			UNION ALL 
-			SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone,
+			(SELECT u.uid,u.nickname,u.gender,u.avatar,u.balance,u.create_time,"" as plat, auth.phone,
 			(SELECT COUNT(*) FROM t_invite_relation WHERE be_invited_code = u.invite_code) as inviteCount
-			FROM t_user u JOIN t_local_auth auth ON u.uid = auth.uid 
+			FROM t_user u JOIN t_local_auth auth ON u.uid = auth.uid ORDER BY u.create_time DESC)  
 			LIMIT ?,?`
 	var userList []QUserModel
 	_, err := dbmap.Select(&userList, sql, start, size)
@@ -278,7 +278,7 @@ func GetUserList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity ORDER BY create_time DESC LIMIT ?,? ORDER BY create_time DESC", start, size)
+	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity ORDER BY create_time DESC LIMIT ?,? ", start, size)
 	CheckErr(err, "GetActivityList")
 	logger.Info(activities)
 
