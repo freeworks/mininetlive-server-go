@@ -24,12 +24,13 @@ import (
 
 func Index(r render.Render, dbmap *gorp.DbMap) {
 	newAmount, err := dbmap.SelectInt("SELECT sum(amount) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(err, "index ")
+	CheckErr(err, "amount count ")
 	newOrderCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(err, "index ")
+	CheckErr(err, "order count ")
 	newUserCount, err := dbmap.SelectInt("SELECT count(*) FROM t_user Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(err, "index ")
+	CheckErr(err, "user count")
 	newmap := map[string]interface{}{"newAmount": newAmount, "newOrderCount": newOrderCount, "newUserCount": newUserCount}
+	logger.Info("Index ", "newAmount", newAmount, "newOrderCount", newOrderCount, "newUserCount", newUserCount)
 	r.JSON(200, Resp{0, "首页获取成功", newmap})
 }
 
@@ -42,7 +43,7 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 		var admin AdminModel
 		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE phone = ? AND password = ?", phone, password)
 		CheckErr(err, "Login select one by phone ,password")
-		if err != nil{
+		if err != nil {
 			err = dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", phone, password)
 			CheckErr(err, "Login select one by username ,password")
 		}
@@ -363,7 +364,9 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	activity.Date = JsonTime{t, true}
 	activity.StreamId = GeneraToken8()
 	activity.LivePushPath = generatePushPath(activity.StreamId, activity.IsRecord, "")
-	activity.LivePullPath = generatePullPath(activity.StreamId)
+	if activity.StreamType == 0 {
+		activity.LivePullPath = generatePullPath(activity.StreamId)
+	}
 	logger.Info("info ", activity.String())
 	err = dbmap.Insert(&activity)
 	CheckErr(err, "NewActivity insert failed")
@@ -405,8 +408,10 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 		orgActivity.Desc = activity.Desc
 		orgActivity.ActivityType = activity.ActivityType
 		orgActivity.StreamType = activity.StreamType
+		orgActivity.VideoPath = activity.VideoPath
 		orgActivity.FrontCover = activity.FrontCover
 		orgActivity.Price = activity.Price
+		orgActivity.IsRecommend = activity.IsRecommend
 		logger.Info(orgActivity)
 		_, err = dbmap.Update(&orgActivity)
 		CheckErr(err, "UpdateActivity  update failed")

@@ -74,6 +74,14 @@
     <!-- main container -->
     <div class="content">
          <div class="container-fluid">
+		 	<div id="pad-wrapper" class="users-list" style="margin-top: 20px;padding-left:0px">
+               		<div class="row-fluid header" style="margin-bottom: 20px">
+                        <a href="/activity-list.html" class="btn-flat success">
+                            <span>+</span>
+                             返回列表
+                        </a>
+                    </div>
+            </div>
             <div id="pad-wrapper" class="form-page" style="margin-top: 20px;">
                 <div class="row-fluid form-wrapper">
                     <!-- left column -->
@@ -98,6 +106,31 @@
                                 <label>时间</label>
                                 <input type="text" value="" class="input-large datepicker" id="date" name="date"/>
                             </div>
+							 <div class="field-box">
+                                <label>是否推荐</label>
+                                <input type="checkbox" name="isrecommend" value="1" id="isrecommend" checked="" />            
+                            </div>
+							  <div class="field-box">
+                                <label>视频类型</label>
+                                <div class="span4">
+                                    <label class="radio">
+                                        <input type="radio" name="streamType"  value="0" checked="" />
+                                        直播
+                                    </label>
+                                </div>
+                                <div class="span4">
+                                    <label class="radio">
+                                        <input type="radio" name="streamType"  value="1" />
+                                        点播
+                                    </label>
+                                </div>                                
+                            </div>
+							 <div class="field-box" id="streamContainer" style="display:none;">
+                                <label>视频地址</label>
+                                <div class="input-prepend input-append">
+                                  <input class="span8" type="text" id="videoPath" name="videoPath" style="width:600px"/>
+                                </div>
+                            </div>   
                             <div class="field-box">
                                 <label>类型</label>
                                 <div class="span4">
@@ -117,7 +150,7 @@
                                 <label>价格</label>
                                 <div class="input-prepend input-append">
                                     <span class="add-on">￥</span>
-                                    <input class="span8" type="text" id="price" name="price"/>
+                                    <input class="span8" type="text" id="price" name="price" onKeyUp="amount(this)" onBlur="overFormat(this)" />
                                     <span class="add-on">元</span>
                                 </div>
                             </div>   
@@ -161,7 +194,7 @@
     </script>
 
     <script type="text/javascript" src="static/js/browser.js"></script>
-    <script type="text/javascript" src="static/js/common.js"></script>
-    <script type="text/javascript" src="static/js/activity-add.js"></script>
+    <script type="text/javascript" src="static/js/common.js?1112	"></script>
+    <script type="text/javascript" src="static/js/activity-add.js?1116"></script>
 </body>
 </html>

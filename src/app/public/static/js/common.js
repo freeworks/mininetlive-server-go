@@ -205,9 +205,20 @@ function formatActivityState(state){
 function formateActivityType(state){
     switch(state){
         case 0:
-            return "收费"
-        case 1:
             return "免费"
+        case 1:
+            return "收费"
+        default:
+            return state;
+    }
+}
+
+function formateStreamType(state){
+    switch(state){
+        case 0:
+            return "直播"
+        case 1:
+            return "视频"
         default:
             return state;
     }
@@ -246,6 +257,67 @@ function formateOrderState(state){
     }
 }
 
+/**
+* 实时动态强制更改用户录入
+* arg1 inputObject
+**/
+function amount(th){
+    var regStrs = [
+        ['^0(\\d+)$', '$1'], //禁止录入整数部分两位以上，但首位为0
+        ['[^\\d\\.]+$', ''], //禁止录入任何非数字和点
+        ['\\.(\\d?)\\.+', '.$1'], //禁止录入两个以上的点
+        ['^(\\d+\\.\\d{2}).+', '$1'] //禁止录入小数点后两位以上
+    ];
+    for(i=0; i<regStrs.length; i++){
+        var reg = new RegExp(regStrs[i][0]);
+        th.value = th.value.replace(reg, regStrs[i][1]);
+    }
+}
+ 
+/**
+* 录入完成后，输入模式失去焦点后对录入进行判断并强制更改，并对小数点进行0补全
+* arg1 inputObject
+* 这个函数写得很傻，是我很早以前写的了，没有进行优化，但功能十分齐全，你尝试着使用
+* 其实有一种可以更快速的JavaScript内置函数可以提取杂乱数据中的数字：
+* parseFloat('10');
+**/
+function overFormat(th){
+    var v = th.value;
+    if(v === ''){
+        v = '0.00';
+    }else if(v === '0'){
+        v = '0.00';
+    }else if(v === '0.'){
+        v = '0.00';
+    }else if(/^0+\d+\.?\d*.*$/.test(v)){
+        v = v.replace(/^0+(\d+\.?\d*).*$/, '$1');
+        v = inp.getRightPriceFormat(v).val;
+    }else if(/^0\.\d$/.test(v)){
+        v = v + '0';
+    }else if(!/^\d+\.\d{2}$/.test(v)){
+        if(/^\d+\.\d{2}.+/.test(v)){
+            v = v.replace(/^(\d+\.\d{2}).*$/, '$1');
+        }else if(/^\d+$/.test(v)){
+            v = v + '.00';
+        }else if(/^\d+\.$/.test(v)){
+            v = v + '00';
+        }else if(/^\d+\.\d$/.test(v)){
+            v = v + '0';
+        }else if(/^[^\d]+\d+\.?\d*$/.test(v)){
+            v = v.replace(/^[^\d]+(\d+\.?\d*)$/, '$1');
+        }else if(/\d+/.test(v)){
+            v = v.replace(/^[^\d]*(\d+\.?\d*).*$/, '$1');
+            ty = false;
+        }else if(/^0+\d+\.?\d*$/.test(v)){
+            v = v.replace(/^0+(\d+\.?\d*)$/, '$1');
+            ty = false;
+        }else{
+            v = '0.00';
+        }
+    }
+    th.value = v; 
+}
+
 
 mininet.ajax = ajax;
 mininet.ajaxFile = ajaxFile;
@@ -258,6 +330,9 @@ mininet.formatStreamType = formatStreamType;
 mininet.formatDateTime = formatDateTime;
 mininet.formatActivityState = formatActivityState;
 mininet.formateActivityType = formateActivityType;
+mininet.formateStreamType = formateStreamType;
 mininet.formateAppoinState = formateAppoinState;
 mininet.formatePayState = formatePayState;
 mininet.formateOrderState = formateOrderState;
+mininet.amount = amount;
+mininet.overFormat = overFormat;

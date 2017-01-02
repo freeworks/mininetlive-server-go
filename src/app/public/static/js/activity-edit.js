@@ -12,8 +12,9 @@ $(document).ready(function(){
         if (rsp.ret == 0) {
             id = rsp.data.id;
             renderHtmlActivityForm(rsp.data);
-        }
-        // TODO 非正常处理
+        }else{
+			alert(rsp.msg)
+		}
     })
     
     var $activityAdd = $(".activityAdd");
@@ -42,12 +43,17 @@ $(document).ready(function(){
 
     $activityAdd.on('click', function(){
         params = _.parseParams($("#activityForm").serialize());
-        params.activityType = $(this).data("activitytype");
+		if(params.streamType == 1 && params.videoPath == null){
+			alert("填写正确的视频地址！")
+			return;
+		}
+		params.price = parseFloat(params.price)*100
+		alert(params.price)
+//        params.activityType = $('input[name="activityType"]:checked').val();
         params.frontCover = $("#frontCoverString").val();
         // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
         params.date = params.date.replace("+", " ");
-
-        debugger
+		params.isrecommend = $("#isrecommend").is(':checked')?1:0
         mininet.ajax("put", "/activity/update/" + id, params, function(rsp){
             debugger
             if (rsp.ret == 0){
@@ -72,13 +78,19 @@ function renderHtmlActivityForm(activity){
     $("#frontCoverString").val(activity.frontCover);
     $("#title").val(activity.title);
     $("#desc").val(activity.desc);
-    $("#price").val(activity.price);
+    $("#price").val((activity.price / 100).toFixed(2));
     if (activity.activityType == 1){
         $("#priceContainer").show();
     }
+	$("input[name=activityType][value=" + activity.activityType + "]").prop("checked", true);
     initDateTimePicker(activity.date);
     $("#date").val(activity.date);
-    $("input[value=" + activity.activityType + "]").prop("checked", true);
+	$("#isrecommend").prop("checked", activity.isrecommend);
+	$("input[name=streamType][value=" + activity.streamType + "]").prop("checked", true);
+	if (activity.streamType == 1){
+        $("#streamContainer").show();
+    }
+	$("#videoPath").val(activity.videoPath)
 }
 
 function initPriceTypeChange(){
@@ -86,6 +98,11 @@ function initPriceTypeChange(){
     var $priceContainer = $("#priceContainer");
     $radio.on('change', function(){
        $priceContainer.toggle();
+    })
+	$radio = $("input[name=streamType]");
+    $streamContainer = $("#streamContainer");
+	$radio.on('change', function(){
+       $streamContainer.toggle();
     })
 }
 

@@ -1,6 +1,7 @@
 $(document).ready(function(){
     mininet.renderHtmlNavbar('activity');
     initPriceTypeChange();
+	initStreamTypeChange();
     initDateTimePicker();
     
     var $activityAdd = $(".activityAdd");
@@ -34,7 +35,11 @@ $(document).ready(function(){
 
     $activityAdd.on('click', function(){
         params = _.parseParams($("#activityForm").serialize());
-        params.activityType = $(this).data("activitytype");
+		if(params.streamType == 1 && params.videoPath == null){
+			alert("填写正确的视频地址！")
+			return;
+		}
+		params.isrecommend = $("#isrecommend").is(':checked')?1:0
         params.frontCover = $("#frontCoverString").val();
         // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
         params.date = params.date.replace("+", " ");
@@ -44,8 +49,7 @@ $(document).ready(function(){
             if (rsp.ret == 0){
                 window.location.href = "/activity-detail.html?aid=" + rsp.data.id;
             } else {
-                debugger
-                // TODO 非正常处理
+				alert(rsp.msg)
             }
         }, function(rsp){
             if (rsp.status == 422){
@@ -63,6 +67,14 @@ function initPriceTypeChange(){
     var $priceContainer = $("#priceContainer");
     $radio.on('change', function(){
        $priceContainer.toggle();
+    })
+}
+
+function initStreamTypeChange(){
+    var $radio = $("input[name=streamType]");
+    var $streamContainer = $("#streamContainer");
+    $radio.on('change', function(){
+       $streamContainer.toggle();
     })
 }
 

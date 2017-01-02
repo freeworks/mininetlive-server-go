@@ -179,13 +179,13 @@ type Activity struct {
 	StreamId         string    `json:"streamId" json:"streamId" db:"stream_id"`
 	StreamType       int       `form:"streamType" json:"streamType" db:"stream_type"` //0 直播，1 视频
 	LivePullPath     string    `json:"livePullPath" db:"live_pull_path"`
-	VideoPath        string    `json:"videoPath" db:"video_path"`
+	VideoPath        string    `form:"videoPath" json:"videoPath" db:"video_path"`
 	ActivityState    int       `json:"activityState" db:"activity_state"`                   //0 未开播， 1 直播中 2 直播结束
 	ActivityType     int       `form:"activityType" json:"activityType" db:"activity_type"` //0免费，1收费
 	PlayCount        int       `json:"playCount" db:"play_count"`
 	AppointmentCount int       `json:"appointmentCount" db:"appointment_count"`
 	OnlineCount      int       `json:"onlineCount" db:"online_count"`
-	IsRecommend      int       `json:"-" db:"is_recommend"`
+	IsRecommend      int       `form:"isrecommend" json:"isrecommend" db:"is_recommend"`
 	Updated          time.Time `json:"-" db:"update_time"`
 	Created          JsonTime  `json:"createTime" db:"create_time"`
 }
