@@ -48,6 +48,7 @@ func main() {
 
 	m.Group("/common", func(r martini.Router) {
 		r.Post("/inviteCode", PostInviteCode)
+		r.Get("/startConfig", GetStartConfig)
 	})
 	m.Group("/account", func(r martini.Router) {
 		r.Post("/info", GetAccountInfo)

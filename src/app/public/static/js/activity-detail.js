@@ -13,8 +13,9 @@ $(document).ready(function() {
         if (rsp.ret == 0) {
             var activity = rsp.data;
             $activityDetail.append(renderHtmlActivity(activity));
-        }
-        // TODO 非正常处理
+        }else{
+			alert(rsp.msg);
+		}
     })
 });
 

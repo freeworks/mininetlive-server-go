@@ -48,7 +48,6 @@ $(document).ready(function(){
 			return;
 		}
 		params.price = parseFloat(params.price)*100
-		alert(params.price)
 //        params.activityType = $('input[name="activityType"]:checked').val();
         params.frontCover = $("#frontCoverString").val();
         // params.date = (new Date(params.date.replace("+", " "))).getTime() / 1000;
