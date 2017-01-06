@@ -71,7 +71,7 @@ func RegisterOAuth(register OAuthUser, r render.Render, c *cache.Cache, dbmap *g
 func Login(localAuth LocalAuth, r render.Render, dbmap *gorp.DbMap) {
 	logger.Info("Login....phone->", localAuth.Phone, " pwd->", localAuth.Password)
 	var auth LocalAuth
-	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone, localAuth.Password)
+	err := dbmap.SelectOne(&auth, "select * from t_local_auth where phone=? and password = ?", localAuth.Phone, MD5(localAuth.Password))
 	CheckErr(err, "Login")
 	if err != nil {
 		r.JSON(200, Resp{1005, "账户或密码错误", nil})
@@ -115,6 +115,7 @@ func Register(authUser LocalAuthUser, r render.Render, c *cache.Cache, dbmap *go
 		authUser.LocalAuth.Token = Token()
 		authUser.LocalAuth.Uid = authUser.User.Uid
 		authUser.LocalAuth.Expires = time.Now().Add(time.Hour * 24 * 30)
+		authUser.LocalAuth.Password = MD5(authUser.LocalAuth.Password)
 		logger.Info(authUser.LocalAuth.String())
 		err = trans.Insert(&authUser.LocalAuth)
 		CheckErr(err, "Register insert LocalAuth failed")

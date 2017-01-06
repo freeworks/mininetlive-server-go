@@ -100,7 +100,7 @@ func RandomStr(length int) string {
 
 func CheckErr(err error, msg string) {
 	if err != nil {
-		logger.Error("======error=====",msg, err)
+		logger.Error("======error=====", msg, err)
 		// log.Fatalln(msg, err)
 	}
 }
@@ -177,6 +177,12 @@ func Mkdir(dir string) (e error) {
 		}
 	}
 	return
+}
+
+func MD5(data string) string {
+	t := md5.New()
+	io.WriteString(t, data)
+	return fmt.Sprintf("%x", t.Sum(nil))
 }
 
 func ValidatePhone(phone string) bool {
