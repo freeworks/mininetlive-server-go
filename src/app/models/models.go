@@ -236,7 +236,7 @@ type Order struct {
 	ClientIP string   `json:"ip" db:"client_ip"`
 	Subject  string   `json:"subject" db:"subject"`
 	Aid      string   `json:"aid" db:"aid"`
-	PayType  int      `json:"type" db:"type"`
+	PayType  int      `json:"type" db:"type"` //1 购买，0 奖励
 	State    int      `json:"state" db:"state"`
 	Created  JsonTime `json:"createTime" db:"create_time"`
 }
