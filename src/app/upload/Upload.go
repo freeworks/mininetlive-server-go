@@ -20,7 +20,7 @@ import (
 )
 
 //func Upload(r *http.Request, render render.Render) {
-//	logger.Info("parsing form")
+//	logger.Info(tag,"parsing form")
 //	err := r.ParseMultipartForm(100000)
 //	// CheckErr("upload ParseMultipartForm",err)
 //	if err != nil {
@@ -28,7 +28,7 @@ import (
 //	}
 //	file, head, err := r.FormFile("file")
 //	CheckErr(err, "upload Fromfile")
-//	logger.Info(head.Filename)
+//	logger.Info(tag,head.Filename)
 //	defer file.Close()
 //	tempDir := "/Users/cainli/mininetlive/temp/"
 //	filepath := tempDir + head.Filename
@@ -45,6 +45,7 @@ import (
 //	}
 //}
 
+
 func UploadToUCloudCND(path string, fileName string) (string, error) {
 	u := NewUcloudApiClient(
 		config.PublicKey,
@@ -53,12 +54,12 @@ func UploadToUCloudCND(path string, fileName string) (string, error) {
 	contentType := "image/jpeg"
 	bucketName := "mininetlivepub"
 	data, err := ioutil.ReadFile(path)
-	CheckErr(err, "ReadFile")
+	CheckErr("[Upload]","[UploadToUCloudCND]", "ReadFile",err)
 	resp, err := u.PutFile(fileName, bucketName, contentType, data)
-	CheckErr(err, "upload ucloud")
+	CheckErr("[Upload]","[UploadToUCloudCND]","upload ucloud",err)
 	if err == nil {
-		logger.Info(resp.StatusCode)
-		logger.Info(string(resp.Content))
+		logger.Info("[Upload]","[UploadToUCloudCND]",resp.StatusCode)
+		logger.Info("[Upload]","[UploadToUCloudCND]",string(resp.Content))
 		return getURL(fileName, bucketName, "PUT"), nil
 	} else {
 		return "", err

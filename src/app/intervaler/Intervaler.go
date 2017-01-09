@@ -66,7 +66,7 @@ func PollSyncPingxx(dbmap *gorp.DbMap) {
 	})
 	poller := NewPoller(interval,
 		func() error {
-			logger.Info("sync ping++ order，but not implement")
+			logger.Info("[Intervaler]","sync ping++ order，but not implement")
 			return nil
 		})
 	poller.Poll()

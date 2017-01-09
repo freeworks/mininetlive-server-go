@@ -26,12 +26,12 @@ type AdminModel struct {
 
 func (admin *AdminModel) String() string {
 	adminString := fmt.Sprintf("[%s, %s, %d]", admin.Id, admin.Nickname, admin.Password)
-	logger.Info(adminString)
+	logger.Info(tag,"[AdminModel]",adminString)
 	return adminString
 }
 
 func (admin *AdminModel) Login() {
-	logger.Info("login ....")
+	logger.Info(tag,"[AdminModel]","login ....")
 	admin.Authenticated = true
 }
 
@@ -48,9 +48,9 @@ func (admin *AdminModel) UniqueId() interface{} {
 }
 
 func (admin *AdminModel) GetById(uid interface{}, dbmap *gorp.DbMap) error {
-	logger.Info("GetById:", uid)
+	logger.Info("[AdminModel]","[GetById]:", uid)
 	err := dbmap.SelectOne(admin, "SELECT * FROM t_admin WHERE uid = ?", uid)
-	CheckErr(err, "GetById select one")
+	CheckErr("[AdminModel]","[GetById]","",err)
 	if err != nil {
 		return err
 	}

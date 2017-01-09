@@ -20,6 +20,7 @@ import (
 	"github.com/pborman/uuid"
 )
 
+
 func GetLimit(req *http.Request) (int, int) {
 	mPageIndex := 0
 	mPageSize := 10
@@ -58,22 +59,22 @@ func SendSMS(mobile string) (string, error) {
 	url := "https://sms.yunpian.com/v1/sms/send.json"
 	vcode := GeneraVCode6()
 	text := fmt.Sprintln()
-	logger.Info(text)
+	logger.Info("[Common][SendSMS]",text)
 	//uid := "verifyPhone"  //该条短信在您业务系统内的ID
 	//callback_url
 	res, err := http.Post(url, "application/x-www-form-urlencoded",
 		strings.NewReader("apikey=47d1ae5bc2c8f1bf6ed14ac828200299&mobile="+mobile+"&text=【微网直播间】您的验证码为"+vcode+""))
 	if err != nil {
-		CheckErr(err, "GetSMSCode send msg")
+		CheckErr("[Common]","[SendSMS]","",err)
 		return "", err
 	} else {
 		data, _ := ioutil.ReadAll(res.Body)
 		js, _ := NewJson(data)
-		logger.Info(string(data))
+		logger.Info("[Common][SendSMS]",string(data))
 		code, _ := js.Get("code").Int()
 		if code == 0 {
 			sid, _ := js.Get("result").Get("sid").Int()
-			logger.Info(sid)
+			logger.Info("[Common][SendSMS]",sid)
 		} else {
 			msg, _ := js.Get("msg").String()
 			return "", errors.New(msg)
@@ -98,28 +99,28 @@ func RandomStr(length int) string {
 	return string(result)
 }
 
-func CheckErr(err error, msg string) {
+func CheckErr(tag, method ,msg string,err error) {
 	if err != nil {
-		logger.Error("======error=====", msg, err)
+		logger.Error(tag,method, msg, err)
 		// log.Fatalln(msg, err)
 	}
 }
 
 func GeneraToken8() string {
 	token, err := GenerateRandomString(8)
-	CheckErr(err, "GeneraToken16")
+	CheckErr("[common]","[GeneraToken8]","",err)
 	return token
 }
 
 func GeneraToken16() string {
 	token, err := GenerateRandomString(16)
-	CheckErr(err, "GeneraToken16")
+	CheckErr("[common]","[GeneraToken16]","",err )
 	return token
 }
 
 func GeneraToken32() string {
 	token, err := GenerateRandomString(32)
-	CheckErr(err, "GeneraToken32")
+	CheckErr("[common]","[GeneraToken32]","",err)
 	return token
 }
 

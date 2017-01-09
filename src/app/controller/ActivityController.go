@@ -20,7 +20,7 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	uid := req.Header.Get("uid")
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
-	logger.Info("AppointmentActivity  uid->", uid, "aid->", aid)
+	logger.Info("[ActivityController]","[AppointmentActivity]","uid->", uid, "aid->", aid)
 	if uid == "" {
 		r.JSON(200, Resp{1013, "uid不能为空", nil})
 		return
@@ -34,7 +34,7 @@ func AppointmentActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	record.Uid = uid
 	record.Type = 0
 	err := dbmap.Insert(&record)
-	CheckErr(err, "AppointmentActivity insert failed")
+	CheckErr("[ActivityController]","[AppointmentActivity]","insert failed",err)
 	if err != nil {
 		r.JSON(200, Resp{1105, "添加活动失败", nil})
 	} else {
@@ -46,7 +46,7 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
-	logger.Info("PlayActivity  uid->", uid, "aid->", aid)
+	logger.Info("[ActivityController]","[PlayActivity]","uid->", uid, "aid->", aid)
 	if aid == "" {
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
 		return
@@ -56,28 +56,28 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	record.Uid = uid
 	record.Type = 1
 	err := dbmap.Insert(&record)
-	CheckErr(err, "PayActivity insert failed")
+	CheckErr("[ActivityController]","[PlayActivity]", "insert failed",err)
 	r.JSON(200, Resp{0, "ok", nil})
 }
 
 func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
-	logger.Info("GetHomeList  uid->", uid)
+	logger.Info("[ActivityController]","[GetHomeList]","uid->", uid)
 	var recomendActivities []QActivity
 	var activities []QActivity
 	_, err := dbmap.Select(&recomendActivities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
 	WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC`, uid, uid)
-	CheckErr(err, "get recomend list")
+	CheckErr("[ActivityController]","[GetHomeList]", "get recomend list",err)
 	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
 	WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ?`, uid, uid, PageSize+1)
-	CheckErr(err, "get Activity List")
+	CheckErr("[ActivityController]","[GetHomeList]","get Activity List",err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
 		var hasmore bool
-		logger.Info("GetHomeList activity count->", len(activities), " PageSize->", PageSize)
+		logger.Info("[ActivityController]","[GetHomeList]","activity count->", len(activities), " PageSize->", PageSize)
 		if len(activities) > PageSize {
 			hasmore = true
 			activities = activities[:PageSize]
@@ -98,13 +98,13 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	}
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
-	logger.Info("GetMoreActivityList..", activity.Created)
+	logger.Info("[ActivityController]","[GetMoreActivityList]", activity.Created)
 	var activities []QActivity
 	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state,
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
 	FROM t_activity t 
 	WHERE t.create_time < ? AND t.activity_state >= ? AND t.is_recommend = 0 ORDER BY t.activity_state ASC, t.create_time DESC  LIMIT ?`, uid, uid, activity.Created, activity.ActivityState, PageSize+1)
-	CheckErr(err, "GetActivityList select failed")
+	CheckErr("[ActivityController]","[GetMoreActivityList]","GetActivityList select failed",err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
@@ -125,7 +125,7 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	_, err := dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
 	FROM t_activity t WHERE t.activity_state = 1 AND t.stream_type = 0 ORDER BY t.create_time DESC`, uid, uid)
-	CheckErr(err, "GetLiveActivityList select failed")
+	CheckErr("[ActivityController]","[GetLiveActivityList]","select failed",err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
 	} else {
@@ -136,7 +136,7 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 func GetActivityDetail(req *http.Request, params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	var activity QActivity
 	uid := req.Header.Get("uid")
-	logger.Info(params)
+	logger.Info("[ActivityController]","[GetActivityDetail]",params)
 	aid := params["aid"]
 	if aid == "" {
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
@@ -145,7 +145,7 @@ func GetActivityDetail(req *http.Request, params martini.Params, r render.Render
 	err := dbmap.SelectOne(&activity, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= ?)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= ?)  AS appoint_state  
 	FROM t_activity t WHERE t.aid = ?`, uid, aid, uid, aid, aid)
-	CheckErr(err, "GetActivityDetail select failed")
+	CheckErr("[ActivityController]","[GetActivityDetail]","select failed",err)
 	if err != nil {
 		r.JSON(200, Resp{1103, "活动不存在", nil})
 	} else {
@@ -158,12 +158,12 @@ func JoinGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
-		logger.Info("JoinGroup", "uid or aid is ''")
+		logger.Info("[ActivityController]","[JoinGroup]", "uid or aid is ''")
 		r.JSON(200, Resp{0, "加入失败！", nil})
 		return
 	} else {
 		_, err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(NULL,?,?,now())`, aid, uid)
-		CheckErr(err, "JoinGroup")
+		CheckErr("[ActivityController]","JoinGroup","",err)
 	}
 	r.JSON(200, Resp{0, "加入成功", nil})
 }
@@ -173,12 +173,12 @@ func LeaveGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
-		logger.Info("LeaveGroup", "uid or aid is ''")
+		logger.Info("[ActivityController]","[LeaveGroup]", "uid or aid is ''")
 		r.JSON(200, Resp{0, "离开失败！", nil})
 		return
 	} else {
 		_, err := dbmap.Exec(`DELETE FROM t_activity_user_online WHERE aid = ? AND uid = ?`, aid, uid)
-		CheckErr(err, "LeaveGroup")
+		CheckErr("[ActivityController]","[LeaveGroup]","",err)
 	}
 	r.JSON(200, Resp{0, "离开成功", nil})
 }
@@ -188,11 +188,11 @@ func GetLiveActivityMemberCount(req *http.Request, r render.Render, c *cache.Cac
 	req.ParseForm()
 	aid := req.PostFormValue("aid")
 	if uid == "" || aid == "" {
-		logger.Info("GetLiveActivityMemberCount", "uid or aid is ''")
+		logger.Info("[ActivityController]","[GetLiveActivityMemberCount]", "uid or aid is ''")
 		r.JSON(200, Resp{0, "缺少参数uid和aid不能为空", nil})
 	} else {
 		count, err := dbmap.SelectInt("SELECT COUNT(*) FROM t_activity_user_online WHERE aid = ?", aid)
-		CheckErr(err, "GetLiveActivityMemberCount")
+		CheckErr("[ActivityController]","[GetLiveActivityMemberCount]","",err)
 		if err == nil {
 			r.JSON(200, Resp{0, "获取在线成员信息成功", map[string]int{"count": int(count)}})
 		} else {
@@ -209,13 +209,13 @@ func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cach
 		aid = query["aid"][0]
 	}
 	if uid == "" || aid == "" {
-		logger.Info("GetLiveActivityMemberList", "uid or aid is ''")
+		logger.Info("[ActivityController]","[GetLiveActivityMemberList]", "uid or aid is ''")
 		r.JSON(200, Resp{0, "缺少参数uid和aid不能为空", nil})
 		return
 	} else {
 		var users []OnlineUser
 		_, err := dbmap.Select(&users, `SELECT o.uid,u.avatar,u.nickname FROM t_activity_user_online o LEFT JOIN t_user u ON o.uid = u.uid WHERE o.aid = ?`, aid)
-		CheckErr(err, "GetLiveActivityMemberList")
+		CheckErr("[ActivityController]","[GetLiveActivityMemberList]","",err)
 		if err == nil {
 			r.JSON(200, Resp{0, "获取在线成员信息成功", users})
 		} else {
@@ -226,10 +226,10 @@ func GetLiveActivityMemberList(req *http.Request, r render.Render, c *cache.Cach
 
 func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
 	platform := params["platform"]
-	logger.Info("platform", platform)
+	logger.Info("[ActivityController]","[GetSharePage]","platform", platform)
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", params["id"])
-	CheckErr(err, "GetSharePage")
+	CheckErr("[ActivityController]","[GetSharePage]","",err)
 	//TODO apple 下载地址 https://itunes.apple.com/cn/app/qq/id444934666
 	url := "http://a.app.qq.com/o/simple.jsp?pkgname=com.kouchen.mininetlive"
 	if err == nil {
@@ -239,7 +239,7 @@ func GetSharePage(params martini.Params, r render.Render, c *cache.Cache, dbmap 
 		}
 		result.DownloadUrl = url
 		result.Activity = activity
-		CheckErr(err, "GetSharePage")
+		CheckErr("[ActivityController]","[GetSharePage]","",err)
 		r.JSON(200, Resp{0, "获取成功", result})
 	} else {
 		r.JSON(200, Resp{1103, "获取在线成员信息失败", nil})

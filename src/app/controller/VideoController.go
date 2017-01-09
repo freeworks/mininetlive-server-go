@@ -15,25 +15,25 @@ import (
 func CallbackRecordFinish(r *http.Request) {
 	//TODO
 	qs := r.URL.Query()
-	logger.Info(qs)
+	logger.Info("[VideoController]","[CallbackRecordFinish]",qs)
 	filename, filesize, spacename, duration := qs.Get("filename"), qs.Get("filesize"), qs.Get("spacename"), qs.Get("duration")
 	filesizeInt, err := strconv.Atoi(filesize)
-	CheckErr(err, "CallbackRecordFinish : parse filesize ")
+	CheckErr("[VideoController]","[CallbackRecordFinish]", "parse filesize ",err)
 	durationInt, err := strconv.Atoi(duration)
-	CheckErr(err, "CallbackRecordFinish : parse duration ")
+	CheckErr("[VideoController]","[CallbackRecordFinish]","parse duration ",err)
 	url := "http://" + spacename + ".ufile.ucloud.com.cn/" + filename
-	logger.Info("live record ", url, " size:", filesizeInt, " duration:", durationInt)
+	logger.Info("[VideoController]","[CallbackRecordFinish]","live record ", url, " size:", filesizeInt, " duration:", durationInt)
 
 }
 
 //[info [map[ip:[116.204.87.129] node:[211.162.55.57] id:[7RUTrhBiMwY=] app:[publish.weiwanglive.com] appname:[mininetlive]]]]
 func CallbackLiveBegin(r *http.Request, dbmap *gorp.DbMap) {
 	qs := r.URL.Query()
-	logger.Info(qs)
+	logger.Info("[VideoController]","[CallbackLiveBegin]",qs)
 	aid := qs.Get("id")
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", aid)
-	CheckErr(err, "CallbackLiveBegin - GetActivity select failed")
+	CheckErr("[VideoController]","[CallbackLiveBegin]","GetActivity select failed",err)
 	if err == nil {
 		dbmap.Exec("UPDATE t_activity SET activity_state = 1 WHERE aid = ?", aid)
 		PushLiveBegin(activity.Aid, activity.Title)
@@ -42,11 +42,11 @@ func CallbackLiveBegin(r *http.Request, dbmap *gorp.DbMap) {
 
 func CallbackLiveEnd(r *http.Request, dbmap *gorp.DbMap) {
 	qs := r.URL.Query()
-	logger.Info(qs)
+	logger.Info("[VideoController]","[CallbackLiveEnd]",qs)
 	aid := qs.Get("id")
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "select * from t_activity where aid =?", aid)
-	CheckErr(err, "CallbackLiveEnd - GetActivity select failed")
+	CheckErr("[VideoController]","[CallbackLiveEnd]","GetActivity select failed",err)
 	if err == nil {
 		dbmap.Exec("UPDATE t_activity SET activity_state = 2 WHERE aid = ?", aid)
 		PushLiveEnd(activity.Aid, activity.Title)

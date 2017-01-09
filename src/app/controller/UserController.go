@@ -11,10 +11,10 @@ import (
 )
 
 func GetUser(args martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	logger.Info("GetUser....")
+	logger.Info("[UserController]","[GetUser]")
 	var user User
 	err := dbmap.SelectOne(&user, "select * from t_user where uid=?", args["uid"])
-	CheckErr(err, "GetUser selectOne failed")
+	CheckErr("[UserController]","[GetUser]","selectOne failed",err)
 	//simple error check
 	if err != nil {
 		r.JSON(200, Resp{1002, "获取用户信息失败", nil})

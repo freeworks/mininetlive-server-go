@@ -8,10 +8,11 @@ import (
 	"github.com/martini-contrib/render"
 )
 
+
 func GetStartConfig(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	platform := req.Header.Get("platform")
-	logger.Info("GetStartConfig platform ", platform)
+	logger.Info("[CommonController]","[GetStartConfig]","platform ", platform)
 	config := make(map[string]interface{})
 	config["isRelease"] = true
 	config["enable"] = true

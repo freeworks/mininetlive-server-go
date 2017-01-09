@@ -30,9 +30,9 @@ func getSign(method, url, body string) string {
 }
 
 func push(data []byte) (*Json, error) {
-	logger.Info("push", string(data))
+	logger.Info("[Push]","[push]", string(data))
 	sign := getSign("POST", "http://msg.umeng.com/api/send", string(data))
-	logger.Info("sign", sign)
+	logger.Info("[Push]","[push]","sign", sign)
 	req, err := http.NewRequest("POST", "http://msg.umeng.com/api/send?sign="+sign, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -46,12 +46,12 @@ func push(data []byte) (*Json, error) {
 		body, _ := ioutil.ReadAll(resp.Body)
 		js, _ := NewJson(body)
 		data, _ := js.Get("ret").String()
-		logger.Info(data)
+		logger.Info("[Push]","[push]",data)
 		return js, nil
 	} else {
 		result := fmt.Sprintln("response Status:", resp.Status, ",Headers:", resp.Header)
 		body, _ := ioutil.ReadAll(resp.Body)
-		logger.Info(string(body))
+		logger.Info("[Push]","[push]",string(body))
 		return nil, errors.New(result)
 	}
 }
@@ -128,12 +128,12 @@ func newPayload(displayType string, body PushBody, extra map[string]string) Payl
 
 func PushOne(payload Payload, deviceToken string) {
 	p, err := json.Marshal(payload)
-	CheckErr(err, "PushAll Marshal ")
+	CheckErr("[Push]","[PushOne]","Marshal",err)
 	if err != nil {
 		return
 	}
 	ploadString := string(p)
-	logger.Info("PushAll ", ploadString)
+	logger.Info("[Push]","[PushOne]", ploadString)
 	//android
 	data := []byte(`{
 					"appkey": "` + APP_KEY + `",
@@ -147,12 +147,12 @@ func PushOne(payload Payload, deviceToken string) {
 
 func PushAll(payload Payload) {
 	p, err := json.Marshal(payload)
-	CheckErr(err, "PushAll Marshal ")
+	CheckErr("[Push]","[PushAll]","Marshal",err)
 	if err != nil {
 		return
 	}
 	ploadString := string(p)
-	logger.Info("PushAll ", ploadString)
+	logger.Info("[Push]","[PushAll]", ploadString)
 	//android
 	data := []byte(`{
 					"appkey": "` + APP_KEY + `",

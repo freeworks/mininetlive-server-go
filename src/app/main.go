@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	logger.Info(time.Now())
+	logger.Info("[Main]",time.Now())
 	logger.SetConsole(true)
 	logger.SetRollingDaily(config.LogDir, "mininetlive.log")
 	logger.SetLevel(logger.ALL)

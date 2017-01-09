@@ -67,7 +67,7 @@ func init() {
 
 func GetCharge(req *http.Request, parms martini.Params, render render.Render, dbmap *gorp.DbMap) {
 	uid := req.Header.Get("uid")
-	logger.Info("uid:", uid)
+	logger.Info(tag,"uid:", uid)
 	aid := req.PostFormValue("aid")
 	if aid == "" {
 		render.JSON(200, Resp{1003, "aid不能为空", nil})
@@ -102,17 +102,17 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		return
 	}
 	orderno := RandomStr(16)
-	logger.Info("ordderno :", orderno, ",channel:", channel, ",ammout:", amount)
+	logger.Info(tag,"ordderno :", orderno, ",channel:", channel, ",ammout:", amount)
 	extra := make(map[string]interface{})
 	log.Printf(req.RemoteAddr)
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	log.Print()
 	if err != nil {
-		logger.Info("userIP: [", req.RemoteAddr, "] is not IP:port")
+		logger.Info(tag,"userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 	userIP := net.ParseIP(ip)
 	if userIP == nil {
-		logger.Info("userIP: [", req.RemoteAddr, "] is not IP:port")
+		logger.Info(tag,"userIP: [", req.RemoteAddr, "] is not IP:port")
 	}
 
 	subject := title
@@ -137,7 +137,7 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 		render.JSON(200, Resp{2000, "获取支付信息失败", nil})
 	} else {
 		chs, _ := json.Marshal(ch)
-		logger.Info(string(chs))
+		logger.Info(tag,string(chs))
 		order := newOrder(uid, orderno, channel, userIP.String(), subject, aid, uint64(amount), payType)
 		err := dbmap.Insert(&order)
 		CheckErr(err, "create order")
@@ -176,7 +176,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		return
 	}
 	if user.Phone == "" {
-		logger.Info("还没有绑定手机")
+		logger.Info(tag,"还没有绑定手机")
 		render.JSON(200, Resp{2006, "还没有绑定手机", nil})
 		return
 	}
@@ -187,20 +187,20 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		render.JSON(200, Resp{2001, "服务器异常，查询用户信息失败", nil})
 		return
 	}
-	logger.Info("wxpubOpenId ", wxpubOpenId)
+	logger.Info(tag,"wxpubOpenId ", wxpubOpenId)
 	if wxpubOpenId == "" {
-		logger.Info("还没有绑定公众账号")
+		logger.Info(tag,"还没有绑定公众账号")
 		render.JSON(200, Resp{2007, "还没有绑定公众账号，请关注微网直播公众账号！", nil})
 		return
 	}
 
 	amount, err := strconv.ParseInt(req.PostFormValue("amount"), 10, 64)
-	logger.Info("transfer amount",amount)
+	logger.Info(tag,"transfer amount",amount)
 	realAmount := uint64(amount)
 	CheckErr(err, "parse amount")
 	// 1.00 和 20000.00
 	if err != nil {
-		logger.Info("金额错误,", realAmount, "账户余额：", user.Balance)
+		logger.Info(tag,"金额错误,", realAmount, "账户余额：", user.Balance)
 		render.JSON(200, Resp{2008, "金额错误，输入金额不正确！", nil})
 		return
 	}
@@ -216,7 +216,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	extra["user_name"] = user.NickName
 	extra["force_check"] = false
 	orderno := RandomStr(16)
-	logger.Info("Transfer orderno:", orderno, " amount:", realAmount)
+	logger.Info(tag,"Transfer orderno:", orderno, " amount:", realAmount)
 	transferParams := &pingpp.TransferParams{
 		App:         pingpp.App{Id: APP_ID},
 		Channel:     "wx_pub",
@@ -235,7 +235,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 		return
 	}
 	fr, _ := json.Marshal(transfer)
-	logger.Info(string(fr))
+	logger.Info(tag,string(fr))
 	var dat map[string]interface{}
 	json.Unmarshal(fr, &dat)
 	failure_msg := dat["failure_msg"].(string)
@@ -266,15 +266,15 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 		}
 		//base64解码再验证
 		decodeStr, _ := base64.StdEncoding.DecodeString(signed)
-		//		logger.Info(decodeStr)
+		//		logger.Info(tag,decodeStr)
 		err = pingpp.Verify([]byte(data), publicKey, decodeStr)
 		CheckErr(err, "webhook pingpp.Verify")
 		if err != nil {
 			return
 		}
-		logger.Info("webhook ping++ verify hook success")
+		logger.Info(tag,"webhook ping++ verify hook success")
 		webhook, err := pingpp.ParseWebhooks(buf.Bytes())
-		logger.Info("webhook webhook.Type:" + webhook.Type)
+		logger.Info(tag,"webhook webhook.Type:" + webhook.Type)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "fail")
@@ -283,7 +283,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 
 		if webhook.Type == "charge.succeeded" {
 			//orderno -> uid -> invited1 -> invite2->invited3
-			logger.Info("webhook ", webhook.Type, "id:", webhook.Data.Object["id"],
+			logger.Info(tag,"webhook ", webhook.Type, "id:", webhook.Data.Object["id"],
 				"transaction_no:", webhook.Data.Object["transaction_no"],
 				"order_no:", webhook.Data.Object["order_no"],
 				"amount:", webhook.Data.Object["amount"])
@@ -310,11 +310,11 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 				if err == nil {
 					// https://www.zhihu.com/question/29083902
 					obj1, obj2, obj3 := getDistributionUsers(user.Uid, dbmap)
-					logger.Info("webhook getDistributionUsers ", obj1, obj2, obj3)
+					logger.Info(tag,"webhook getDistributionUsers ", obj1, obj2, obj3)
 					if obj1 != nil {
 						user1 := obj1.(User)
 						dividend := int(float64(amount) * config.DeductPercent1)
-						logger.Info("webhook user1 dividend->", dividend)
+						logger.Info(tag,"webhook user1 dividend->", dividend)
 						user1.Balance = user1.Balance + dividend
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user1.Balance, user1.Uid)
 						CheckErr(err, "update user1 dividend")
@@ -324,7 +324,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user2 := obj2.(User)
 						dividend := int(float64(amount) * config.DeductPercent2)
 						user2.Balance = user2.Balance + dividend
-						logger.Info("webhook user2 dividend->", dividend)
+						logger.Info(tag,"webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user2.Balance, user2.Uid)
 						CheckErr(err, "update user2 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user2.Uid, user2.DeviceId)
@@ -334,7 +334,7 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 						user3 := obj3.(User)
 						dividend := int(float64(amount) * config.DeductPercent3)
 						user3.Balance = user3.Balance + dividend
-						logger.Info("webhook user2 dividend->", dividend)
+						logger.Info(tag,"webhook user2 dividend->", dividend)
 						_, err := dbmap.Exec("UPDATE t_user SET balance = ? WHERE uid = ?", user3.Balance, user3.Uid)
 						CheckErr(err, "update user3 dividend")
 						newDividendRecord(dbmap, user.Uid, user.NickName, user.Avatar, order.Aid, title, dividend, user3.Uid, user3.DeviceId)
@@ -371,7 +371,7 @@ func newDividendRecord(dbmap *gorp.DbMap, uid, nickname, avatar, aid, title stri
 }
 
 func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface{}, interface{}) {
-	logger.Info("getDistributionUsers...")
+	logger.Info(tag,"getDistributionUsers...")
 	var user1, user2, user3 User
 	err := dbmap.SelectOne(&user1, `SELECT * FROM t_user 
 									WHERE invite_code = 
@@ -393,10 +393,10 @@ func getDistributionUsers(uid string, dbmap *gorp.DbMap) (interface{}, interface
 									(SELECT be_invited_code FROM t_invite_relation WHERE uid = ?) `, user2.Uid)
 	CheckErr(err, "webhook getDistributionUsers query user3")
 	if err != nil || isEmptyUser(user3) {
-		logger.Info("webhook,二级关系")
+		logger.Info(tag,"webhook,二级关系")
 		return user1, user2, nil
 	} else {
-		logger.Info("webhook,三级关系")
+		logger.Info(tag,"webhook,三级关系")
 		return user1, user2, user3
 	}
 }
