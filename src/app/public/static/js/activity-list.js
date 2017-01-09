@@ -36,7 +36,8 @@ function renderHtmlActivityRow(activity){
 	var html = "";
     html += '<tr class="first">' + 
         '<td>' + '<a href="/activity-detail.html?aid=' + activity.aid + '" class="name">' + activity.title + '</a>' + '</td>' +
-        '<td><img src="' + activity.frontCover + '" style="width: 150px;height:75px;" class="avatar hidden-phone" />' + '</td>' +
+        '<td><img src="' + activity.frontCover +'?iopcmd=thumbnail&type=8&width=121&height=75' +  
+		'" style="width: 150px;height:75px;" class="avatar hidden-phone" />' + '</td>' +
 		'<td>' + mininet.formatStreamType(activity.streamType) +'</td>' +
         // '<td>' + mininet.formateAppoinState(activity.appoinState) +'</td>' +
         '<td>' + activity.appointmentCount +'</td>' +

@@ -25,7 +25,8 @@ function renderHtmlActivity(activity){
     html += '<tr><td>' + '标题' + '</td><td>' + activity.title + '</td></tr>';
     html += '<tr><td>' + '时间' + '</td><td>' + activity.date + '</td></tr>';
     html += '<tr><td>' + '描述' + '</td><td>' + activity.desc + '</td></tr>';
-    html += '<tr><td>' + '预览图' + '</td><td>' + '<img src=" ' + activity.frontCover +'" style="max-width: 300px">' + '</td></tr>';
+    html += '<tr><td>' + '预览图' + '</td><td>' + '<img src=" ' + activity.frontCover +'?iopcmd=thumbnail&type=8&width=300&height=150'
+	+'" style="max-width: 300px">' + '</td></tr>';
     html += '<tr><td>' + '类型' + '</td><td>' + mininet.formatStreamType(activity.streamType) + '</td></tr>';
     if (activity.streamType == 1){
         html += '<tr><td>' + '视频路径' + '</td><td>' + activity.videoPath + '</td></tr>';

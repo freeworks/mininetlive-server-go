@@ -73,7 +73,8 @@ $(document).ready(function(){
 
 function renderHtmlActivityForm(activity){
     debugger
-    $(".uploadContainer").css('background-image', "url(" + activity.frontCover + ")");
+    $(".uploadContainer").css('background-image', "url(" + activity.frontCover+'?iopcmd=thumbnail&type=8&width=300&height=150' 
+	+ ")");
     $("#frontCoverString").val(activity.frontCover);
     $("#title").val(activity.title);
     $("#desc").val(activity.desc);

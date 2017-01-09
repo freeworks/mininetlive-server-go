@@ -27,7 +27,8 @@ $(document).ready(function(){
 
 function renderHtmlUserRow(user){
     return '<tr class="first">' + 
-        '<td><img src="' + user.avatar + '" class="img-circle avatar hidden-phone" />' +
+        '<td><img src="' + user.avatar+'?iopcmd=thumbnail&type=8&width=55&height=55' + 
+		'" class="img-circle avatar hidden-phone" />' +
             '<a href="user-profile.html" class="name" style="margin-left: 15px">' + user.nickname + '</a>' + 
         '</td>' +
         '<td>' + mininet.formatGender(user.gender) + '</td>' + 
