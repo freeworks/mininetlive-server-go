@@ -349,7 +349,7 @@ func Upload(r *http.Request, render render.Render) {
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
 	CheckErr(tag,"[Upload]", "copy file error",err)
-	url, err := upload.UploadToUCloudCND(filepath, "frontCover/"+head.Filename)
+	url, err := upload.UploadImageFile(filepath, "frontCover/"+head.Filename)
 	if err == nil {
 		render.JSON(200, Resp{0, "图片上传成功！", map[string]interface{}{"url": url}})
 	} else {

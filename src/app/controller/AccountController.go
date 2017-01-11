@@ -147,7 +147,7 @@ func UpdateAccountAvatar(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	}
 	fileSize := fileInfo.Size()
 	logger.Info("[AccountController]","[UpdateAccountAvatar]","fileSize:", fileSize)
-	url, err := upload.UploadToUCloudCND(filepath, "avatar/"+fileName)
+	url, err := upload.UploadImageFile(filepath, "avatar/"+fileName)
 	if err == nil {
 		_, err = dbmap.Exec("UPDATE t_user SET avatar = ? WHERE uid = ?", url, uid)
 	}
