@@ -63,7 +63,7 @@ func fetchAccessToken(c *cache.Cache) (string, error) {
 			return "", err
 		}
 
-		logger.Info(tag,"[fetchAccessToken]",string(body))
+		logger.Info(tag, "[fetchAccessToken]", string(body))
 
 		if bytes.Contains(body, []byte("access_token")) {
 			atr := AccessTokenResponse{}
@@ -103,7 +103,7 @@ type TextMsgContent struct {
 }
 
 func pushCustomMsg(accessToken, toUser, msg string) error {
-	logger.Info(tag,"[pushCustomMsg]", accessToken, toUser, msg)
+	logger.Info(tag, "[pushCustomMsg]", accessToken, toUser, msg)
 	csMsg := &CustomServiceMsg{
 		ToUser:  toUser,
 		MsgType: "text",
@@ -112,10 +112,10 @@ func pushCustomMsg(accessToken, toUser, msg string) error {
 
 	body, err := json.MarshalIndent(csMsg, " ", "  ")
 	if err != nil {
-		CheckErr(tag,"[pushCustomMsg]","",err)
+		CheckErr(tag, "[pushCustomMsg]", "", err)
 		return err
 	}
-	logger.Info(tag,"[pushCustomMsg]",string(body))
+	logger.Info(tag, "[pushCustomMsg]", string(body))
 	postReq, err := http.NewRequest("POST",
 		"https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token="+accessToken,
 		bytes.NewReader(body))
@@ -128,7 +128,7 @@ func pushCustomMsg(accessToken, toUser, msg string) error {
 	client := &http.Client{}
 	resp, err := client.Do(postReq)
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	logger.Info(tag,"[pushCustomMsg]",string(respBody))
+	logger.Info(tag, "[pushCustomMsg]", string(respBody))
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -147,7 +147,7 @@ func getShorturl(accessToken, longurl string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logger.Info(tag,"[getShorturl]",string(body))
+	logger.Info(tag, "[getShorturl]", string(body))
 	postReq, err := http.NewRequest("POST",
 		"https://api.weixin.qq.com/cgi-bin/shorturl?access_token="+accessToken,
 		bytes.NewReader(body))
@@ -161,7 +161,7 @@ func getShorturl(accessToken, longurl string) (string, error) {
 	resp, err := client.Do(postReq)
 	defer resp.Body.Close()
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	logger.Info(tag,"[getShorturl]",string(respBody))
+	logger.Info(tag, "[getShorturl]", string(respBody))
 	if bytes.Contains(respBody, []byte("short_url")) {
 		atr := ShourtUrlResponse{}
 		err = json.Unmarshal(respBody, &atr)
@@ -190,7 +190,7 @@ func parseTextRequestBody(r *http.Request) *TextRequestBody {
 		log.Fatal(err)
 		return nil
 	}
-	logger.Info(tag,"[parseTextRequestBody]",string(body))
+	logger.Info(tag, "[parseTextRequestBody]", string(body))
 	requestBody := &TextRequestBody{}
 	xml.Unmarshal(body, requestBody)
 	return requestBody
@@ -212,9 +212,9 @@ func RecvWXPubMsg(render render.Render, c *cache.Cache, w http.ResponseWriter, r
 				if accessToken != "" && err == nil {
 					shorturl, err := getShorturl(accessToken, "http://www.weiwanglive.com/bind-phone.html?id="+openId)
 					if err == nil {
-						err = pushCustomMsg(accessToken, openId, "打开以下链接，绑定手机，才可以完成提现!"+shorturl)
+						err = pushCustomMsg(accessToken, openId, "打开以下链接，绑定手机，才可以完成提现哦!"+shorturl)
 						if err != nil {
-							logger.Info(tag,"[RecvWXPubMsg]","Push custom service message err:", err)
+							logger.Info(tag, "[RecvWXPubMsg]", "Push custom service message err:", err)
 							return
 						}
 					}
@@ -290,7 +290,7 @@ func BindWxPubPhone(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 			} else {
 				if wxPub.Phone != phone {
 					_, err := dbmap.Exec("UPDATE t_wxpub SET phone = ? WHERE openid = ?", phone, openId)
-					CheckErr(tag,"[BindWxPubPhone]","Update nickname get failed",err)
+					CheckErr(tag, "[BindWxPubPhone]", "Update nickname get failed", err)
 					if err != nil {
 						r.JSON(200, Resp{1002, "手机号已绑定其他微信号，不能再绑定", nil})
 						return
@@ -326,12 +326,12 @@ type JSTokenResult struct {
 func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	url := req.PostFormValue("url")
-	logger.Info(tag,"[GetConfig]","url:", url)
+	logger.Info(tag, "[GetConfig]", "url:", url)
 	var ticketStr string
 	ticketStr, err := getJsToken(c)
-	logger.Info(tag,"[GetConfig]","ticketStr:", ticketStr)
+	logger.Info(tag, "[GetConfig]", "ticketStr:", ticketStr)
 	if err != nil {
-		CheckErr(tag,"[GetConfig]","getJsToken",err)
+		CheckErr(tag, "[GetConfig]", "getJsToken", err)
 		r.JSON(200, Resp{-1, "fail", "GetConfig  getJsToken"})
 		return
 	}
@@ -342,7 +342,7 @@ func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.D
 	h := sha1.New()
 	io.WriteString(h, str)
 	sigStr := fmt.Sprintf("%x", h.Sum(nil))
-	logger.Info(tag,"[GetConfig]","sigStr", str, "->", sigStr)
+	logger.Info(tag, "[GetConfig]", "sigStr", str, "->", sigStr)
 	config := Config{
 		AppID:     appID,
 		NonceStr:  nonceStr,
@@ -355,22 +355,22 @@ func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.D
 
 func getJsToken(c *cache.Cache) (string, error) {
 	accessToken, err := fetchAccessToken(c)
-	logger.Info(tag,"[getJsToken]", accessToken)
+	logger.Info(tag, "[getJsToken]", accessToken)
 	if err == nil && accessToken != "" {
 		if ticket, found := c.Get("jsticket"); !found {
-			logger.Info(tag,"[getJsToken]","ticket not found and get ticket from wx")
+			logger.Info(tag, "[getJsToken]", "ticket not found and get ticket from wx")
 			resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=" + accessToken + "&type=jsapi")
 			if err != nil {
-				CheckErr(tag,"[getJsToken]","",err)
+				CheckErr(tag, "[getJsToken]", "", err)
 				return "", err
 			}
 			defer resp.Body.Close()
 			respBody, _ := ioutil.ReadAll(resp.Body)
-			logger.Info(tag,"[getJsToken]",string(respBody))
+			logger.Info(tag, "[getJsToken]", string(respBody))
 			if bytes.Contains(respBody, []byte("ticket")) {
 				result := JSTokenResult{}
 				err = json.Unmarshal(respBody, &result)
-				CheckErr(tag,"[getJsToken]","json.Unmarshal",err)
+				CheckErr(tag, "[getJsToken]", "json.Unmarshal", err)
 				if err != nil {
 					return "", err
 				}
