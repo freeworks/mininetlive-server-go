@@ -33,7 +33,7 @@ const (
 	API_KEY string = `sk_live_SOmLyDHanHSGe5irXPWfnvj5`
 )
 
-func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amount uint64, payType int) Order {
+func newOrder(uid, aid,orderno, channel, clientIP, subject string, amount uint64, payType int) Order {
 	return Order{
 		Uid:      uid,
 		OrderNo:  orderno,
@@ -47,7 +47,7 @@ func newOrder(uid string, orderno, channel, clientIP, subject, aid string, amoun
 	}
 }
 
-func newPayRecord(uid string, aid string, orderno string, amount uint64) Record {
+func newPayRecord(uid, aid, orderno string, amount uint64) Record {
 	return Record{
 		Uid:     uid,
 		OrderNo: orderno,
@@ -56,7 +56,7 @@ func newPayRecord(uid string, aid string, orderno string, amount uint64) Record 
 		Amount:  amount,
 	}
 }
-func newWithdrawRecord(uid string, orderno string, amount uint64) Record {
+func newWithdrawRecord(uid ,orderno string, amount uint64) Record {
 	return Record{
 		Uid:     uid,
 		OrderNo: orderno,
@@ -148,10 +148,10 @@ func GetCharge(req *http.Request, parms martini.Params, render render.Render, db
 	} else {
 		chs, _ := json.Marshal(ch)
 		logger.Info("[Pay]","[GetCharge]",string(chs))
-		order := newOrder(uid, orderno, channel, userIP.String(), subject, aid, uint64(amount), payType)
+		order := newOrder(uid, aid, orderno, channel, userIP.String(), subject, uint64(amount), payType)
 		err := dbmap.Insert(&order)
 		CheckErr("[pay]","[GetCharge]","create order",err)
-		record := newPayRecord(aid, uid, orderno, uint64(amount))
+		record := newPayRecord(uid,aid,orderno, uint64(amount))
 		err = dbmap.Insert(&record)
 		CheckErr("[pay]","[GetCharge]","create record",err)
 		var chsObj interface{}
