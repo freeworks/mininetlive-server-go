@@ -163,6 +163,7 @@ type QueryAppointmentRecord struct {
 
 type QueryWithdrawRecord struct {
 	Amount  int      `db:"amount" json:"amount"`
+	State   int      `db:"state" json:"state"`
 	Created JsonTime `db:"create_time" json:"createTime"`
 }
 
