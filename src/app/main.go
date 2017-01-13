@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	logger.Info("[Main]",time.Now())
+	logger.Info("[Main]", time.Now())
 	logger.SetConsole(true)
 	logger.SetRollingDaily(config.LogDir, "mininetlive.log")
 	logger.SetLevel(logger.ALL)
@@ -51,7 +51,7 @@ func main() {
 		r.Get("/startConfig", GetStartConfig)
 	})
 	m.Group("/account", func(r martini.Router) {
-		r.Post("/info", GetAccountInfo)
+		r.Get("/info", GetAccountInfo)
 		r.Get("/balance", GetBalance)
 		r.Get("/record/play/list", GetPlayRecordList)
 		r.Get("/record/pay/list", GetPayRecordList)
@@ -75,8 +75,8 @@ func main() {
 		r.Post("/play", PlayActivity)
 		r.Post("/join", JoinGroup)
 		r.Post("/leave", LeaveGroup)
-		r.Get("/member/list", GetLiveActivityMemberList)
-		r.Get("/member/count", GetLiveActivityMemberCount)
+		r.Post("/member/list", GetLiveActivityMemberList)
+		r.Post("/member/count", GetLiveActivityMemberCount)
 
 	})
 	m.Group("/pay", func(r martini.Router) {
