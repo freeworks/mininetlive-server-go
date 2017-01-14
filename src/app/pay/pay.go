@@ -189,7 +189,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	logger.Info("[Pay]", "[Transfer]", "wxpubOpenId ", wxpubOpenId)
 	if wxpubOpenId == "" {
 		logger.Info("[Pay]", "还没有绑定公众账号")
-		render.JSON(200, Resp{2007, `还没有绑定公众账号，请关注公众账号"微网LIVE"输入"提现"!`, nil})
+		render.JSON(200, Resp{2007, `请关注公众账号"微网LIVE"输入"提现"!`, nil})
 		return
 	}
 
@@ -199,11 +199,11 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	// 1.00 和 20000.00
 	if err != nil {
 		logger.Info("[Pay]", "[Transfer]", "金额错误,", realAmount, "账户余额：", user.Balance)
-		render.JSON(200, Resp{2008, "金额错误，输入金额不正确！", nil})
+		render.JSON(200, Resp{2008, "请输入正确金额！", nil})
 		return
 	}
 	if realAmount >= uint64(user.Balance) {
-		render.JSON(200, Resp{2008, "金额错误，账户余额不足！", nil})
+		render.JSON(200, Resp{2008, "账户余额不足！", nil})
 		return
 	}
 	if realAmount < 100 || realAmount > 20000 {
@@ -229,7 +229,7 @@ func Transfer(req *http.Request, parms martini.Params, render render.Render, dbm
 	transfer, err := transfer.New(transferParams)
 	if err != nil {
 		CheckErr("[pay]", "[Transfer]", "transfer.New", err)
-		render.JSON(200, Resp{2006, "服务器异常，请稍后再试", nil})
+		render.JSON(200, Resp{2009, "服务器异常，请稍后再试", nil})
 		return
 	}
 	fr, _ := json.Marshal(transfer)

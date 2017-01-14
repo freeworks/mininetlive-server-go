@@ -17,8 +17,15 @@ $(document).ready(function(){
             return;
         }
 
-        var openId = location.search.slice(1)
-
+		var openId
+  		var reg = new RegExp("(^|&)=([^&]*)(&|$)", "i");
+    	var r = location.search.substr(1).match(reg);
+    	if (r != null) 
+			openId = unescape(r[2]);
+    	}else{
+			alert("链接错误!");
+			return;
+		}
         $.ajax({
             url: "/wxpub/bindphone",
             method: "POST",
