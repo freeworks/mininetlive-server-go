@@ -124,7 +124,7 @@ func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) 
 	var activities []QActivity
 	_, err := dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
-	FROM t_activity t WHERE t.activity_state = 1 AND t.stream_type = 0 ORDER BY t.create_time DESC`, uid, uid)
+	FROM t_activity t WHERE t.stream_type = 0 ORDER BY activity_state DESC, t.create_time DESC`, uid, uid)
 	CheckErr("[ActivityController]", "[GetLiveActivityList]", "select failed", err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
