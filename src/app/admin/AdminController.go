@@ -340,7 +340,11 @@ func Upload(r *http.Request, render render.Render) {
 		render.JSON(500, "server err")
 	}
 	file, head, err := r.FormFile("file")
-	CheckErr(tag, "[Upload]", "upload Fromfile", err)
+	CheckErr(tag, "[Upload]", "upload From file", err)
+	if err != nil {
+		render.JSON(200, Resp{1004, "图片上传失败！", nil})
+		return
+	}
 	filename := base64.StdEncoding.EncodeToString([]byte(head.Filename))
 	logger.Info(tag, "[Upload]", filename)
 	defer file.Close()
@@ -352,7 +356,7 @@ func Upload(r *http.Request, render render.Render) {
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
 	CheckErr(tag, "[Upload]", "copy file error", err)
-	url, err := upload.UploadImageFile(filepath, "frontCover/"+filename)
+	url, err := upload.UploadImageFile(filepath, "frontCover/"+head.Filename)
 	logger.Info(tag, "[Upload]", "url:", url)
 	if err == nil {
 		render.JSON(200, Resp{0, "图片上传成功！", map[string]interface{}{"url": url}})
