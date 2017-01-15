@@ -20,19 +20,21 @@ import (
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	cache "github.com/patrickmn/go-cache"
+
+	"encoding/base64"
 )
 
 var tag = "[AdminController]"
 
 func Index(r render.Render, dbmap *gorp.DbMap) {
 	newAmount, err := dbmap.SelectInt("SELECT sum(amount) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(tag,"[Index]","amount count",err)
+	CheckErr(tag, "[Index]", "amount count", err)
 	newOrderCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(tag,"[Index]","order count",err)
+	CheckErr(tag, "[Index]", "order count", err)
 	newUserCount, err := dbmap.SelectInt("SELECT count(*) FROM t_user Where create_time > ?", time.Now().Format("2006-01-02 00:00:00"))
-	CheckErr(tag,"[Index]","user count",err)
+	CheckErr(tag, "[Index]", "user count", err)
 	newmap := map[string]interface{}{"newAmount": newAmount, "newOrderCount": newOrderCount, "newUserCount": newUserCount}
-	logger.Info(tag,"[Index]", "newAmount", newAmount, "newOrderCount", newOrderCount, "newUserCount", newUserCount)
+	logger.Info(tag, "[Index]", "newAmount", newAmount, "newOrderCount", newOrderCount, "newUserCount", newUserCount)
 	r.JSON(200, Resp{0, "首页获取成功", newmap})
 }
 
@@ -41,27 +43,27 @@ func PostLogin(req *http.Request, session sessions.Session, r render.Render, dbm
 	phone := req.PostFormValue("phone")
 	password := req.PostFormValue("password")
 	if ValidatePhone(phone) && ValidatePassword(password) {
-		logger.Info(tag,"[PostLogin]","admin-login:" + phone + " " + password)
+		logger.Info(tag, "[PostLogin]", "admin-login:"+phone+" "+password)
 		var admin AdminModel
 		err := dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE phone = ? AND password = ?", phone, password)
-		CheckErr(tag,"[PostLogin]","Login select one by phone ,password",err, )
+		CheckErr(tag, "[PostLogin]", "Login select one by phone ,password", err)
 		if err != nil {
 			err = dbmap.SelectOne(&admin, "SELECT * FROM t_admin WHERE username = ? AND password = ?", phone, password)
-			CheckErr(tag,"[PostLogin]", "Login select one by username ,password",err)
+			CheckErr(tag, "[PostLogin]", "Login select one by username ,password", err)
 		}
 		if err != nil {
 			r.JSON(200, Resp{1021, "用户名或密码错误!", nil})
 			return
 		} else {
 			err := sessionauth.AuthenticateSession(session, &admin)
-			CheckErr(tag,"[PostLogin]", "Login AuthenticateSession",err)
+			CheckErr(tag, "[PostLogin]", "Login AuthenticateSession", err)
 			if err != nil {
 				r.JSON(200, Resp{1022, "校验失败!", nil})
 				return
 			}
-			logger.Info(tag,"[PostLogin]",req.URL)
+			logger.Info(tag, "[PostLogin]", req.URL)
 			redirectParams := req.URL.Query()[sessionauth.RedirectParam]
-			logger.Info(tag,"[PostLogin]","redirectParams", redirectParams)
+			logger.Info(tag, "[PostLogin]", "redirectParams", redirectParams)
 
 			var redirectPath string
 			if len(redirectParams) > 0 && redirectParams[0] != "null" {
@@ -114,7 +116,7 @@ func UpdatePassword(req *http.Request, c *cache.Cache, r render.Render, dbmap *g
 		if cacheVCode, found := c.Get(phone); found {
 			if cacheVCode.(string) == vCode {
 				_, err := dbmap.Exec("UPDATE t_admin SET password=? WHERE phone=?", password, phone)
-				CheckErr(tag,"UpdatePassword","",err)
+				CheckErr(tag, "UpdatePassword", "", err)
 				if err == nil {
 					r.JSON(200, Resp{0, "密码更新成功！", nil})
 					return
@@ -138,14 +140,14 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
 	if len(queryType) > 0 && queryType[0] == "filter" {
 		beginDate, endDate := GetTimesampe(req)
-		logger.Info(tag,"[GetOrderList]","FilterOrderList", beginDate, endDate)
+		logger.Info(tag, "[GetOrderList]", "FilterOrderList", beginDate, endDate)
 		var orders []Order
 		var mErr error
 		var mTotalCount, mTotalPageCount int
 		if beginDate == "" && endDate == "" {
 			_, err := dbmap.Select(&orders, "SELECT * FROM t_order ORDER BY create_time DESC LIMIT ?,? ", start, size)
 			totalCount, err := dbmap.SelectInt("select count(*) from t_order")
-			CheckErr(tag,"[GetOrderList]","",err)
+			CheckErr(tag, "[GetOrderList]", "", err)
 			m := int(totalCount) % size
 			totalPageCount := int(totalCount) / size
 			if m != 0 {
@@ -160,7 +162,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 				endDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE create_time >= ? AND create_time <= ? ORDER BY create_time DESC", beginDate,
 				endDate)
-			CheckErr(tag,"[GetOrderList]","",err)
+			CheckErr(tag, "[GetOrderList]", "", err)
 			m := int(totalCount) % size
 			totalPageCount := int(totalCount) / size
 			if m != 0 {
@@ -173,7 +175,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time <= ? ORDER BY create_time DESC LIMIT ?,? ",
 				endDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time <= ? ORDER BY create_time DESC", endDate)
-			CheckErr(tag,"[GetOrderList]","",err)
+			CheckErr(tag, "[GetOrderList]", "", err)
 			m := int(totalCount) % size
 			totalPageCount := int(totalCount) / size
 			if m != 0 {
@@ -186,7 +188,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			_, err := dbmap.Select(&orders, "SELECT * FROM t_order WHERE  create_time >= ? ORDER BY create_time DESC LIMIT ?,? ",
 				beginDate, start, size)
 			totalCount, err := dbmap.SelectInt("SELECT count(*) FROM t_order WHERE  create_time >= ? ORDER BY create_time DESC", beginDate)
-			CheckErr(tag,"[GetOrderList]","",err)
+			CheckErr(tag, "[GetOrderList]", "", err)
 			m := int(totalCount) % size
 			totalPageCount := int(totalCount) / size
 			if m != 0 {
@@ -196,7 +198,7 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 			mTotalPageCount = totalPageCount
 			mErr = err
 		}
-		CheckErr(tag,"[GetOrderList]","",mErr)
+		CheckErr(tag, "[GetOrderList]", "", mErr)
 		if mErr == nil {
 			newmap := map[string]interface{}{
 				"totalCount":     mTotalCount,
@@ -209,9 +211,9 @@ func GetOrderList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	} else {
 		var orders []Order
 		_, err := dbmap.Select(&orders, "SELECT * FROM t_order ORDER BY create_time DESC LIMIT ?,?", start, size)
-		CheckErr(tag,"[GetOrderList]","",err)
+		CheckErr(tag, "[GetOrderList]", "", err)
 		totalCount, err := dbmap.SelectInt("select count(*) from t_order")
-		CheckErr(tag,"[GetOrderList]","",err)
+		CheckErr(tag, "[GetOrderList]", "", err)
 		m := int(totalCount) % size
 		totalPageCount := int(totalCount) / size
 		if m != 0 {
@@ -286,8 +288,8 @@ func GetActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	start, size := GetLimit(req)
 	var activities []QActivity
 	_, err := dbmap.Select(&activities, "SELECT * FROM t_activity ORDER BY create_time DESC LIMIT ?,? ", start, size)
-	CheckErr(tag,"[GetActivityList]","",err)
-	logger.Info(tag,"[GetActivityList]",activities)
+	CheckErr(tag, "[GetActivityList]", "", err)
+	logger.Info(tag, "[GetActivityList]", activities)
 
 	totalCount, err := dbmap.SelectInt("select count(*) from t_activity")
 	m := int(totalCount) % size
@@ -312,8 +314,8 @@ func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	id := params["id"]
 	var activity QActivity
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ?", id)
-	CheckErr(tag,"[GetActivity]","",err)
-	logger.Info(tag,"[GetActivity]",activity)
+	CheckErr(tag, "[GetActivity]", "", err)
+	logger.Info(tag, "[GetActivity]", activity)
 	if err == nil {
 		r.JSON(200, Resp{0, "获取活动成功", activity})
 	} else {
@@ -323,7 +325,7 @@ func GetActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 
 func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	_, err := dbmap.Exec("DELETE from t_activity WHERE aid=?", params["id"])
-	CheckErr(tag,"[DeleteActivity]","DeleteActivity delete failed",err)
+	CheckErr(tag, "[DeleteActivity]", "DeleteActivity delete failed", err)
 	if err == nil {
 		r.JSON(200, Resp{0, "删除活动成功", nil})
 	} else {
@@ -332,24 +334,26 @@ func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func Upload(r *http.Request, render render.Render) {
-	logger.Info(tag,"[Upload]")
+	logger.Info(tag, "[Upload]")
 	err := r.ParseMultipartForm(100000)
 	if err != nil {
 		render.JSON(500, "server err")
 	}
 	file, head, err := r.FormFile("file")
-	CheckErr(tag,"[Upload]","upload Fromfile",err)
-	logger.Info(tag,"[Upload]",head.Filename)
+	CheckErr(tag, "[Upload]", "upload Fromfile", err)
+	filename := base64.StdEncoding.EncodeToString([]byte(head.Filename))
+	logger.Info(tag, "[Upload]", filename)
 	defer file.Close()
 	err = Mkdir(config.ImgDir)
-	CheckErr(tag,"[Upload]", "create dir error",err)
-	filepath := config.ImgDir + head.Filename
+	CheckErr(tag, "[Upload]", "create dir error", err)
+	filepath := config.ImgDir + filename
 	fW, err := os.Create(filepath)
-	CheckErr(tag,"[Upload]", "create file error",err)
+	CheckErr(tag, "[Upload]", "create file error", err)
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
-	CheckErr(tag,"[Upload]", "copy file error",err)
-	url, err := upload.UploadImageFile(filepath, "frontCover/"+head.Filename)
+	CheckErr(tag, "[Upload]", "copy file error", err)
+	url, err := upload.UploadImageFile(filepath, "frontCover/"+filename)
+	logger.Info(tag, "[Upload]", "url:", url)
 	if err == nil {
 		render.JSON(200, Resp{0, "图片上传成功！", map[string]interface{}{"url": url}})
 	} else {
@@ -358,7 +362,7 @@ func Upload(r *http.Request, render render.Render) {
 }
 
 func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *cache.Cache, dbmap *gorp.DbMap) {
-	logger.Info(tag,"[NewActivity]")
+	logger.Info(tag, "[NewActivity]")
 	uid := user.UniqueId().(string)
 	activity.Aid = AID()
 	activity.Uid = uid
@@ -369,9 +373,9 @@ func NewActivity(activity NActivity, user sessionauth.User, r render.Render, c *
 	if activity.StreamType == 0 {
 		activity.LivePullPath = generatePullPath(activity.StreamId)
 	}
-	logger.Info(tag,"[NewActivity]", activity.String())
+	logger.Info(tag, "[NewActivity]", activity.String())
 	err = dbmap.Insert(&activity)
-	CheckErr(tag,"[NewActivity]", "NewActivity insert failed",err)
+	CheckErr(tag, "[NewActivity]", "NewActivity insert failed", err)
 	if err == nil {
 		newmap := map[string]interface{}{"id": activity.Aid, "livePushPath": activity.LivePushPath}
 		go PushNewActivity(activity.Aid, activity.Title)
@@ -386,20 +390,20 @@ func generatePushPath(streamId string, record bool, filename string) string {
 	if filename != "" {
 		pushPath = pushPath + "&filename=" + filename
 	}
-	logger.Info(tag,"[generatePushPath]","GeneratePushPath :", pushPath)
+	logger.Info(tag, "[generatePushPath]", "GeneratePushPath :", pushPath)
 	return pushPath
 }
 
 func generatePullPath(streamId string) string {
 	pullPath := "rtmp://rtmp.weiwanglive.com/mininetlive/" + streamId
-	logger.Info(tag,"[generatePullPath]","GeneratePullPath :", pullPath)
+	logger.Info(tag, "[generatePullPath]", "GeneratePullPath :", pullPath)
 	return pullPath
 }
 
 func UpdateActivity(params martini.Params, activity NActivity, r render.Render, dbmap *gorp.DbMap) {
 	var orgActivity NActivity
 	err := dbmap.SelectOne(&orgActivity, "SELECT * FROM t_activity WHERE id = ?", params["id"])
-	CheckErr(tag,"[UpdateActivity]","UpdateActivity get Activity err ",err)
+	CheckErr(tag, "[UpdateActivity]", "UpdateActivity get Activity err ", err)
 	if err != nil {
 		r.JSON(200, Resp{1003, "更新活动失败", nil})
 	} else {
@@ -414,9 +418,9 @@ func UpdateActivity(params martini.Params, activity NActivity, r render.Render, 
 		orgActivity.FrontCover = activity.FrontCover
 		orgActivity.Price = activity.Price
 		orgActivity.IsRecommend = activity.IsRecommend
-		logger.Info(tag,orgActivity)
+		logger.Info(tag, orgActivity)
 		_, err = dbmap.Update(&orgActivity)
-		CheckErr(tag,"[UpdateActivity]","UpdateActivity  update failed",err)
+		CheckErr(tag, "[UpdateActivity]", "UpdateActivity  update failed", err)
 		if err != nil {
 			r.JSON(200, Resp{1004, "更新活动失败", nil})
 		} else {
