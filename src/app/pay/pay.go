@@ -300,7 +300,10 @@ func Webhook(w http.ResponseWriter, r *http.Request, dbmap *gorp.DbMap) {
 				logger.Info("[Pay]", "[Webhook]", "UPDATE t_record SET state = 1 WHERE orderno = "+orderNo+" AND type = 2")
 				//update pay record
 				_, err := dbmap.Exec("UPDATE t_record SET state = 1 WHERE orderno = ? AND type = 2", orderNo)
-				CheckErr("[Pay]", "[Webhook]", "update pay record", err)
+				CheckErr("[Pay]", "[Webhook]", "update t_record ", err)
+				//update pay order
+				_, err = dbmap.Exec("UPDATE t_order SET state = 1 WHERE orderno = ?", orderNo)
+				CheckErr("[Pay]", "[Webhook]", "update t_order ", err)
 				var user User
 				err = dbmap.SelectOne(&user, "SELECT * FROM t_user WHERE uid=?", order.Uid)
 				CheckErr("[Pay]", "[Webhook]", "select user", err)

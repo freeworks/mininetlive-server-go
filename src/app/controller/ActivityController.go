@@ -61,17 +61,14 @@ func PlayActivity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	uid := req.Header.Get("uid")
-	logger.Info("[ActivityController]", "[GetHomeList]", "uid->", uid)
+	logger.Info("[ActivityController]", "[GetHomeList]")
 	var recomendActivities []QActivity
 	var activities []QActivity
-	_, err := dbmap.Select(&recomendActivities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
-	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
-	WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC`, uid, uid)
+	_, err := dbmap.Select(&recomendActivities, `SELECT * FROM t_activity t
+	WHERE is_recommend = 1 ORDER BY activity_state ASC, create_time DESC`)
 	CheckErr("[ActivityController]", "[GetHomeList]", "get recomend list", err)
-	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
-	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  FROM t_activity t
-	WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ?`, uid, uid, PageSize+1)
+	_, err = dbmap.Select(&activities, `SELECT * FROM t_activity t 
+	WHERE is_recommend = 0 ORDER BY activity_state ASC, create_time DESC LIMIT ?`, PageSize+1)
 	CheckErr("[ActivityController]", "[GetHomeList]", "get Activity List", err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
@@ -90,7 +87,6 @@ func GetHomeList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func GetMoreActivityList(req *http.Request, params martini.Params, r render.Render, dbmap *gorp.DbMap) {
-	uid := req.Header.Get("uid")
 	lastAid := params["lastAid"]
 	if lastAid == "" {
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
@@ -100,10 +96,8 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 	err := dbmap.SelectOne(&activity, "SELECT * FROM t_activity WHERE aid = ? ", lastAid)
 	logger.Info("[ActivityController]", "[GetMoreActivityList]", activity.Created)
 	var activities []QActivity
-	_, err = dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state,
-	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
-	FROM t_activity t 
-	WHERE t.create_time < ? AND t.activity_state >= ? AND t.is_recommend = 0 ORDER BY t.activity_state ASC, t.create_time DESC  LIMIT ?`, uid, uid, activity.Created, activity.ActivityState, PageSize+1)
+	_, err = dbmap.Select(&activities, `SELECT * FROM t_activity t 
+	WHERE t.create_time < ? AND t.activity_state >= ? AND t.is_recommend = 0 ORDER BY t.activity_state ASC, t.create_time DESC  LIMIT ?`, activity.Created, activity.ActivityState, PageSize+1)
 	CheckErr("[ActivityController]", "[GetMoreActivityList]", "GetActivityList select failed", err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
@@ -120,11 +114,8 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 }
 
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	uid := req.Header.Get("uid")
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= t.aid)  AS pay_state, 
-	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= t.aid)  AS appoint_state  
-	FROM t_activity t WHERE t.stream_type = 0 ORDER BY activity_state DESC, t.create_time DESC`, uid, uid)
+	_, err := dbmap.Select(&activities, `SELECT * FROM t_activity t WHERE t.stream_type = 0 ORDER BY activity_state DESC, t.create_time DESC`)
 	CheckErr("[ActivityController]", "[GetLiveActivityList]", "select failed", err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
@@ -142,7 +133,7 @@ func GetActivityDetail(req *http.Request, params martini.Params, r render.Render
 		r.JSON(200, Resp{1105, "添加活动失败,aid不能为空", nil})
 		return
 	}
-	err := dbmap.SelectOne(&activity, `SELECT *, (SELECT count(*) FROM t_record WHERE type = 2 AND uid = ? AND  aid= ?)  AS pay_state, 
+	err := dbmap.SelectOne(&activity, `SELECT *, (SELECT  count(*) > 0 FROM t_record r WHERE r.type = 2 AND r.state = 1 AND r.uid =? AND  r.aid=?)  AS pay_state, 
 	(SELECT count(*) FROM t_record WHERE type = 0 AND uid = ? AND  aid= ?)  AS appoint_state  
 	FROM t_activity t WHERE t.aid = ?`, uid, aid, uid, aid, aid)
 	CheckErr("[ActivityController]", "[GetActivityDetail]", "select failed", err)
