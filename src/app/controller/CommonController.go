@@ -18,3 +18,7 @@ func GetStartConfig(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	config["enable"] = true
 	r.JSON(200, Resp{0, "ok", config})
 }
+
+func ShowH5Activity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
+	r.JSON(200, Resp{0, "ok", nil})
+}

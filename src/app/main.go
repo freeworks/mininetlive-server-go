@@ -95,6 +95,9 @@ func main() {
 	m.Post("/wxpub/config", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.Post("/wxpub/jsconfig", GetConfig)
+
+	m.Get("/wxpub/gz/activity/list", ShowH5Activity)
+
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
