@@ -34,7 +34,10 @@ func main() {
 	m.Map(dbmap)
 	m.Map(c)
 	m.Use(logger.Logger())
-	m.Use(render.Renderer()) // 解析模板，默认路径为templates
+	m.Use(render.Renderer(render.Options{
+		Directory:  "public",
+		Extensions: []string{".tmpl", ".html"},
+	}))
 	m.Post("/auth/login", binding.Bind(LocalAuth{}), Login)
 	m.Post("/auth/register", binding.Bind(LocalAuthUser{}), Register)
 	m.Post("/auth/logout", Logout)
@@ -45,7 +48,6 @@ func main() {
 	m.Post("/auth/bindPush", BindPush)
 	m.Post("/oauth/login", binding.Bind(OAuth{}), LoginOAuth)
 	m.Post("/oauth/register", binding.Bind(OAuthUser{}), RegisterOAuth)
-
 	m.Group("/common", func(r martini.Router) {
 		r.Post("/inviteCode", PostInviteCode)
 		r.Get("/startConfig", GetStartConfig)
@@ -84,7 +86,6 @@ func main() {
 		r.Post("/webhook", pay.Webhook)
 		r.Post("/transfer", pay.Transfer)
 	})
-
 	m.Get("/callback/record/finish", CallbackRecordFinish)
 	m.Get("/callback/live/begin", CallbackLiveBegin)
 	m.Get("/callback/live/end", CallbackLiveEnd)
@@ -95,20 +96,15 @@ func main() {
 	m.Post("/wxpub/config", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.Post("/wxpub/jsconfig", GetConfig)
-
 	m.Get("/wxpub/gz/activity/list", ShowH5Activity)
-
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
 	})
-
 	m.Group("/debug", func(r martini.Router) {
 		r.Post("/push", TestPush)
 		r.Post("/testJSConfig", GetConfig)
 	})
-
 	go intervaler.PollSyncPingxx(dbmap)
-
 	go func() {
 		m := martini.Classic() // 默认配置静态目录public
 		c := cache.New(cache.NoExpiration, 30*time.Second)
@@ -120,17 +116,13 @@ func main() {
 		m.Use(sessionauth.SessionUser(admin.GenerateAnonymousUser))
 		sessionauth.RedirectUrl = "/login"
 		sessionauth.RedirectParam = "next"
-
 		m.Post("/", sessionauth.LoginRequired, admin.Index)
-
 		m.Post("/login", admin.PostLogin)
 		m.Get("/login", admin.GetLogin)
 		m.Post("/getVCode", admin.GetVCode)
 		m.Post("/password/update", admin.UpdatePassword)
 		m.Post("/logout", sessionauth.LoginRequired, admin.Logout)
-
 		m.Post("/upload", admin.Upload)
-
 		m.Group("/activity", func(r martini.Router) {
 			r.Get("/list", admin.GetActivityList)
 			r.Get("/detail/:id", admin.GetActivity)
@@ -142,11 +134,9 @@ func main() {
 		m.Get("/order/list", sessionauth.LoginRequired, admin.GetOrderList)
 		m.Get("/order/chart/:graph", admin.GetOrderChat)
 		m.Get("/income/chart/:graph", admin.GetIncomChart)
-
 		m.Get("/user/list", sessionauth.LoginRequired, admin.GetUserList)
-
 		m.RunOnAddr(":8081")
 	}()
 
-	m.RunOnAddr(":80")
+	m.RunOnAddr(":8080")
 }

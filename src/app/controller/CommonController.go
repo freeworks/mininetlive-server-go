@@ -20,5 +20,6 @@ func GetStartConfig(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 }
 
 func ShowH5Activity(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
-	r.JSON(200, Resp{0, "ok", nil})
+	//	r.JSON(200, Resp{0, "ok", nil})
+	r.HTML(200, "home", "")
 }
