@@ -122,7 +122,8 @@ func main() {
 		m.Post("/getVCode", admin.GetVCode)
 		m.Post("/password/update", admin.UpdatePassword)
 		m.Post("/logout", sessionauth.LoginRequired, admin.Logout)
-		m.Post("/upload", admin.Upload)
+		m.Post("/uploadFrontCover", admin.UploadFrontCover)
+		m.Post("/uploadVideo",admin.UploadVideo)
 		m.Group("/activity", func(r martini.Router) {
 			r.Get("/list", admin.GetActivityList)
 			r.Get("/detail/:id", admin.GetActivity)
@@ -138,5 +139,5 @@ func main() {
 		m.RunOnAddr(":8081")
 	}()
 
-	m.RunOnAddr(":8080")
+	m.RunOnAddr(":80")
 }

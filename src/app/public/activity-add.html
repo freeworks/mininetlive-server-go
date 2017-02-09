@@ -127,9 +127,16 @@
                             </div>
 							 <div class="field-box" id="streamContainer" style="display:none;">
                                 <label>视频地址</label>
-                                <div class="input-prepend input-append">
-                                  <input class="span8" type="text" id="videoPath" name="videoPath" style="width:600px"/>
-                                </div>
+                                <div style="display: inline-block;vertical-align: middle;">
+                                    <label id="videoFilePathLabel" 
+                                    class="btn-flat primary" for="videoFilePath" style="
+                                    width:auto;
+                                    padding: 7px 20px;">选择文件</label>              
+                                    <input type="file" id="videoFilePath" accept="video/mp4" style="position:absolute;clip:rect(0 0 0 0);">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                    <input type="text" id="videoPath" name="videoPath" placeholder="视频网络地址" 
+                                    style="width:550px;"/>
+                                </div>                             
                             </div>   
                             <div class="field-box">
                                 <label>类型</label>
@@ -195,6 +202,6 @@
 
     <script type="text/javascript" src="static/js/browser.js"></script>
     <script type="text/javascript" src="static/js/common.js?1112	"></script>
-    <script type="text/javascript" src="static/js/activity-add.js?1116"></script>
+    <script type="text/javascript" src="static/js/activity-add.js?1119"></script>
 </body>
 </html>

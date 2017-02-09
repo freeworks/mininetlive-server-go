@@ -356,12 +356,44 @@ func Upload(r *http.Request, render render.Render) {
 	defer fW.Close()
 	_, err = io.Copy(fW, file)
 	CheckErr(tag, "[Upload]", "copy file error", err)
-	url, err := upload.UploadImageFile(filepath, "frontCover/"+head.Filename)
+	url, err := upload.UploadImageFile(filepath, "frontCover/"+filename)
 	logger.Info(tag, "[Upload]", "url:", url)
 	if err == nil {
 		render.JSON(200, Resp{0, "图片上传成功！", map[string]interface{}{"url": url}})
 	} else {
 		render.JSON(200, Resp{1004, "图片上传失败！", nil})
+	}
+}
+
+func UploadVideo(r *http.Request, render render.Render) {
+	logger.Info(tag, "[UploadVideo]")
+	err := r.ParseMultipartForm(100000)
+	if err != nil {
+		render.JSON(500, "server err")
+	}
+	file, head, err := r.FormFile("file")
+	CheckErr(tag, "[UploadVideo]", "upload From file", err)
+	if err != nil {
+		render.JSON(200, Resp{1004, "视频文件上传失败！", nil})
+		return
+	}
+	filename := base64.StdEncoding.EncodeToString([]byte(head.Filename))
+	logger.Info(tag, "[UploadVideo]", filename)
+	defer file.Close()
+	err = Mkdir(config.ImgDir)
+	CheckErr(tag, "[UploadVideo]", "create dir error", err)
+	filepath := config.ImgDir + filename
+	fW, err := os.Create(filepath)
+	CheckErr(tag, "[UploadVideo]", "create file error", err)
+	defer fW.Close()
+	_, err = io.Copy(fW, file)
+	CheckErr(tag, "[UploadVideo]", "copy file error", err)
+	url, err := upload.UploadVideoFile(filepath, filename)
+	logger.Info(tag, "[UploadVideo]", "url:", url)
+	if err == nil {
+		render.JSON(200, Resp{0, "视频上传成功！", map[string]interface{}{"url": url}})
+	} else {
+		render.JSON(200, Resp{1004, "视频上传失败！", nil})
 	}
 }
 

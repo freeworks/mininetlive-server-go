@@ -21,6 +21,7 @@ $(document).ready(function(){
     var $frontCover = $("#frontCover");
     var $frontCoverImg = $("#frontCoverImg");
     var $uploadContainer = $(".uploadContainer");
+    var $videoFilePath = $("#videoFilePath")
     var params = {};
 
     $frontCover.on('change', function(){
@@ -68,6 +69,30 @@ $(document).ready(function(){
                 })
             }
         })
+    })
+
+    $videoFilePath.on('change', function(){
+        var formData = new FormData();
+        var file = this.files[0];
+        name = file.name;
+        size = file.size;
+        type = file.type;
+        if(type != "video/mp4"){
+            alert("视频文件类型错误!");
+            return;
+        }
+        formData.append('file', file)
+        var contentType = false;
+        $("#videoFilePathLabel")[0].innerText="上传中..."
+        mininet.ajaxFile("post", "/uploadVideo", formData, function(rsp){
+            debugger
+            if (rsp.ret == 0){
+                $("#videoPath").val(rsp.data.url);
+            }else{
+                 alert("视频文件上传失败!");
+            }
+            $("#videoFilePathLabel")[0].innerText="选择文件"
+        });
     })
 });
 
