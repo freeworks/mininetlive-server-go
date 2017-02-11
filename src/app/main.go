@@ -96,6 +96,7 @@ func main() {
 	m.Post("/wxpub/config", GetVCodeForWxPub)
 	m.Post("/wxpub/bindphone", BindWxPubPhone)
 	m.Post("/wxpub/jsconfig", GetConfig)
+	m.Get("/wxpub/jsconfig", GetConfig)
 	m.Get("/wxpub/gz/activity/list", ShowH5Activity)
 	m.NotFound(func(r render.Render) {
 		r.JSON(404, "接口不存在/请求方法错误")
@@ -123,7 +124,7 @@ func main() {
 		m.Post("/password/update", admin.UpdatePassword)
 		m.Post("/logout", sessionauth.LoginRequired, admin.Logout)
 		m.Post("/uploadFrontCover", admin.UploadFrontCover)
-		m.Post("/uploadVideo",admin.UploadVideo)
+		m.Post("/uploadVideo", admin.UploadVideo)
 		m.Group("/activity", func(r martini.Router) {
 			r.Get("/list", admin.GetActivityList)
 			r.Get("/detail/:id", admin.GetActivity)

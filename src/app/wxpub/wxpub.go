@@ -323,7 +323,7 @@ type JSTokenResult struct {
 	Expires_in int64
 }
 
-func GetConfig(req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
+func GetConfig(w http.ResponseWriter, req *http.Request, c *cache.Cache, r render.Render, dbmap *gorp.DbMap) {
 	req.ParseForm()
 	url := req.PostFormValue("url")
 	logger.Info(tag, "[GetConfig]", "url:", url)

@@ -14,7 +14,7 @@ func GetStartConfig(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	platform := req.Header.Get("platform")
 	logger.Info("[CommonController]", "[GetStartConfig]", "platform ", platform)
 	config := make(map[string]interface{})
-	config["isRelease"] = true
+	config["isRelease"] = false
 	config["enable"] = true
 	r.JSON(200, Resp{0, "ok", config})
 }

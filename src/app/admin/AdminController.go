@@ -333,7 +333,7 @@ func DeleteActivity(params martini.Params, r render.Render, dbmap *gorp.DbMap) {
 	}
 }
 
-func Upload(r *http.Request, render render.Render) {
+func UploadFrontCover(r *http.Request, render render.Render) {
 	logger.Info(tag, "[Upload]")
 	err := r.ParseMultipartForm(100000)
 	if err != nil {
