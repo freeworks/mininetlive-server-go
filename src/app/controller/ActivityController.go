@@ -115,7 +115,7 @@ func GetMoreActivityList(req *http.Request, params martini.Params, r render.Rend
 
 func GetLiveActivityList(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 	var activities []QActivity
-	_, err := dbmap.Select(&activities, `SELECT * FROM t_activity t WHERE t.stream_type = 0 ORDER BY activity_state DESC, t.create_time DESC`)
+	_, err := dbmap.Select(&activities, `SELECT * FROM t_activity t WHERE t.stream_type = 0 and t.activity_state = 2 ORDER BY activity_state DESC, t.create_time DESC`)
 	CheckErr("[ActivityController]", "[GetLiveActivityList]", "select failed", err)
 	if err != nil {
 		r.JSON(200, Resp{1104, "查询活动失败", nil})
@@ -153,7 +153,7 @@ func JoinGroup(req *http.Request, r render.Render, dbmap *gorp.DbMap) {
 		r.JSON(200, Resp{0, "加入失败！", nil})
 		return
 	} else {
-		_, err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(NULL,?,?,now())`, aid, uid)
+		_, err := dbmap.Exec(`INSERT INTO t_activity_user_online VALUE(?,?,now())`, aid, uid)
 		CheckErr("[ActivityController]", "JoinGroup", "", err)
 	}
 	r.JSON(200, Resp{0, "加入成功", nil})
